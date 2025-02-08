@@ -23,9 +23,9 @@
     // Once all dependencies are fetched, `zig build` no longer requires
     // internet connectivity.
     .dependencies = .{
-        .ymlz = .{
-            .url = "https://github.com/pwbh/ymlz/archive/refs/tags/0.3.4.tar.gz",
-            .hash = "1220ed1736bf5f543a77a7bf205d884fa5c5e9393ab99f03401018c8af5792cf8373",
+        .yaml = .{
+            .url = "https://github.com/Gota7/zig-yaml/archive/refs/heads/zig-0.13.0.zip",
+            .hash = "122052826c2da008d75b9075b0debe2a3772243df1634fefa3b304263d31100af2ab",
         },
     },
     .paths = .{

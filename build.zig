@@ -46,8 +46,7 @@ pub fn generateBindings(b: *std.Build, cfg: std.Build.TestOptions) *std.Build.St
         .root_source_file = b.path("generate.zig"),
         .version = cfg.version,
     });
-    const ymlz = b.dependency("ymlz", .{});
-    exe.root_module.addImport("ymlz", ymlz.module("root"));
+    exe.root_module.addImport("yaml", b.dependency("yaml", .{ .log = false }).module("yaml"));
     b.installArtifact(exe);
     const run = b.addRunArtifact(exe);
     run.step.dependOn(b.getInstallStep());

@@ -1,25 +1,92 @@
 const std = @import("std");
-const ymlz = @import("ymlz");
+const yaml = @import("yaml");
+
+fn parseList(comptime Item: type, list: yaml.List, allocator: std.mem.Allocator) ![]Item {
+    const ret = try allocator.alloc(Item, list.len);
+    for (list, 0..list.len) |item, ind| {
+        ret[ind] = Item.parse(try item.asMap(), allocator);
+    }
+    return ret;
+}
+
+fn parseStrings(list: yaml.List, allocator: std.mem.Allocator) ![][]const u8 {
+    const ret = try allocator.alloc([]const u8, list.len);
+    errdefer allocator.free(ret);
+    for (list, 0..list.len) |item, ind| {
+        ret[ind] = try item.asString();
+    }
+    return ret;
+}
 
 const ValueData = struct {
     zigValue: []const u8,
     sdlValue: []const u8,
-    comment: []const u8,
+    comment: ?[]const u8,
+
+    pub fn parse(map: yaml.Map, allocator: std.mem.Allocator) !ValueData {
+        _ = allocator;
+        return .{
+            .zigValue = try map.get("ZigValue").?.asString(),
+            .sdlValue = try map.get("SdlValue").?.asString(),
+            .comment = try if (map.get("Comment")) |val| val.asString() else null,
+        };
+    }
+
+    pub fn free(self: *ValueData, allocator: std.mem.Allocator) void {
+        _ = self;
+        _ = allocator;
+    }
 };
 
 const Enum = struct {
     sdlType: []const u8,
     zigType: []const u8,
     internalType: []const u8,
-    comment: []const u8,
+    comment: ?[]const u8,
     values: []const ValueData,
-    functions: []const Function,
+    functions: ?[]const Function,
+
+    pub fn parse(map: yaml.Map, allocator: std.mem.Allocator) !Enum {
+        return .{
+            .sdlType = try map.get("SdlType").?.asString(),
+            .zigType = try map.get("ZigType").?.asString(),
+            .internalType = try map.get("InternalType").?.asString(),
+            .comment = try if (map.get("Comment")) |val| val.asString() else null,
+            .values = try parseList(ValueData, map.get("Values").?.asList()),
+            .functions = if (map.get("Functions")) |val| try parseList(Function, val.asList(), allocator),
+        };
+    }
+
+    pub fn free(self: *Enum, allocator: std.mem.Allocator) void {
+        for (self.values) |value| {
+            value.free(allocator);
+        }
+        allocator.free(self.values);
+        if (self.functions) |funcs| {
+            for (funcs) |func| {
+                func.free(allocator);
+            }
+            allocator.free(funcs);
+        }
+    }
 };
 
 const Error = struct {
     name: []const u8,
     comment: []const u8,
     values: [][]const u8,
+
+    pub fn parse(map: yaml.Map, allocator: std.mem.Allocator) !Error {
+        return .{
+            .name = try map.get("Name").?.asString(),
+            .comment = try map.get("Comment").?.asString(),
+            .values = try parseStrings(try map.get("Values").?.asList(), allocator),
+        };
+    }
+
+    pub fn free(self: *Error, allocator: std.mem.Allocator) void {
+        allocator.free(self.values);
+    }
 };
 
 const Function = struct {
@@ -29,17 +96,59 @@ const Function = struct {
     ret: struct {
         sdl: []const u8,
         zig: []const u8,
-        convert: []const u8,
-        checks: []const struct {
+        convert: ?[]const u8,
+        checks: ?[]const struct {
             method: []const u8,
             comparisonVal: []const u8,
+
+            pub fn parse(map: yaml.Map, allocator: std.mem.Allocator) !Error {
+                _ = allocator;
+                return .{
+                    .method = try map.get("Method").?.asString(),
+                    .comparisonVal = try map.get("ComparisonVal").?.asString(),
+                };
+            }
+
+            pub fn free(self: *@This(), allocator: std.mem.Allocator) void {
+                _ = self;
+                _ = allocator;
+            }
         },
+
+        pub fn parse(map: yaml.Map, allocator: std.mem.Allocator) !Error {
+            return .{
+                .sdl = try map.get("Sdl").?.asString(),
+                .zig = try map.get("Zig").?.asString(),
+                .convert = if (map.get("Convert")) |val| try val.asString() else null,
+                .checks = if (map.get("Checks")) |val| try parseList(@TypeOf(Function.checks), try val.asList(), allocator) else null,
+            };
+        }
+
+        pub fn free(self: *@This(), allocator: std.mem.Allocator) void {
+            _ = self;
+            _ = allocator;
+        }
     },
     arguments: []const struct {
         name: []const u8,
-        type: []const u8,
-        value: []const u8,
-        mode: []const u8,
+        type: ?[]const u8,
+        value: ?[]const u8,
+        mode: ?[]const u8,
+
+        pub fn parse(map: yaml.Map, allocator: std.mem.Allocator) !Error {
+            _ = allocator;
+            return .{
+                .name = try map.get("Name").?.asString(),
+                .type = if (map.get("Type")) |val| try val.asString() else null,
+                .value = if (map.get("Value")) |val| try val.asString() else null,
+                .mode = if (map.get("Mode")) |val| try val.asString() else null,
+            };
+        }
+
+        pub fn free(self: *@This(), allocator: std.mem.Allocator) void {
+            _ = self;
+            _ = allocator;
+        }
     },
 };
 
@@ -110,12 +219,40 @@ const Typedef = struct {
     sdlName: []const u8,
     zigName: []const u8,
     comment: []const u8,
+
+    pub fn parse(map: yaml.Map, allocator: std.mem.Allocator) !Error {
+        _ = allocator;
+        return .{
+            .sdlName = try map.get("SdlName").?.asString(),
+            .zigName = try map.get("ZigName").?.asString(),
+            .comment = try map.get("Comment").?.asString(),
+        };
+    }
+
+    pub fn free(self: *Test, allocator: std.mem.Allocator) void {
+        _ = self;
+        _ = allocator;
+    }
 };
 
 const Test = struct {
     name: []const u8,
     comment: []const u8,
     code: []const u8,
+
+    pub fn parse(map: yaml.Map, allocator: std.mem.Allocator) !Error {
+        _ = allocator;
+        return .{
+            .name = try map.get("Name").?.asString(),
+            .comment = try map.get("Comment").?.asString(),
+            .code = try map.get("Code").?.asString(),
+        };
+    }
+
+    pub fn free(self: *Test, allocator: std.mem.Allocator) void {
+        _ = self;
+        _ = allocator;
+    }
 };
 
 const Subsystem = struct {
@@ -141,6 +278,28 @@ const Subsystem = struct {
     }
 };
 
+const SubsystemRaw = struct {
+    name: []const u8,
+    extension: bool,
+    callbacks: []const Function,
+    enums: []const Enum,
+    errors: []const Error,
+    values: []const Value,
+    flags: []const Flag,
+    stringMap: []const StringMap,
+    structs: []const Struct,
+    functions: []const Function,
+    customFunctions: []const struct {
+        code: []const u8,
+    },
+    typedefs: []const Typedef,
+    tests: []const Test,
+
+    pub fn make() Subsystem {
+        return .{};
+    }
+};
+
 const File = struct {
     name: []const u8,
     exports: []const struct {
@@ -155,6 +314,23 @@ const File = struct {
     pub fn lessThan(ctx: void, lhs: File, rhs: File) bool {
         _ = ctx;
         return std.mem.lessThan(u8, lhs.name, rhs.name);
+    }
+};
+
+const FileRaw = struct {
+    name: []const u8,
+    exports: []const struct {
+        sdlName: []const u8,
+        zigName: []const u8,
+        kind: []const u8,
+        extra: []const struct {
+            arg: []const u8,
+        },
+    },
+
+    pub fn make(self: FileRaw) File {
+        _ = self;
+        return .{};
     }
 };
 
@@ -1390,26 +1566,27 @@ pub fn main() !void {
     defer arena.deinit();
     const allocator = arena.allocator();
 
-    // Load the bindings YAML files. Don't worry, if it's formatted incorrectly the program will randomly segfault (it's a ymlz thing).
+    // Load the bindings YAML files.
     var result = Bindings{
         .subsystems = std.ArrayList(Subsystem).init(allocator),
         .files = std.ArrayList(File).init(allocator),
     };
-    var yml_subsystem = try ymlz.Ymlz(Subsystem).init(allocator);
-    var yml_file = try ymlz.Ymlz(File).init(allocator);
     const subsystems_dir = try std.fs.cwd().openDir("bindings/subsystems", .{ .iterate = true });
     var subsystems_iter = subsystems_dir.iterate();
     while (try subsystems_iter.next()) |subsystem| {
         if (subsystem.kind != .file or !std.mem.endsWith(u8, subsystem.name, ".yaml"))
             continue;
-        try result.subsystems.append(try yml_subsystem.loadFile(try subsystems_dir.realpathAlloc(allocator, subsystem.name)));
+        var untyped = try yaml.Yaml.load(allocator, try subsystems_dir.realpathAlloc(allocator, subsystem.name));
+        var parsed = try untyped.parse(SubsystemRaw);
+        try result.subsystems.append(parsed.make());
     }
     const files_dir = try std.fs.cwd().openDir("bindings/files", .{ .iterate = true });
     var files_iter = files_dir.iterate();
     while (try files_iter.next()) |file| {
         if (file.kind != .file or !std.mem.endsWith(u8, file.name, ".yaml"))
             continue;
-        try result.files.append(try yml_file.loadFile(try files_dir.realpathAlloc(allocator, file.name)));
+        var untyped = try yaml.Yaml.load(allocator, try subsystems_dir.realpathAlloc(allocator, file.name));
+        try result.files.append((try untyped.parse(FileRaw)).make());
     }
 
     // Sort items.
