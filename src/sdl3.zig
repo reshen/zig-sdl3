@@ -499,6 +499,48 @@ pub const openURL = @import("misc.zig").openURL;
 ///
 /// Pens may provide more than simple touch input; they might have other axes, such as pressure, tilt, rotation, etc.
 pub const pen = @import("pen.zig");
+
+/// SDL offers facilities for pixel management.
+///
+/// Largely these facilities deal with pixel format: what does this set of bits represent?
+///
+/// If you mostly want to think of a pixel as some combination of red, green, blue, and maybe alpha intensities, this is all pretty straightforward,
+/// and in many cases, is enough information to build a perfectly fine game.
+///
+/// However, the actual definition of a pixel is more complex than that:
+///
+/// Pixels are a representation of a color in a particular color space.
+///
+/// The first characteristic of a color space is the color type.
+/// SDL understands two different color types, RGB and YCbCr, or in SDL also referred to as YUV.
+///
+/// RGB colors consist of red, green, and blue channels of color that are added together to represent the colors we see on the screen.
+///
+/// https://en.wikipedia.org/wiki/RGB_color_model
+///
+/// YCbCr colors represent colors as a Y luma brightness component and red and blue chroma color offsets.
+/// This color representation takes advantage of the fact that the human eye is more sensitive to brightness than the color in an image.
+/// The Cb and Cr components are often compressed and have lower resolution than the luma component.
+///
+/// https://en.wikipedia.org/wiki/YCbCr
+///
+/// When the color information in YCbCr is compressed, the Y pixels are left at full resolution and each Cr and Cb pixel represents an average of the
+/// color information in a block of Y pixels.
+/// The chroma location determines where in that block of pixels the color information is coming from.
+///
+/// The color range defines how much of the pixel to use when converting a pixel into a color on the display.
+/// When the full color range is used, the entire numeric range of the pixel bits is significant.
+/// When narrow color range is used, for historical reasons, the pixel uses only a portion of the numeric range to represent colors.
+///
+/// The color primaries and white point are a definition of the colors in the color space relative to the standard XYZ color space.
+///
+/// https://en.wikipedia.org/wiki/CIE_1931_color_space
+///
+/// The transfer characteristic, or opto-electrical transfer function (OETF), is the way a color is converted from mathematically linear space into a non-linear output signals.
+///
+/// https://en.wikipedia.org/wiki/Rec._709#Transfer_characteristics
+///
+/// The matrix coefficients are used to convert between YCbCr and RGB colors.
 pub const pixels = @import("pixels.zig");
 
 /// SDL provides a means to identify the app's platform, both at compile time and runtime.
@@ -538,6 +580,27 @@ pub const properties = @import("properties.zig");
 
 /// Some helper functions for managing rectangles and 2D points, in both integer and floating point versions.
 pub const rect = @import("rect.zig");
+
+/// Header file for SDL 2D rendering functions.
+///
+/// This API supports the following features:
+/// * Single pixel points.
+/// * Single pixel lines.
+/// * Filled rectangles.
+/// * Texture images.
+/// * 2D polygons.
+///
+/// The primitives may be drawn in opaque, blended, or additive modes.
+///
+/// The texture images may be drawn in opaque, blended, or additive modes.
+/// They can have an additional color tint or alpha modulation applied to them, and may also be stretched with linear interpolation.
+///
+/// This API is designed to accelerate simple 2D operations.
+/// You may want more functionality such as polygons and particle effects and in that case you should use SDL's OpenGL/Direct3D support, the SDL3 GPU API,
+/// or one of the many good 3D engines.
+///
+/// These functions must be called from the main thread.
+/// See this bug for details: https://github.com/libsdl-org/SDL/issues/986
 pub const render = @import("render.zig");
 
 /// Defines keyboard scancodes.
@@ -560,6 +623,17 @@ pub const stdinc = @import("stdinc.zig");
 ///
 /// See https://wiki.libsdl.org/SDL3/CategoryStorage for more details.
 pub const storage = @import("storage.zig");
+
+/// SDL surfaces are buffers of pixels in system RAM.
+/// These are useful for passing around and manipulating images that are not stored in GPU memory.
+///
+/// `surface.Surface` makes serious efforts to manage images in various formats, and provides a reasonable toolbox for transforming the data,
+/// including copying between surfaces, filling rectangles in the image data, etc.
+///
+/// There is also a simple .bmp loader, `surface.loadBmp()`.
+/// SDL itself does not provide loaders for various other file formats, but there are several excellent external libraries that do, including its own satellite library,
+/// SDL_image:
+/// https://github.com/libsdl-org/SDL_image
 pub const surface = @import("surface.zig");
 
 /// SDL offers cross-platform thread management functions.

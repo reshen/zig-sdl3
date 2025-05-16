@@ -1,183 +1,570 @@
 const C = @import("c.zig").C;
 const errors = @import("errors.zig");
 const std = @import("std");
+const surface = @import("surface.zig");
 
-/// Pixel type.
-pub const Type = enum(c_uint) {
-    Index1 = C.SDL_PIXELTYPE_INDEX1,
-    Index2 = C.SDL_PIXELTYPE_INDEX2,
-    Index4 = C.SDL_PIXELTYPE_INDEX4,
-    Index8 = C.SDL_PIXELTYPE_INDEX8,
-    Packed8 = C.SDL_PIXELTYPE_PACKED8,
-    Packed16 = C.SDL_PIXELTYPE_PACKED16,
-    Packed32 = C.SDL_PIXELTYPE_PACKED32,
-    ArrayU8 = C.SDL_PIXELTYPE_ARRAYU8,
-    ArrayU16 = C.SDL_PIXELTYPE_ARRAYU16,
-    ArrayU32 = C.SDL_PIXELTYPE_ARRAYU32,
-    ArrayF16 = C.SDL_PIXELTYPE_ARRAYF16,
-    ArrayF32 = C.SDL_PIXELTYPE_ARRAYF32,
+/// A fully opaque 8-bit alpha value.
+///
+/// ## Version
+/// This macro is available since SDL 3.2.0.
+pub const alpha_opaque: u8 = 255;
+
+/// A fully opaque floating point alpha value.
+///
+/// ## Version
+/// This macro is available since SDL 3.2.0.
+pub const alpha_opaque_float: f32 = 1;
+
+/// A fully transparent 8-bit alpha value.
+///
+/// ## Version
+/// This macro is available since SDL 3.2.0.
+pub const alpha_transparent: u8 = 0;
+
+/// A fully transparent floating point alpha value.
+///
+/// ## Version
+/// This macro is available since SDL 3.2.0.
+pub const alpha_transparent_float: f32 = 0;
+
+/// Array component order, low byte -> high byte.
+///
+/// ## Version
+/// This enum is available since SDL 3.2.0.
+pub const ArrayOrder = enum(c_uint) {
+    rgb = C.SDL_ARRAYORDER_RGB,
+    rgba = C.SDL_ARRAYORDER_RGBA,
+    argb = C.SDL_ARRAYORDER_ARGB,
+    bgr = C.SDL_ARRAYORDER_BGR,
+    bgra = C.SDL_ARRAYORDER_BGRA,
+    abgr = C.SDL_ARRAYORDER_ABGR,
+
+    /// Convert from an SDL value.
+    pub fn fromSdl(value: C.SDL_ArrayOrder) ?ArrayOrder {
+        if (value == C.SDL_ARRAYORDER_NONE)
+            return null;
+        return @enumFromInt(value);
+    }
+
+    /// Convert to an SDL value.
+    pub fn toSdl(self: ?ArrayOrder) C.SDL_ArrayOrder {
+        if (self) |val|
+            return @intFromEnum(val);
+        return C.SDL_ARRAYORDER_NONE;
+    }
 };
 
 /// Bitmap pixel order, high bit -> low bit.
-pub const IndexOrder = enum(c_uint) {
-    None = C.SDL_BITMAPORDER_NONE,
-    HighToLow = C.SDL_BITMAPORDER_4321,
-    LowToHigh = C.SDL_BITMAPORDER_1234,
-};
+///
+/// ## Version
+/// This enum is available since SDL 3.2.0.
+pub const BitmapOrder = enum(c_uint) {
+    high_to_low = C.SDL_BITMAPORDER_4321,
+    low_to_high = C.SDL_BITMAPORDER_1234,
 
-/// Packed component order, high bit -> low bit.
-pub const PackedOrder = enum(c_uint) {
-    None = C.SDL_PACKEDORDER_NONE,
-    Xrgb = C.SDL_PACKEDORDER_XRGB,
-    Rgbx = C.SDL_PACKEDORDER_RGBX,
-    Argb = C.SDL_PACKEDORDER_ARGB,
-    Rgba = C.SDL_PACKEDORDER_RGBA,
-    Xbgr = C.SDL_PACKEDORDER_XBGR,
-    Bgrx = C.SDL_PACKEDORDER_BGRX,
-    Abgr = C.SDL_PACKEDORDER_ABGR,
-    Bgra = C.SDL_PACKEDORDER_BGRA,
-};
+    /// Convert from an SDL value.
+    pub fn fromSdl(value: C.SDL_BitmapOrder) ?BitmapOrder {
+        if (value == C.SDL_BITMAPORDER_NONE)
+            return null;
+        return @enumFromInt(value);
+    }
 
-/// Array component order, low byte -> high byte.
-pub const ArrayOrder = enum(c_uint) {
-    None = C.SDL_ARRAYORDER_NONE,
-    Rgb = C.SDL_ARRAYORDER_RGB,
-    Rgba = C.SDL_ARRAYORDER_RGBA,
-    Argb = C.SDL_ARRAYORDER_ARGB,
-    Bgr = C.SDL_ARRAYORDER_BGR,
-    Bgra = C.SDL_ARRAYORDER_BGRA,
-    Abgr = C.SDL_ARRAYORDER_ABGR,
-};
-
-/// Packed component layout.
-pub const Layout = enum(c_uint) {
-    None = C.SDL_PACKEDLAYOUT_NONE,
-    Bit_3_3_2 = C.SDL_PACKEDLAYOUT_332,
-    Bit_4_4_4_4 = C.SDL_PACKEDLAYOUT_4444,
-    Bit_1_5_5_5 = C.SDL_PACKEDLAYOUT_1555,
-    Bit_5_5_5_1 = C.SDL_PACKEDLAYOUT_5551,
-    Bit_5_6_5 = C.SDL_PACKEDLAYOUT_565,
-    Bit_8_8_8_8 = C.SDL_PACKEDLAYOUT_8888,
-    Bit_2_10_10_10 = C.SDL_PACKEDLAYOUT_2101010,
-    Bit_10_10_10_2 = C.SDL_PACKEDLAYOUT_1010102,
-};
-
-/// Colorspace color type.
-pub const ColorType = enum(c_uint) {
-    Rgb = C.SDL_COLOR_TYPE_RGB,
-    Ycbcr = C.SDL_COLOR_TYPE_YCBCR,
-};
-
-/// Colorspace color range, as described by https://www.itu.int/rec/R-REC-BT.2100-2-201807-I/en.
-pub const ColorRange = enum(c_uint) {
-    Limited = C.SDL_COLOR_RANGE_LIMITED,
-    Full = C.SDL_COLOR_RANGE_FULL,
-};
-
-/// Colorspace color primaries, as described by https://www.itu.int/rec/T-REC-H.273-201612-S/en.
-pub const ColorPrimaries = enum(c_uint) {
-    /// ITU-R BT.709-6.
-    BT709 = C.SDL_COLOR_PRIMARIES_BT709,
-    UNSPECIFIED = C.SDL_COLOR_PRIMARIES_UNSPECIFIED,
-    /// ITU-R BT.470-6 System M.
-    BT470M = C.SDL_COLOR_PRIMARIES_BT470M,
-    /// ITU-R BT.470-6 System B, G / ITU-R BT.601-7 625.
-    BT470BG = C.SDL_COLOR_PRIMARIES_BT470BG,
-    /// ITU-R BT.601-7 525, SMPTE 170M.
-    BT601 = C.SDL_COLOR_PRIMARIES_BT601,
-    /// SMPTE 240M, functionally the same as SDL_COLOR_PRIMARIES_BT601.
-    SMPTE240 = C.SDL_COLOR_PRIMARIES_SMPTE240,
-    /// Generic film (color filters using Illuminant C).
-    GENERIC_FILM = C.SDL_COLOR_PRIMARIES_GENERIC_FILM,
-    /// ITU-R BT.2020-2 / ITU-R BT.2100-0
-    BT2020 = C.SDL_COLOR_PRIMARIES_BT2020,
-    /// SMPTE ST 428-1SMPTE ST 428-1.
-    XYZ = C.SDL_COLOR_PRIMARIES_XYZ,
-    /// SMPTE RP 431-2.
-    SMPTE431 = C.SDL_COLOR_PRIMARIES_SMPTE431,
-    /// SMPTE EG 432-1 / DCI P3.
-    SMPTE432 = C.SDL_COLOR_PRIMARIES_SMPTE432,
-    /// EBU Tech. 3213-E.
-    EBU3213 = C.SDL_COLOR_PRIMARIES_EBU3213,
-    Custom = C.SDL_COLOR_PRIMARIES_CUSTOM,
-};
-
-/// Colorspace transfer characteristics.
-pub const TransferCharacteristics = enum(c_uint) {
-    /// Rec. ITU-R BT.709-6 / ITU-R BT1361.
-    BT709 = C.SDL_TRANSFER_CHARACTERISTICS_BT709,
-    Unspecified = C.SDL_TRANSFER_CHARACTERISTICS_UNSPECIFIED,
-    /// ITU-R BT.470-6 System M / ITU-R BT1700 625 PAL & SECAM.
-    Gamma22 = C.SDL_TRANSFER_CHARACTERISTICS_GAMMA22,
-    /// ITU-R BT.470-6 System B, G.
-    Gamma28 = C.SDL_TRANSFER_CHARACTERISTICS_GAMMA28,
-    /// SMPTE ST 170M / ITU-R BT.601-7 525 or 625.
-    BT601 = C.SDL_TRANSFER_CHARACTERISTICS_BT601,
-    /// SMPTE ST 240M.
-    SMPTE240 = C.SDL_TRANSFER_CHARACTERISTICS_SMPTE240,
-    Linear = C.SDL_TRANSFER_CHARACTERISTICS_LINEAR,
-    Log100 = C.SDL_TRANSFER_CHARACTERISTICS_LOG100,
-    Sqrt10 = C.SDL_TRANSFER_CHARACTERISTICS_LOG100_SQRT10,
-    /// IEC 61966-2-4.
-    IEC61966 = C.SDL_TRANSFER_CHARACTERISTICS_IEC61966,
-    /// ITU-R BT1361 Extended Colour Gamut.
-    BT1361 = C.SDL_TRANSFER_CHARACTERISTICS_BT1361,
-    /// IEC 61966-2-1 (sRGB or sYCC).
-    Srgb = C.SDL_TRANSFER_CHARACTERISTICS_SRGB,
-    /// ITU-R BT2020 for 10-bit system.
-    BT2020_10Bit = C.SDL_TRANSFER_CHARACTERISTICS_BT2020_10BIT,
-    /// ITU-R BT2020 for 12-bit system.
-    Bt2020_12Bit = C.SDL_TRANSFER_CHARACTERISTICS_BT2020_12BIT,
-    /// SMPTE ST 2084 for 10-, 12-, 14- and 16-bit system.
-    PQ = C.SDL_TRANSFER_CHARACTERISTICS_PQ,
-    /// SMPTE ST 428-1.
-    SMPTE428 = C.SDL_TRANSFER_CHARACTERISTICS_SMPTE428,
-    /// ARIB STD-B67, known as hybrid log-gamma (HLG).
-    HLG = C.SDL_TRANSFER_CHARACTERISTICS_HLG,
-    Custom = C.SDL_TRANSFER_CHARACTERISTICS_CUSTOM,
-};
-
-/// Colorspace matrix coefficients.
-pub const MatrixCoefficients = enum(c_uint) {
-    Identity = C.SDL_MATRIX_COEFFICIENTS_IDENTITY,
-    /// ITU-R BT.709-6.
-    BT709 = C.SDL_MATRIX_COEFFICIENTS_BT709,
-    Unspecified = C.SDL_MATRIX_COEFFICIENTS_UNSPECIFIED,
-    /// US FCC Title 47.
-    FCC = C.SDL_MATRIX_COEFFICIENTS_FCC,
-    /// ITU-R BT.470-6 System B, G / ITU-R BT.601-7 625, functionally the same as SDL_MATRIX_COEFFICIENTS_BT601.
-    BT470BG = C.SDL_MATRIX_COEFFICIENTS_BT470BG,
-    /// ITU-R BT.601-7 525.
-    BT601 = C.SDL_MATRIX_COEFFICIENTS_BT601,
-    /// SMPTE 240M.
-    SMPTE240 = C.SDL_MATRIX_COEFFICIENTS_SMPTE240,
-    YCGCO = C.SDL_MATRIX_COEFFICIENTS_YCGCO,
-    /// ITU-R BT.2020-2 non-constant luminance.
-    BT2020_NCL = C.SDL_MATRIX_COEFFICIENTS_BT2020_NCL,
-    /// ITU-R BT.2020-2 constant luminance.
-    BT2020_CL = C.SDL_MATRIX_COEFFICIENTS_BT2020_CL,
-    SMPTE2085 = C.SDL_MATRIX_COEFFICIENTS_SMPTE2085,
-    ChromaDerivedNCL = C.SDL_MATRIX_COEFFICIENTS_CHROMA_DERIVED_NCL,
-    ChromaDerivedCL = C.SDL_MATRIX_COEFFICIENTS_CHROMA_DERIVED_CL,
-    /// ITU-R BT.2100-0 ICTCP.
-    ICTCP = C.SDL_MATRIX_COEFFICIENTS_ICTCP,
-    Custom = C.SDL_MATRIX_COEFFICIENTS_CUSTOM,
+    /// Convert to an SDL value.
+    pub fn toSdl(self: ?BitmapOrder) C.SDL_BitmapOrder {
+        if (self) |val|
+            return @intFromEnum(val);
+        return C.SDL_BITMAPORDER_NONE;
+    }
 };
 
 /// Colorspace chroma sample location.
+///
+/// ## Version
+/// This enum is available since SDL 3.2.0.
 pub const ChromaLocation = enum(c_uint) {
-    /// In MPEG-2, MPEG-4, and AVC, Cb and Cr are taken on midpoint of the left-edge of the 2x2 square. In other words, they have the same horizontal location as the top-left pixel, but is shifted one-half pixel down vertically.
-    Left = C.SDL_CHROMA_LOCATION_LEFT,
-    /// In JPEG/JFIF, H.261, and MPEG-1, Cb and Cr are taken at the center of the 2x2 square. In other words, they are offset one-half pixel to the right and one-half pixel down compared to the top-left pixel.
-    Center = C.SDL_CHROMA_LOCATION_CENTER,
+    /// In MPEG-2, MPEG-4, and AVC, Cb and Cr are taken on midpoint of the left-edge of the 2x2 square.
+    /// In other words, they have the same horizontal location as the top-left pixel, but is shifted one-half pixel down vertically.
+    left = C.SDL_CHROMA_LOCATION_LEFT,
+    /// In JPEG/JFIF, H.261, and MPEG-1, Cb and Cr are taken at the center of the 2x2 square.
+    /// In other words, they are offset one-half pixel to the right and one-half pixel down compared to the top-left pixel.
+    center = C.SDL_CHROMA_LOCATION_CENTER,
     /// In HEVC for BT.2020 and BT.2100 content (in particular on Blu-rays), Cb and Cr are sampled at the same location as the group's top-left Y pixel (co-sited, co-located).
-    TopLeft = C.SDL_CHROMA_LOCATION_TOPLEFT,
+    top_left = C.SDL_CHROMA_LOCATION_TOPLEFT,
+
+    /// Convert from an SDL value.
+    pub fn fromSdl(value: C.SDL_ChromaLocation) ?ChromaLocation {
+        if (value == C.SDL_CHROMA_LOCATION_NONE)
+            return null;
+        return @enumFromInt(value);
+    }
+
+    /// Convert to an SDL value.
+    pub fn toSdl(self: ?ChromaLocation) C.SDL_ChromaLocation {
+        if (self) |val|
+            return @intFromEnum(val);
+        return C.SDL_CHROMA_LOCATION_NONE;
+    }
 };
 
+/// A structure that represents a color as RGBA components.
+///
+/// ## Remarks
+/// The bits of this structure can be directly reinterpreted as an integer-packed color which uses
+/// the `pixels.Format.array_rgba_32` format (`pixels.Format.packed_abgr_8_8_8_8` on little-endian systems and `pixels.Format.packed_rgba_8_8_8_8` on big-endian systems).
+///
+/// ## Version
+/// This struct is available since SDL 3.2.0.
+pub const Color = C.SDL_Color;
+
+/// Colorspace definitions.
+/// How these are formed can be seen at: https://wiki.libsdl.org/SDL3/SDL_Colorspace
+///
+/// ## Remarks
+/// Since similar colorspaces may vary in their details (matrix, transfer function, etc.),
+/// this is not an exhaustive list, but rather a representative sample of the kinds of colorspaces supported in SDL.
+///
+/// ## Version
+/// This enum is available since SDL 3.2.0.
+pub const Colorspace = struct {
+    value: u32,
+    /// sRGB is a gamma corrected colorspace, and the default colorspace for SDL rendering and 8-bit RGB surfaces.
+    pub const srgb = Colorspace{ .value = C.SDL_COLORSPACE_SRGB };
+    /// This is a linear colorspace and the default colorspace for floating point surfaces.
+    /// On Windows this is the scRGB colorspace, and on Apple platforms this is `kCGColorSpaceExtendedLinearSRGB` for EDR content.
+    pub const srgb_linear = Colorspace{ .value = C.SDL_COLORSPACE_SRGB_LINEAR };
+    /// HDR10 is a non-linear HDR colorspace and the default colorspace for 10-bit surfaces.
+    pub const hdr10 = Colorspace{ .value = C.SDL_COLORSPACE_HDR10 };
+    /// Equivalent to `DXGI_COLOR_SPACE_YCBCR_FULL_G22_NONE_P709_X601`.
+    pub const jpeg = Colorspace{ .value = C.SDL_COLORSPACE_JPEG };
+    /// Equivalent to `DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P601`.
+    pub const bt601_limited = Colorspace{ .value = C.SDL_COLORSPACE_BT601_LIMITED };
+    /// Equivalent to `DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P601`.
+    pub const bt601_full = Colorspace{ .value = C.SDL_COLORSPACE_BT601_FULL };
+    /// Equivalent to `DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P709`.
+    pub const bt709_limited = Colorspace{ .value = C.SDL_COLORSPACE_BT709_LIMITED };
+    /// Equivalent to `DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P709`.
+    pub const bt709_full = Colorspace{ .value = C.SDL_COLORSPACE_BT709_FULL };
+    /// Equivalent to `DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P2020`.
+    pub const bt2020_limited = Colorspace{ .value = C.SDL_COLORSPACE_BT2020_LIMITED };
+    /// Equivalent to `DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P2020`.
+    pub const bt2020_full = Colorspace{ .value = C.SDL_COLORSPACE_BT2020_FULL };
+    /// The default colorspace for RGB surfaces if no colorspace is specified.
+    pub const rgb_default = Colorspace{ .value = C.SDL_COLORSPACE_RGB_DEFAULT };
+    /// The default colorspace for YUV surfaces if no colorspace is specified.
+    pub const yuv_default = Colorspace{ .value = C.SDL_COLORSPACE_YUV_DEFAULT };
+
+    /// Create a colorspace.
+    ///
+    /// ## Function Parameters
+    /// * `color_type`: The type of the new format, probably a color type value.
+    /// * `range`: The range of the new format, probably a color range value.
+    /// * `primaries`: The primaries of the new format, probably a color primaries value.
+    /// * `transfer`: The transfer characteristics of the new format, probably a transfer characteristics value.
+    /// * `matrix`: The matrix coefficients of the new format, probably a matrix coefficients value.
+    /// * `chroma`: The chroma sample location of the new format, probably an chroma location value.
+    ///
+    /// ## Return Value
+    /// Returns a color space.
+    ///
+    /// ## Remarks
+    /// For example, defining `pixels.Colorspace.srgb` looks like this:
+    ///
+    /// ```zig
+    /// pixels.Colorspace.define(
+    ///     pixels.ColorType.rgb,
+    ///     pixels.ColorRange.full,
+    ///     pixels.ColorPrimaries.bt709,
+    ///     pixels.TransferCharacters.srgb,
+    ///     pixels.MatrixCoefficients.identity,
+    ///     null,
+    /// )
+    /// ```
+    ///
+    /// ## Thread Safety
+    /// It is safe to call this function from any thread.
+    ///
+    /// ## Version
+    /// This macro is available since SDL 3.2.0.
+    pub fn define(
+        color_type: ?ColorType,
+        range: ?ColorRange,
+        primaries: ?ColorPrimaries,
+        transfer: ?TransferCharacteristics,
+        matrix: MatrixCoefficients,
+        chroma: ?ChromaLocation,
+    ) Colorspace {
+        const ret = C.SDL_DEFINE_COLORSPACE(
+            ColorType.toSdl(color_type),
+            ColorRange.toSdl(range),
+            ColorPrimaries.toSdl(primaries),
+            TransferCharacteristics.toSdl(transfer),
+            @intFromEnum(matrix),
+            ChromaLocation.toSdl(chroma),
+        );
+        return Colorspace{ .value = ret };
+    }
+
+    /// Get the color space chroma.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The color space to check.
+    ///
+    /// ## Return Value
+    /// The chroma location of the color space.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getChromaLocation(
+        self: Colorspace,
+    ) ?ChromaLocation {
+        const ret = C.SDL_COLORSPACECHROMA(
+            self.value,
+        );
+        return ChromaLocation.fromSdl(ret);
+    }
+
+    /// Get the color space primaries.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The color space to check.
+    ///
+    /// ## Return Value
+    /// The primaries of the color space.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getColorPrimaries(
+        self: Colorspace,
+    ) ?ColorPrimaries {
+        const ret = C.SDL_COLORSPACEPRIMARIES(
+            self.value,
+        );
+        return ColorPrimaries.fromSdl(ret);
+    }
+
+    /// Get the color space matrix.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The color space to check.
+    ///
+    /// ## Return Value
+    /// The matrix coefficients of the color space.
+    ///
+    /// ## Thread Safety
+    /// It is safe to call this function from any thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getMatrix(
+        self: Colorspace,
+    ) MatrixCoefficients {
+        const ret = C.SDL_COLORSPACEMATRIX(
+            self.value,
+        );
+        return @enumFromInt(ret);
+    }
+
+    /// Get the color space range.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The color space to check.
+    ///
+    /// ## Return Value
+    /// The range of the color space.
+    ///
+    /// ## Thread Safety
+    /// It is safe to call this function from any thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getRange(
+        self: Colorspace,
+    ) ?ColorRange {
+        const ret = C.SDL_COLORSPACERANGE(
+            self.value,
+        );
+        return ColorRange.fromSdl(ret);
+    }
+
+    /// Get the color space transfer characteristics.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The color space to check.
+    ///
+    /// ## Return Value
+    /// The transfer characteristics of the color space.
+    ///
+    /// ## Thread Safety
+    /// It is safe to call this function from any thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getTransferCharacteristics(
+        self: Colorspace,
+    ) ?TransferCharacteristics {
+        const ret = C.SDL_COLORSPACETRANSFER(
+            self.value,
+        );
+        return TransferCharacteristics.fromSdl(ret);
+    }
+
+    /// Get the color space type.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The color space to check.
+    ///
+    /// ## Return Value
+    /// The type of the color space.
+    ///
+    /// ## Thread Safety
+    /// It is safe to call this function from any thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getType(
+        self: Colorspace,
+    ) ?ColorType {
+        const ret = C.SDL_COLORSPACETYPE(
+            self.value,
+        );
+        return ColorType.fromSdl(ret);
+    }
+
+    /// If the matrix is BT2020 NCL.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The color space to check.
+    ///
+    /// ## Return Value
+    /// Returns true if `bt2020_ncl`, false otherwise.
+    ///
+    /// ## Thread Safety
+    /// It is safe to call this function from any thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn isMatrixBt2020Ncl(
+        self: Colorspace,
+    ) bool {
+        const ret = C.SDL_ISCOLORSPACE_MATRIX_BT2020_NCL(
+            self.value,
+        );
+        return ret;
+    }
+
+    /// If the matrix is BT601.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The color space to check.
+    ///
+    /// ## Return Value
+    /// Returns true if BT601 or BT470BG, false otherwise.
+    ///
+    /// ## Thread Safety
+    /// It is safe to call this function from any thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn isMatrixBt601(
+        self: Colorspace,
+    ) bool {
+        const ret = C.SDL_ISCOLORSPACE_MATRIX_BT601(
+            self.value,
+        );
+        return ret;
+    }
+
+    /// If the matrix is BT709.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The color space to check.
+    ///
+    /// ## Return Value
+    /// Returns true if BT709, false otherwise.
+    ///
+    /// ## Thread Safety
+    /// It is safe to call this function from any thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn isMatrixBT709(
+        self: Colorspace,
+    ) bool {
+        const ret = C.SDL_ISCOLORSPACE_MATRIX_BT709(
+            self.value,
+        );
+        return ret;
+    }
+
+    /// If the color space is full range.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The color space to check.
+    ///
+    /// ## Return Value
+    /// Returns true if full range, false otherwise.
+    ///
+    /// ## Thread Safety
+    /// It is safe to call this function from any thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn isFullRange(
+        self: Colorspace,
+    ) bool {
+        const ret = C.SDL_ISCOLORSPACE_FULL_RANGE(
+            self.value,
+        );
+        return ret;
+    }
+
+    /// If the color space is limited range.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The color space to check.
+    ///
+    /// ## Return Value
+    /// Returns true if limited range, false otherwise.
+    ///
+    /// ## Thread Safety
+    /// It is safe to call this function from any thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn isLimitedRange(
+        self: Colorspace,
+    ) bool {
+        const ret = C.SDL_ISCOLORSPACE_LIMITED_RANGE(
+            self.value,
+        );
+        return ret;
+    }
+};
+
+/// Colorspace color primaries, as described by https://www.itu.int/rec/T-REC-H.273-201612-S/en.
+///
+/// ## Version
+/// This enum is available since SDL 3.2.0.
+pub const ColorPrimaries = enum(c_uint) {
+    /// ITU-R BT.709-6.
+    bt709 = C.SDL_COLOR_PRIMARIES_BT709,
+    unspecified = C.SDL_COLOR_PRIMARIES_UNSPECIFIED,
+    /// ITU-R BT.470-6 System M.
+    bt470m = C.SDL_COLOR_PRIMARIES_BT470M,
+    /// ITU-R BT.470-6 System B, G / ITU-R BT.601-7 625.
+    bt470bg = C.SDL_COLOR_PRIMARIES_BT470BG,
+    /// ITU-R BT.601-7 525, SMPTE 170M.
+    bt601 = C.SDL_COLOR_PRIMARIES_BT601,
+    /// SMPTE 240M, functionally the same as SDL_COLOR_PRIMARIES_BT601.
+    smpte240 = C.SDL_COLOR_PRIMARIES_SMPTE240,
+    /// Generic film (color filters using Illuminant C).
+    generic_film = C.SDL_COLOR_PRIMARIES_GENERIC_FILM,
+    /// ITU-R BT.2020-2 / ITU-R BT.2100-0
+    bt2020 = C.SDL_COLOR_PRIMARIES_BT2020,
+    /// SMPTE ST 428-1SMPTE ST 428-1.
+    xyz = C.SDL_COLOR_PRIMARIES_XYZ,
+    /// SMPTE RP 431-2.
+    smpte431 = C.SDL_COLOR_PRIMARIES_SMPTE431,
+    /// SMPTE EG 432-1 / DCI P3.
+    smpte432 = C.SDL_COLOR_PRIMARIES_SMPTE432,
+    /// EBU Tech. 3213-E.
+    ebu3213 = C.SDL_COLOR_PRIMARIES_EBU3213,
+    custom = C.SDL_COLOR_PRIMARIES_CUSTOM,
+
+    /// Convert from an SDL value.
+    pub fn fromSdl(value: C.SDL_ColorPrimaries) ?ColorPrimaries {
+        if (value == C.SDL_COLOR_PRIMARIES_UNKNOWN)
+            return null;
+        return @enumFromInt(value);
+    }
+
+    /// Convert to an SDL value.
+    pub fn toSdl(self: ?ColorPrimaries) C.SDL_ColorPrimaries {
+        if (self) |val|
+            return @intFromEnum(val);
+        return C.SDL_COLOR_PRIMARIES_UNKNOWN;
+    }
+};
+
+/// Colorspace color range, as described by https://www.itu.int/rec/R-REC-BT.2100-2-201807-I/en.
+///
+/// ## Version
+/// This enum is available since SDL 3.2.0.
+pub const ColorRange = enum(c_uint) {
+    /// Narrow range, e.g. 16-235 for 8-bit RGB and luma, and 16-240 for 8-bit chroma.
+    limited = C.SDL_COLOR_RANGE_LIMITED,
+    /// Full range, e.g. 0-255 for 8-bit RGB and luma, and 1-255 for 8-bit chroma.
+    full = C.SDL_COLOR_RANGE_FULL,
+
+    /// Convert from an SDL value.
+    pub fn fromSdl(value: C.SDL_ColorRange) ?ColorRange {
+        if (value == C.SDL_COLOR_RANGE_UNKNOWN)
+            return null;
+        return @enumFromInt(value);
+    }
+
+    /// Convert to an SDL value.
+    pub fn toSdl(self: ?ColorRange) C.SDL_ColorRange {
+        if (self) |val|
+            return @intFromEnum(val);
+        return C.SDL_COLOR_RANGE_UNKNOWN;
+    }
+};
+
+/// Colorspace color type.
+///
+/// ## Version
+/// This enum is available since SDL 3.2.0.
+pub const ColorType = enum(c_uint) {
+    rgb = C.SDL_COLOR_TYPE_RGB,
+    ycbcr = C.SDL_COLOR_TYPE_YCBCR,
+
+    /// Convert from an SDL value.
+    pub fn fromSdl(value: C.SDL_ColorType) ?ColorType {
+        if (value == C.SDL_COLOR_TYPE_UNKNOWN)
+            return null;
+        return @enumFromInt(value);
+    }
+
+    /// Convert to an SDL value.
+    pub fn toSdl(self: ?ColorType) C.SDL_ColorType {
+        if (self) |val|
+            return @intFromEnum(val);
+        return C.SDL_COLOR_TYPE_UNKNOWN;
+    }
+};
+
+/// The bits of this structure can be directly reinterpreted as a float-packed color which uses the `pixels.Format.array_rgba_128_float` format.
+///
+/// ## Version
+/// This struct is available since SDL 3.2.0.
+pub const FColor = C.SDL_FColor;
+
 /// Pixel format.
+///
+/// ## Remarks
+/// SDL's pixel formats have the following naming convention:
+/// * Names with a list of components and a single bit count, such as `array_rgb_24` and `array_abgr_32`, define a platform-independent encoding into bytes in the order specified.
+/// For example, in `array_rgb_24` data, each pixel is encoded in 3 bytes (red, green, blue) in that order,
+/// and in `array_abgr_32` data, each pixel is encoded in 4 bytes alpha, blue, green, red) in that order.
+/// Use these names if the property of a format that is important to you is the order of the bytes in memory or on disk.
+/// * Names with a bit count per component, such as `packed_argb_8_8_8_8` and `packed_xrgb_1_5_5_5`, are "packed" into an appropriately-sized integer in the platform's native endianness.
+/// For example, `packed_argb_8_8_8_8` is a sequence of 32-bit integers; in each integer, the most significant bits are alpha, and the least significant bits are blue.
+/// On a little-endian CPU such as x86, the least significant bits of each integer are arranged first in memory, but on a big-endian CPU such as s390x,
+/// the most significant bits are arranged first.
+/// Use these names if the property of a format that is important to you is the meaning of each bit position within a native-endianness integer.
+/// * In indexed formats such as `index_4_lsb`, each pixel is represented by encoding an index into the palette into the indicated number of bits,
+/// with multiple pixels packed into each byte if appropriate.
+/// In LSB formats, the first (leftmost) pixel is stored in the least-significant bits of the byte; in MSB formats, it's stored in the most-significant bits.
+/// `index_8` does not need LSB/MSB variants, because each pixel exactly fills one byte.
+/// The 32-bit byte-array encodings such as `array_rgba_32` are aliases for the appropriate `8_8_8_8` encoding for the current platform.
+/// For example, `array_rgba_32` is an alias for `packed_abgr_8_8_8_8` on little-endian CPUs like x86, or an alias for `packed_rgba_8_8_8_8` on big-endian CPUs.
+///
+/// ## Version
+/// This struct is available since SDL 3.2.0.
 pub const Format = struct {
-    value: c_uint,
-    pub const Index_1_lsb = Format{ .value = C.SDL_PIXELFORMAT_INDEX1LSB };
+    value: C.SDL_PixelFormat,
+    pub const index_1_lsb = Format{ .value = C.SDL_PIXELFORMAT_INDEX1LSB };
     pub const index_1_msb = Format{ .value = C.SDL_PIXELFORMAT_INDEX1MSB };
     pub const index_2_lsb = Format{ .value = C.SDL_PIXELFORMAT_INDEX2LSB };
     pub const index_2_msb = Format{ .value = C.SDL_PIXELFORMAT_INDEX2MSB };
@@ -199,8 +586,8 @@ pub const Format = struct {
     pub const packed_bgra_5_5_5_1 = Format{ .value = C.SDL_PIXELFORMAT_BGRA5551 };
     pub const packed_rgb_5_6_5 = Format{ .value = C.SDL_PIXELFORMAT_RGB565 };
     pub const packed_bgr_5_6_5 = Format{ .value = C.SDL_PIXELFORMAT_BGR565 };
-    pub const arr_rgb_24 = Format{ .value = C.SDL_PIXELFORMAT_RGB24 };
-    pub const arr_bgr_24 = Format{ .value = C.SDL_PIXELFORMAT_BGR24 };
+    pub const array_rgb_24 = Format{ .value = C.SDL_PIXELFORMAT_RGB24 };
+    pub const array_bgr_24 = Format{ .value = C.SDL_PIXELFORMAT_BGR24 };
     pub const packed_xrgb_8_8_8_8 = Format{ .value = C.SDL_PIXELFORMAT_XRGB8888 };
     pub const packed_rgbx_8_8_8_8 = Format{ .value = C.SDL_PIXELFORMAT_RGBX8888 };
     pub const packed_xbgr_8_8_8_8 = Format{ .value = C.SDL_PIXELFORMAT_XBGR8888 };
@@ -225,6 +612,12 @@ pub const Format = struct {
     pub const array_argb_64_float = Format{ .value = C.SDL_PIXELFORMAT_ARGB64_FLOAT };
     pub const array_bgra_64_float = Format{ .value = C.SDL_PIXELFORMAT_BGRA64_FLOAT };
     pub const array_abgr_64_float = Format{ .value = C.SDL_PIXELFORMAT_ABGR64_FLOAT };
+    pub const array_rgb_96_float = Format{ .value = C.SDL_PIXELFORMAT_RGB96_FLOAT };
+    pub const array_bgr_96_float = Format{ .value = C.SDL_PIXELFORMAT_BGR96_FLOAT };
+    pub const array_rgba_128_float = Format{ .value = C.SDL_PIXELFORMAT_RGBA128_FLOAT };
+    pub const array_argb_128_float = Format{ .value = C.SDL_PIXELFORMAT_ARGB128_FLOAT };
+    pub const array_bgra_128_float = Format{ .value = C.SDL_PIXELFORMAT_BGRA128_FLOAT };
+    pub const array_abgr_128_float = Format{ .value = C.SDL_PIXELFORMAT_ABGR128_FLOAT };
     pub const fourcc_yv12 = Format{ .value = C.SDL_PIXELFORMAT_YV12 };
     pub const fourcc_iyuv = Format{ .value = C.SDL_PIXELFORMAT_IYUV };
     pub const fourcc_yuy2 = Format{ .value = C.SDL_PIXELFORMAT_YUY2 };
@@ -234,6 +627,7 @@ pub const Format = struct {
     pub const fourcc_nv21 = Format{ .value = C.SDL_PIXELFORMAT_NV21 };
     pub const fourcc_p010 = Format{ .value = C.SDL_PIXELFORMAT_P010 };
     pub const fourcc_oes = Format{ .value = C.SDL_PIXELFORMAT_EXTERNAL_OES };
+    // MJPG is in SDL 3.4.0?
     pub const array_rgba_32 = Format{ .value = C.SDL_PIXELFORMAT_RGBA32 };
     pub const array_argb_32 = Format{ .value = C.SDL_PIXELFORMAT_ARGB32 };
     pub const array_bgra_32 = Format{ .value = C.SDL_PIXELFORMAT_BGRA32 };
@@ -247,14 +641,224 @@ pub const Format = struct {
     pub fn fromSdl(value: C.SDL_PixelFormat) ?Format {
         if (value == C.SDL_PIXELFORMAT_UNKNOWN)
             return null;
-        return @enumFromInt(value);
+        return .{ .value = value };
     }
 
     /// Convert to an SDL value.
     pub fn toSdl(self: ?Format) C.SDL_PixelFormat {
         if (self) |val|
-            return @intFromEnum(val);
+            return val.value;
         return C.SDL_PIXELFORMAT_UNKNOWN;
+    }
+
+    /// Define a pixel format.
+    ///
+    /// ## Function Parameters
+    /// * `pixel_type`: The type of the new format.
+    /// * `order`: Order of the new format.
+    /// * `layout`: The layout of the new format.
+    /// * `bits`: The number of bits per pixel of the new format.
+    /// * `bytes`: The number of bytes per pixel of the new format.
+    ///
+    /// ## Return Value
+    /// Returns a pixel format.
+    ///
+    /// ## Remarks
+    /// For example, defining `pixels.Format.packed_rgba_8_8_8_8` looks like this:
+    /// ```zig
+    /// pixels.Format.define(
+    ///     pixels.Type.packed32,
+    ///     pixels.PackedOrder.rgba,
+    ///     pixels.PackedLayout.bit_8_8_8_8,
+    ///     32,
+    ///     4,
+    /// )
+    /// ```
+    ///
+    /// ## Thread Safety
+    /// It is safe to call this macro from any thread.
+    ///
+    /// ##Version
+    /// This macro is available since SDL 3.2.0.
+    pub inline fn define(
+        comptime pixel_type: Type,
+        order: OrderType(pixel_type),
+        layout: ?PackedLayout,
+        bits: u8,
+        bytes: u8,
+    ) Format {
+        const ret = C.SDL_DEFINE_PIXELFORMAT(
+            @intFromEnum(pixel_type),
+            @intFromEnum(order),
+            PackedLayout.toSdl(layout),
+            @intCast(bits),
+            @intCast(bytes),
+        );
+        return Format{ .value = ret };
+    }
+
+    /// Define a format using 4 characters (Ex: YV12).
+    ///
+    /// ## Function Parameters
+    /// * `a`: The first character of the FourCC code.
+    /// * `b`: The second character of the FourCC code.
+    /// * `c`: The third character of the FourCC code.
+    /// * `d`: The fourth character of the FourCC code.
+    ///
+    /// ## Return Value
+    /// Return a pixel format.
+    ///
+    /// ## Remarks
+    /// Defining YV12 would be `pixels.Format.define4CC('Y', 'V', '1', '2')`.
+    ///
+    /// ## Thread Safety
+    /// It is safe to call this macro from any thread.
+    ///
+    /// ## Version
+    /// This macro is available since SDL 3.2.0.
+    pub fn define4CC(
+        a: u8,
+        b: u8,
+        c: u8,
+        d: u8,
+    ) Format {
+        const ret = C.SDL_DEFINE_PIXELFOURCC(
+            @as(c_uint, @intCast(a)),
+            @as(c_uint, @intCast(b)),
+            @as(c_uint, @intCast(c)),
+            @as(c_uint, @intCast(d)),
+        );
+        return Format{ .value = ret };
+    }
+
+    /// Define a pixel format.
+    ///
+    /// ## Function Parameters
+    /// * `pixel_type`: The type of the new format.
+    /// * `order`: Order of the new format.
+    /// * `layout`: The layout of the new format.
+    /// * `bits`: The number of bits per pixel of the new format.
+    /// * `bytes`: The number of bytes per pixel of the new format.
+    ///
+    /// ## Return Value
+    /// Returns a pixel format.
+    ///
+    /// ## Remarks
+    /// For example, defining `pixels.Format.packed_rgba_8_8_8_8` looks like this:
+    /// ```zig
+    /// pixels.Format.define(
+    ///     pixels.Type.packed32,
+    ///     pixels.PackedOrder.rgba,
+    ///     pixels.PackedLayout.bit_8_8_8_8,
+    ///     32,
+    ///     4,
+    /// )
+    /// ```
+    ///
+    /// ## Thread Safety
+    /// It is safe to call this macro from any thread.
+    ///
+    /// ##Version
+    /// This macro is available since SDL 3.2.0.
+    pub fn defineRuntime(
+        pixel_type: ?Type,
+        order: c_uint,
+        layout: ?PackedLayout,
+        bits: u8,
+        bytes: u8,
+    ) Format {
+        const ret = C.SDL_DEFINE_PIXELFORMAT(
+            @as(c_int, @intCast(Type.toSdl(pixel_type))),
+            @as(c_int, @intCast(order)),
+            @as(c_int, @intCast(PackedLayout.toSdl(layout))),
+            @as(c_int, @intCast(bits)),
+            @as(c_int, @intCast(bytes)),
+        );
+        return Format{ .value = @bitCast(ret) };
+    }
+
+    /// Convert a bpp value and RGBA masks to an enumerated pixel format.
+    ///
+    /// ## Function Parameters
+    /// * `bpp`: A bits per pixel value; usually 15, 16, or 32.
+    /// * `r_mask`: The red mask for the format.
+    /// * `g_mask`: The green mask for the format.
+    /// * `b_mask`: The blue mask for the format.
+    /// * `a_mask`: The alpha mask for the format.
+    ///
+    /// ## Return Value
+    /// Returns a format value corresponding to the format masks or `null` if there is none.
+    ///
+    /// ## Thread Safety
+    /// It is safe to call this function from any thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn fromMasks(
+        bpp: u8,
+        r_mask: u32,
+        g_mask: u32,
+        b_mask: u32,
+        a_mask: u32,
+    ) ?Format {
+        const ret = C.SDL_GetPixelFormatForMasks(
+            @intCast(bpp),
+            r_mask,
+            g_mask,
+            b_mask,
+            a_mask,
+        );
+        return Format.fromSdl(ret);
+    }
+
+    /// Get the bits per pixel of the format.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The format to check.
+    ///
+    /// ## Return Value
+    /// Returns the bits-per-pixel of the format.
+    ///
+    /// ## Remarks
+    /// FourCC formats will report zero here, as it rarely makes sense to measure them per-pixel.
+    ///
+    /// ## Thread Safety
+    /// It is safe to call this function from any thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getBitsPerPixel(
+        self: Format,
+    ) u8 {
+        const ret = C.SDL_BITSPERPIXEL(
+            @as(c_int, @intCast(self.value)),
+        );
+        return @intCast(ret);
+    }
+
+    /// Get the bytes per pixel of the format.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The format to check.
+    ///
+    /// ## Return Value
+    /// Returns the bytes-per-pixel of the format.
+    ///
+    /// ## Remarks
+    /// FourCC formats do their best here, but many of them don't have a meaningful measurement of bytes per pixel.
+    ///
+    /// ## Thread Safety
+    /// It is safe to call this function from any thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getBytesPerPixel(
+        self: Format,
+    ) u8 {
+        const ret = C.SDL_BYTESPERPIXEL(
+            @as(c_int, @intCast(self.value)),
+        );
+        return @intCast(ret);
     }
 
     /// Create a `pixels.FormatDetails` structure corresponding to a pixel format.
@@ -264,10 +868,6 @@ pub const Format = struct {
     ///
     /// ## Return Value
     /// Returns a format details structure.
-    ///
-    /// ## Remarks
-    /// Returned structure may come from a shared global cache (i.e. not newly allocated), and hence should not be modified, especially the palette.
-    /// Weird errors such as `Blit combination not supported` may occur.
     ///
     /// ## Thread Safety
     /// It is safe to call this function from any thread.
@@ -280,44 +880,25 @@ pub const Format = struct {
         const ret = try errors.wrapNull(*const C.SDL_PixelFormatDetails, C.SDL_GetPixelFormatDetails(
             self.value,
         ));
-        return FormatDetails.fromSdl(ret.*);
-    }
-
-    /// Define a format using 4 characters (Ex: YV12).
-    pub fn define4CC(
-        a: u8,
-        b: u8,
-        c: u8,
-        d: u8,
-    ) Format {
-        const ret = C.SDL_DEFINE_PIXELFOURCC(
-            @intCast(a),
-            @intCast(b),
-            @intCast(c),
-            @intCast(d),
-        );
-        return Format{ .value = ret };
-    }
-
-    /// Define a pixel format.
-    pub fn define(
-        pixel_type: Type,
-        order: OrderType(pixel_type),
-        layout: Layout,
-        bits: u8,
-        bytes: u8,
-    ) Format {
-        const ret = C.SDL_DEFINE_PIXELFORMAT(
-            @intFromEnum(pixel_type),
-            @intFromEnum(order),
-            @intFromEnum(layout),
-            @intCast(bits),
-            @intCast(bytes),
-        );
-        return Format{ .value = ret };
+        return .{ .value = (try errors.wrapNull(*const C.SDL_PixelFormatDetails, ret)).* };
     }
 
     /// If format was created by `define` rather than `define4CC`.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The pixel format to query.
+    ///
+    /// ## Return Value
+    /// Returns the flags of format.
+    ///
+    /// ## Remarks
+    /// This macro is generally not needed directly by an app, which should use specific tests, like `pixels.Format.is4cc()`, instead.
+    ///
+    /// ## Thread Safety
+    /// It is safe to call this function from any thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
     pub fn getFlag(
         self: Format,
     ) bool {
@@ -327,152 +908,41 @@ pub const Format = struct {
         return ret != 0;
     }
 
-    /// Get the type component of the format.
-    pub fn getType(
-        self: Format,
-    ) ?Type {
-        const ret = C.SDL_PIXELTYPE(
-            self.value,
-        );
-        if (ret == C.SDL_PIXELTYPE_UNKNOWN)
-            return null;
-        return @enumFromInt(ret);
-    }
-
-    /// Get the order component of the format.
-    pub fn getOrder(
-        self: Format,
-    ) c_int {
-        const ret = C.SDL_PIXELORDER(
-            self.value,
-        );
-        return @intCast(ret);
-    }
-
-    /// Get the typed order component of the format. Do not run this on formats with an invalid type!
-    pub fn getOrderTyped(
-        self: Format,
-    ) OrderType(self.getType().?) {
-        const ret = C.SDL_PIXELORDER(
-            self.value,
-        );
-        return @enumFromInt(ret);
-    }
-
     /// Get the layout component of the format.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The pixel format to query.
+    ///
+    /// ## Return Value
+    /// Returns the layout of format.
+    ///
+    /// ## Thread Safety
+    /// It is safe to call this function from any thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
     pub fn getLayout(
         self: Format,
-    ) Layout {
-        const ret = C.SDL_PACKEDLAYOUT(
+    ) ?PackedLayout {
+        const ret = C.SDL_PIXELLAYOUT(
             self.value,
         );
-        return @enumFromInt(ret);
-    }
-
-    /// Get the bits per pixel of the format.
-    pub fn getBitsPerPixel(
-        self: Format,
-    ) u8 {
-        const ret = C.SDL_BITSPERPIXEL(
-            self.value,
-        );
-        return @intCast(ret);
-    }
-
-    /// Get the bytes per pixel of the format.
-    pub fn getBytesPerPixel(
-        self: Format,
-    ) u8 {
-        const ret = C.SDL_BYTESPERPIXEL(
-            self.value,
-        );
-        return @intCast(ret);
-    }
-
-    /// If the format is indexed.
-    pub fn isIndexed(
-        self: Format,
-    ) bool {
-        const ret = C.SDL_ISPIXELFORMAT_INDEXED(
-            self.value,
-        );
-        return ret;
-    }
-
-    /// If the format is packed.
-    pub fn isPacked(
-        self: Format,
-    ) bool {
-        const ret = C.SDL_ISPIXELFORMAT_PACKED(
-            self.value,
-        );
-        return ret;
-    }
-
-    /// If the format is array.
-    pub fn isArray(
-        self: Format,
-    ) bool {
-        const ret = C.SDL_ISPIXELFORMAT_ARRAY(
-            self.value,
-        );
-        return ret;
-    }
-
-    /// If the format has alpha.
-    pub fn hasAlpha(
-        self: Format,
-    ) bool {
-        const ret = C.SDL_ISPIXELFORMAT_ALPHA(
-            self.value,
-        );
-        return ret;
-    }
-
-    /// If the format is 10-bit.
-    pub fn is10Bit(
-        self: Format,
-    ) bool {
-        const ret = C.SDL_ISPIXELFORMAT_10BIT(
-            self.value,
-        );
-        return ret;
-    }
-
-    /// If the format is floating point.
-    pub fn isFloat(
-        self: Format,
-    ) bool {
-        const ret = C.SDL_ISPIXELFORMAT_FLOAT(
-            self.value,
-        );
-        return ret;
-    }
-
-    /// If the format is 4CC.
-    pub fn is4CC(
-        self: Format,
-    ) bool {
-        const ret = C.SDL_ISPIXELFORMAT_FOURCC(
-            self.value,
-        );
-        return ret;
-    }
-
-    /// Get the human readable name of a pixel format.
-    pub fn getName(
-        self: Format,
-    ) ?[:0]const u8 {
-        const ret = C.SDL_GetPixelFormatName(
-            self.value,
-        );
-        const converted_ret = std.mem.span(ret);
-        if (std.mem.eql(u8, converted_ret, "SDL_PIXELFORMAT_UNKNOWN"))
-            return null;
-        return converted_ret;
+        return PackedLayout.fromSdl(ret);
     }
 
     /// Convert one of the enumerated pixel formats to a bpp value and RGBA masks.
+    ///
+    /// ## Function Parameters
+    /// * `self`: Pixel format value.
+    ///
+    /// ## Return Value
+    /// Returns the bits per pixel, along with the RGBA mask values.
+    ///
+    /// ## Thread Safety
+    /// It is safe to call this function from any thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
     pub fn getMasks(
         self: Format,
     ) !struct { bpp: u8, r_mask: u32, g_mask: u32, b_mask: u32, a_mask: u32 } {
@@ -489,49 +959,665 @@ pub const Format = struct {
             &b_mask,
             &a_mask,
         );
-        if (ret == false)
-            return null;
+        try errors.wrapCallBool(ret);
         return .{ .bpp = @intCast(bpp), .r_mask = r_mask, .g_mask = g_mask, .b_mask = b_mask, .a_mask = a_mask };
     }
 
-    /// Convert a bpp value and RGBA masks to an enumerated pixel format.
-    pub fn fromMasks(
-        bpp: u8,
+    /// Get the human readable name of a pixel format.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The pixel format to query.
+    ///
+    /// ## Return Value
+    /// Returns the human readable name of the specified pixel format or `null` if the format is not recognized.
+    ///
+    /// ## Thread Safety
+    /// It is safe to call this function from any thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getName(
+        self: Format,
+    ) ?[:0]const u8 {
+        const ret = C.SDL_GetPixelFormatName(
+            self.value,
+        );
+        const converted_ret = std.mem.span(ret);
+        if (std.mem.eql(u8, converted_ret, "SDL_PIXELFORMAT_UNKNOWN"))
+            return null;
+        return converted_ret;
+    }
+
+    /// Get the order component of the format.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The format of the pixel.
+    ///
+    /// ## Return Value
+    /// Returns the order of format.
+    ///
+    /// ## Version
+    /// This function is provided by zig-sdl3.
+    pub fn getOrder(
+        self: Format,
+    ) c_uint {
+        const ret = C.SDL_PIXELORDER(
+            self.value,
+        );
+        return @bitCast(ret);
+    }
+
+    /// Get the typed order component of the format.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The format of the pixel.
+    ///
+    /// ## Return Value
+    /// The order typed for the format.
+    ///
+    /// ## Remarks
+    /// Do not run this on formats with an invalid type!
+    ///
+    /// ## Version
+    /// This function is provided by zig-sdl3.
+    pub fn getOrderTyped(
+        self: Format,
+    ) ?OrderType(self.getType().?) {
+        const ret = C.SDL_PIXELORDER(
+            self.value,
+        );
+        return OrderType(self.getType().?).fromSdl(ret);
+    }
+
+    /// Get the type component of the format.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The format of the pixel.
+    ///
+    /// ## Return Value
+    /// Returns the type of format.
+    ///
+    /// ## Version
+    /// This function is provided by zig-sdl3.
+    pub fn getType(
+        self: Format,
+    ) ?Type {
+        const ret = C.SDL_PIXELTYPE(
+            self.value,
+        );
+        return Type.fromSdl(ret);
+    }
+
+    /// If the format has alpha.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The format of the pixel.
+    ///
+    /// ## Return Value
+    /// Returns true if the format has alpha, false otherwise.
+    ///
+    /// ## Version
+    /// This function is provided by zig-sdl3.
+    pub fn hasAlpha(
+        self: Format,
+    ) bool {
+        if (self.isPacked() or self.isArray()) {
+            const order = PackedOrder.fromSdl(self.getOrder());
+            return order == .argb or
+                order == .rgba or
+                order == .abgr or
+                order == .bgra;
+        }
+        return false;
+    }
+
+    /// If the format is 10-bit.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The format of the pixel.
+    ///
+    /// ## Return Value
+    /// Returns true if the format is 10-bit, false otherwise.
+    ///
+    /// ## Version
+    /// This function is provided by zig-sdl3.
+    pub fn is10Bit(
+        self: Format,
+    ) bool {
+        const format = self.value;
+        return !(C.SDL_ISPIXELFORMAT_FOURCC(format)) and ((C.SDL_PIXELTYPE(format) == C.SDL_PIXELTYPE_PACKED32) and (C.SDL_PIXELLAYOUT(format) == C.SDL_PACKEDLAYOUT_2101010));
+    }
+
+    /// If the format is 4cc.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The format of the pixel.
+    ///
+    /// ## Return Value
+    /// Returns true if the format has alpha, false otherwise.
+    ///
+    /// ## Remarks
+    /// This covers custom and other unusual formats.
+    ///
+    /// ## Version
+    /// This function is provided by zig-sdl3.
+    pub fn is4cc(
+        self: Format,
+    ) bool {
+        const ret = C.SDL_ISPIXELFORMAT_FOURCC(
+            self.value,
+        );
+        return ret;
+    }
+
+    /// If the format is array.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The format of the pixel.
+    ///
+    /// ## Return Value
+    /// Returns true if the format is an array, false otherwise.
+    ///
+    /// ## Version
+    /// This function is provided by zig-sdl3.
+    pub fn isArray(
+        self: Format,
+    ) bool {
+        const new_type = self.getType() orelse return false;
+        return !self.is4cc() and (new_type == .array_u8 or new_type == .array_u16 or new_type == .array_u32 or new_type == .array_f16 or new_type == .array_f32);
+    }
+
+    /// If the format is floating point.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The format of the pixel.
+    ///
+    /// ## Return Value
+    /// Returns true if the format is 10-bit, false otherwise.
+    ///
+    /// ## Version
+    /// This function is provided by zig-sdl3.
+    pub fn isFloat(
+        self: Format,
+    ) bool {
+        const new_type = self.getType() orelse return false;
+        return !self.is4cc() and (new_type == .array_f16 or new_type == .array_f32);
+    }
+
+    /// If the format is indexed.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The format of the pixel.
+    ///
+    /// ## Return Value
+    /// Returns true if the format is indexed, false otherwise.
+    ///
+    /// ## Version
+    /// This function is provided by zig-sdl3.
+    pub fn isIndexed(
+        self: Format,
+    ) bool {
+        const new_type = self.getType() orelse return false;
+        return !self.is4cc() and (new_type == .index1 or new_type == .index2 or new_type == .index4 or new_type == .index8);
+    }
+
+    /// If the format is packed.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The format of the pixel.
+    ///
+    /// ## Return Value
+    /// Returns true if the format is packed, false otherwise.
+    ///
+    /// ## Version
+    /// This function is provided by zig-sdl3.
+    pub fn isPacked(
+        self: Format,
+    ) bool {
+        const new_type = self.getType() orelse return false;
+        return !self.is4cc() and (new_type == .packed8 or new_type == .packed16 or new_type == .packed32);
+    }
+};
+
+/// Details about the format of a pixel.
+///
+/// ## Version
+/// This struct is available since SDL 3.2.0.
+pub const FormatDetails = struct {
+    value: C.SDL_PixelFormatDetails,
+
+    /// Initialize the format details.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The details of the pixel format.
+    ///
+    /// ## Return Value
+    /// These are the zig-named members of the struct.
+    ///
+    /// ## Version
+    /// This function is provided by zig-sdl3.
+    pub fn getDetails(
+        self: FormatDetails,
+    ) struct {
+        format: ?Format,
+        bits_per_pixel: u8,
+        bytes_per_pixel: u8,
         r_mask: u32,
         g_mask: u32,
         b_mask: u32,
         a_mask: u32,
-    ) ?Format {
-        const ret = C.SDL_GetPixelFormatForMasks(
-            @intCast(bpp),
-            @intCast(r_mask),
-            @intCast(g_mask),
-            @intCast(b_mask),
-            @intCast(a_mask),
+        r_bits: u8,
+        g_bits: u8,
+        b_bits: u8,
+        a_bits: u8,
+        r_shift: u8,
+        g_shift: u8,
+        b_shift: u8,
+        a_shift: u8,
+    } {
+        return .{
+            .format = Format.fromSdl(self.value.format),
+            .bits_per_pixel = self.value.bits_per_pixel,
+            .bytes_per_pixel = self.value.bytes_per_pixel,
+            .r_mask = self.value.Rmask,
+            .g_mask = self.value.Gmask,
+            .b_mask = self.value.Bmask,
+            .a_mask = self.value.Amask,
+            .r_bits = self.value.Rbits,
+            .g_bits = self.value.Gbits,
+            .b_bits = self.value.Bbits,
+            .a_bits = self.value.Abits,
+            .r_shift = self.value.Rshift,
+            .g_shift = self.value.Gshift,
+            .b_shift = self.value.Bshift,
+            .a_shift = self.value.Ashift,
+        };
+    }
+
+    /// Get RGB values from a pixel in the specified format.
+    ///
+    /// ## Function Parameters
+    /// * `self`: Describes the pixel format.
+    /// * `pixel`: A pixel value.
+    /// * `palette`: An optional palette for indexed formats.
+    ///
+    /// ## Return Value
+    /// Returns the RGB8 color value of the pixel.
+    ///
+    /// ## Remarks
+    /// This function uses the entire 8-bit [0..255] range when converting color components from pixel formats with less than 8-bits per RGB component
+    /// (e.g., a completely white pixel in 16-bit RGB565 format would return [0xff, 0xff, 0xff] not [0xf8, 0xfc, 0xf8]).
+    ///
+    /// ## Thread Safety
+    /// It is safe to call this function from any thread, as long as the palette is not modified.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getRgb(
+        self: FormatDetails,
+        pixel: Pixel,
+        palette: ?Palette,
+    ) struct { r: u8, g: u8, b: u8 } {
+        var r: u8 = undefined;
+        var g: u8 = undefined;
+        var b: u8 = undefined;
+        C.SDL_GetRGB(
+            @intCast(pixel.value),
+            &self.value,
+            if (palette) |palette_val| palette_val.value else null,
+            &r,
+            &g,
+            &b,
         );
-        if (ret == C.SDL_PIXELFORMAT_UNKNOWN)
+        return .{ .r = r, .g = g, .b = b };
+    }
+
+    /// Get RGBA values from a pixel in the specified format.
+    ///
+    /// ## Function Parameters
+    /// * `self`: Describes the pixel format.
+    /// * `pixel`: A pixel value.
+    /// * `palette`: An optional palette for indexed formats.
+    ///
+    /// ## Return Value
+    /// Returns the RGB8 color value of the pixel.
+    ///
+    /// ## Remarks
+    /// This function uses the entire 8-bit [0..255] range when converting color components from pixel formats with less than 8-bits per RGB component
+    /// (e.g., a completely white pixel in 16-bit RGB565 format would return [0xff, 0xff, 0xff] not [0xf8, 0xfc, 0xf8]).
+    ///
+    /// If the surface has no alpha component, the alpha will be returned as 0xff (100% opaque).
+    ///
+    /// ## Thread Safety
+    /// It is safe to call this function from any thread, as long as the palette is not modified.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getRgba(
+        self: FormatDetails,
+        pixel: Pixel,
+        palette: ?Palette,
+    ) struct { r: u8, g: u8, b: u8, a: u8 } {
+        var r: u8 = undefined;
+        var g: u8 = undefined;
+        var b: u8 = undefined;
+        var a: u8 = undefined;
+        C.SDL_GetRGBA(
+            @intCast(pixel.value),
+            &self.value,
+            if (palette) |palette_val| palette_val.value else null,
+            &r,
+            &g,
+            &b,
+            &a,
+        );
+        return .{ .r = r, .g = g, .b = b, .a = a };
+    }
+
+    /// Initialize the format details.
+    ///
+    /// ## Function Parameters
+    /// These are the zig-named members of the struct.
+    ///
+    /// ## Version
+    /// This function is provided by zig-sdl3.
+    pub fn init(
+        format: ?Format,
+        bits_per_pixel: u8,
+        bytes_per_pixel: u8,
+        r_mask: u32,
+        g_mask: u32,
+        b_mask: u32,
+        a_mask: u32,
+        r_bits: u8,
+        g_bits: u8,
+        b_bits: u8,
+        a_bits: u8,
+        r_shift: u8,
+        g_shift: u8,
+        b_shift: u8,
+        a_shift: u8,
+    ) FormatDetails {
+        return .{
+            .value = .{
+                .format = Format.toSdl(format),
+                .bits_per_pixel = bits_per_pixel,
+                .bytes_per_pixel = bytes_per_pixel,
+                .Rmask = r_mask,
+                .Gmask = g_mask,
+                .Bmask = b_mask,
+                .Amask = a_mask,
+                .Rbits = r_bits,
+                .Gbits = g_bits,
+                .Bbits = b_bits,
+                .Abits = a_bits,
+                .Rshift = r_shift,
+                .Gshift = g_shift,
+                .Bshift = b_shift,
+                .Ashift = a_shift,
+            },
+        };
+    }
+
+    /// Map an RGB triple to an opaque pixel value for a given pixel format.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The details describing the format.
+    /// * `palette`: An optional palette for indexed formats.
+    /// * `r`: The red component of the pixel in the range 0-255.
+    /// * `g`: The green component of the pixel in the range 0-255.
+    /// * `b`: The blue component of the pixel in the range 0-255.
+    ///
+    /// ## Return Value
+    /// Returns a pixel value.
+    ///
+    /// ## Remarks
+    /// This function maps the RGB color value to the specified pixel format and returns the pixel value best approximating the given RGB color value for the given pixel format.
+    ///
+    /// If the format has a palette (8-bit) the index of the closest matching color in the palette will be returned.
+    ///
+    /// If the specified pixel format has an alpha component it will be returned as all 1 bits (fully opaque).
+    ///
+    /// If the pixel format bpp (color depth) is less than 32-bpp then the unused upper bits of the return value can safely be ignored
+    /// (e.g., with a 16-bpp format the return value can be assigned to a `u16`, and similarly a `u8` for an 8-bpp format).
+    ///
+    /// ## Thread Safety
+    /// It is safe to call this function from any thread, as long as the palette is not modified.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn mapRgb(
+        self: FormatDetails,
+        palette: ?Palette,
+        r: u8,
+        g: u8,
+        b: u8,
+    ) Pixel {
+        const ret = C.SDL_MapRGB(
+            &self.value,
+            if (palette) |palette_val| palette_val.value else null,
+            r,
+            g,
+            b,
+        );
+        return Pixel{ .value = ret };
+    }
+
+    /// Map an RGBA quadruple to a pixel value for a given pixel format.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The details describing the format.
+    /// * `palette`: An optional palette for indexed formats.
+    /// * `r`: The red component of the pixel in the range 0-255.
+    /// * `g`: The green component of the pixel in the range 0-255.
+    /// * `b`: The blue component of the pixel in the range 0-255.
+    /// * `a`: The alpha component of the pixel in the range 0-255.
+    ///
+    /// ## Return Value
+    /// Returns a pixel value.
+    ///
+    /// ## Remarks
+    /// This function maps the RGBA color value to the specified pixel format and returns the pixel value best approximating the given RGBA color value for the given pixel format.
+    ///
+    /// If the specified pixel format has no alpha component the alpha value will be ignored (as it will be in formats with a palette).
+    ///
+    /// If the format has a palette (8-bit) the index of the closest matching color in the palette will be returned.
+    ///
+    /// If the pixel format bpp (color depth) is less than 32-bpp then the unused upper bits of the return value can safely be ignored
+    /// (e.g., with a 16-bpp format the return value can be assigned to a `u16`, and similarly a `u8` for an 8-bpp format).
+    ///
+    /// ## Thread Safety
+    /// It is safe to call this function from any thread, as long as the palette is not modified.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn mapRgba(
+        self: FormatDetails,
+        palette: ?Palette,
+        r: u8,
+        g: u8,
+        b: u8,
+        a: u8,
+    ) Pixel {
+        const ret = C.SDL_MapRGBA(
+            &self.value,
+            if (palette) |palette_val| palette_val.value else null,
+            r,
+            g,
+            b,
+            a,
+        );
+        return Pixel{ .value = ret };
+    }
+};
+
+/// Colorspace matrix coefficients.
+///
+/// ## Remarks
+/// These are as described by https://www.itu.int/rec/T-REC-H.273-201612-S/en.
+///
+/// ## Version
+/// This enum is available since SDL 3.2.0.
+pub const MatrixCoefficients = enum(c_uint) {
+    identity = C.SDL_MATRIX_COEFFICIENTS_IDENTITY,
+    /// ITU-R BT.709-6.
+    bt709 = C.SDL_MATRIX_COEFFICIENTS_BT709,
+    unspecified = C.SDL_MATRIX_COEFFICIENTS_UNSPECIFIED,
+    /// US FCC Title 47.
+    fcc = C.SDL_MATRIX_COEFFICIENTS_FCC,
+    /// ITU-R BT.470-6 System B, G / ITU-R BT.601-7 625, functionally the same as SDL_MATRIX_COEFFICIENTS_BT601.
+    bt470bg = C.SDL_MATRIX_COEFFICIENTS_BT470BG,
+    /// ITU-R BT.601-7 525.
+    bt601 = C.SDL_MATRIX_COEFFICIENTS_BT601,
+    /// SMPTE 240M.
+    smpte240 = C.SDL_MATRIX_COEFFICIENTS_SMPTE240,
+    ycgco = C.SDL_MATRIX_COEFFICIENTS_YCGCO,
+    /// ITU-R BT.2020-2 non-constant luminance.
+    bt2020_ncl = C.SDL_MATRIX_COEFFICIENTS_BT2020_NCL,
+    /// ITU-R BT.2020-2 constant luminance.
+    bt2020_cl = C.SDL_MATRIX_COEFFICIENTS_BT2020_CL,
+    /// SMPTE ST 2085.
+    smpte2085 = C.SDL_MATRIX_COEFFICIENTS_SMPTE2085,
+    chroma_derived_ncl = C.SDL_MATRIX_COEFFICIENTS_CHROMA_DERIVED_NCL,
+    chroma_derived_cl = C.SDL_MATRIX_COEFFICIENTS_CHROMA_DERIVED_CL,
+    /// ITU-R BT.2100-0 ICTCP.
+    ictcp = C.SDL_MATRIX_COEFFICIENTS_ICTCP,
+    custom = C.SDL_MATRIX_COEFFICIENTS_CUSTOM,
+};
+
+/// Packed component layout.
+///
+/// ## Version
+/// This enum is available since SDL 3.2.0.
+pub const PackedLayout = enum(c_uint) {
+    bit_3_3_2 = C.SDL_PACKEDLAYOUT_332,
+    bit_4_4_4_4 = C.SDL_PACKEDLAYOUT_4444,
+    bit_1_5_5_5 = C.SDL_PACKEDLAYOUT_1555,
+    bit_5_5_5_1 = C.SDL_PACKEDLAYOUT_5551,
+    bit_5_6_5 = C.SDL_PACKEDLAYOUT_565,
+    bit_8_8_8_8 = C.SDL_PACKEDLAYOUT_8888,
+    bit_2_10_10_10 = C.SDL_PACKEDLAYOUT_2101010,
+    bit_10_10_10_2 = C.SDL_PACKEDLAYOUT_1010102,
+
+    /// Convert from an SDL value.
+    pub fn fromSdl(value: C.SDL_PackedLayout) ?PackedLayout {
+        if (value == C.SDL_PACKEDLAYOUT_NONE)
             return null;
-        return Format{ .value = ret };
+        return @enumFromInt(value);
+    }
+
+    /// Convert to an SDL value.
+    pub fn toSdl(self: ?PackedLayout) C.SDL_PackedLayout {
+        if (self) |val|
+            return @intFromEnum(val);
+        return C.SDL_PACKEDLAYOUT_NONE;
+    }
+};
+
+/// Packed component order, high bit -> low bit.
+///
+/// ## Version
+/// This enum is available since SDL 3.2.0.
+pub const PackedOrder = enum(c_uint) {
+    xrgb = C.SDL_PACKEDORDER_XRGB,
+    rgbx = C.SDL_PACKEDORDER_RGBX,
+    argb = C.SDL_PACKEDORDER_ARGB,
+    rgba = C.SDL_PACKEDORDER_RGBA,
+    xbgr = C.SDL_PACKEDORDER_XBGR,
+    bgrx = C.SDL_PACKEDORDER_BGRX,
+    abgr = C.SDL_PACKEDORDER_ABGR,
+    bgra = C.SDL_PACKEDORDER_BGRA,
+
+    /// Convert from an SDL value.
+    pub fn fromSdl(value: C.SDL_PackedOrder) ?PackedOrder {
+        if (value == C.SDL_PACKEDORDER_NONE)
+            return null;
+        return @enumFromInt(value);
+    }
+
+    /// Convert to an SDL value.
+    pub fn toSdl(self: ?PackedOrder) C.SDL_PackedOrder {
+        if (self) |val|
+            return @intFromEnum(val);
+        return C.SDL_PACKEDORDER_NONE;
     }
 };
 
 /// A set of indexed colors representing a palette.
+///
+/// ## Version
+/// This struct is available since SDL 3.2.0.
 pub const Palette = struct {
     value: *C.SDL_Palette,
 
+    /// Free a palette created earlier.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The palette to be freed.
+    ///
+    /// ## Thread Safety
+    /// It is safe to call this function from any thread, as long as the palette is not modified or destroyed in another thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn deinit(
+        self: Palette,
+    ) void {
+        C.SDL_DestroyPalette(
+            self.value,
+        );
+    }
+
+    /// A set of indexed colors representing a palette.
+    ///
+    /// ## Function Parameters
+    /// * `self`: Palette to get the colors of.
+    ///
+    /// ## Version
+    /// This function is provided by zig-sdl3.
+    pub fn getColors(
+        self: Palette,
+    ) []const Color {
+        return self.value.colors[0..@intCast(self.value.ncolors)];
+    }
+
     /// Create a palette structure with the specified number of color entries.
+    ///
+    /// ## Function Parameters
+    /// * `num_colors`: Represents the number of color entries in the color palette.
+    ///
+    /// ## Return Value
+    /// Returns the palette structure.
+    ///
+    /// ## Remarks
+    /// The palette entries are initialized to white.
+    ///
+    /// ## Thread Safety
+    /// It is safe to call this function from any thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
     pub fn init(
-        num_colors: u32,
+        num_colors: usize,
     ) !Palette {
         const ret = C.SDL_CreatePalette(
             @intCast(num_colors),
         );
-        if (ret == null)
-            return null;
-        return Palette{ .value = ret };
+        return Palette{ .value = try errors.wrapNull(*C.SDL_Palette, ret) };
     }
 
     /// Set a range of colors in a palette.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The palette to modify.
+    /// * `colors`: Colors to copy to the palette.
+    /// * `first_color`: The index of the first palette entry to modify.
+    ///
+    /// ## Thread Safety
+    /// It is safe to call this function from any thread, as long as the palette is not modified or destroyed in another thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
     pub fn setColors(
         self: Palette,
         colors: []const Color,
@@ -543,362 +1629,212 @@ pub const Palette = struct {
             @intCast(first_color),
             @intCast(colors.len),
         );
-        if (!ret)
-            return error.SdlError;
-    }
-
-    /// Free a palette created earlier.
-    pub fn deinit(
-        self: Palette,
-    ) void {
-        const ret = C.SDL_DestroyPalette(
-            self.value,
-        );
-        _ = ret;
-    }
-};
-
-/// Colorspace definitions.
-pub const Colorspace = struct {
-    value: u32,
-    /// sRGB is a gamma corrected colorspace, and the default colorspace for SDL rendering and 8-bit RGB surfaces.
-    pub const Srgb = Colorspace{ .value = C.SDL_COLORSPACE_SRGB };
-    /// This is a linear colorspace and the default colorspace for floating point surfaces. On Windows this is the scRGB colorspace, and on Apple platforms this is kCGColorSpaceExtendedLinearSRGB for EDR content.
-    pub const Linear = Colorspace{ .value = C.SDL_COLORSPACE_SRGB_LINEAR };
-    /// HDR10 is a non-linear HDR colorspace and the default colorspace for 10-bit surfaces.
-    pub const Hdr10 = Colorspace{ .value = C.SDL_COLORSPACE_HDR10 };
-    /// Equivalent to DXGI_COLOR_SPACE_YCBCR_FULL_G22_NONE_P709_X601.
-    pub const Jpeg = Colorspace{ .value = C.SDL_COLORSPACE_JPEG };
-    /// Equivalent to DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P601.
-    pub const BT601Limited = Colorspace{ .value = C.SDL_COLORSPACE_BT601_LIMITED };
-    /// Equivalent to DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P601.
-    pub const BT601Full = Colorspace{ .value = C.SDL_COLORSPACE_BT601_FULL };
-    /// Equivalent to DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P709.
-    pub const BT709Limited = Colorspace{ .value = C.SDL_COLORSPACE_BT709_LIMITED };
-    /// Equivalent to DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P709.
-    pub const BT709Full = Colorspace{ .value = C.SDL_COLORSPACE_BT709_FULL };
-    /// Equivalent to DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P2020.
-    pub const BT2020Limited = Colorspace{ .value = C.SDL_COLORSPACE_BT2020_LIMITED };
-    /// Equivalent to DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P2020.
-    pub const BT2020Full = Colorspace{ .value = C.SDL_COLORSPACE_BT2020_FULL };
-    /// The default colorspace for RGB surfaces if no colorspace is specified.
-    pub const RgbDefault = Colorspace{ .value = C.SDL_COLORSPACE_RGB_DEFAULT };
-    /// The default colorspace for YUV surfaces if no colorspace is specified.
-    pub const YuvDefault = Colorspace{ .value = C.SDL_COLORSPACE_YUV_DEFAULT };
-
-    /// Create a colorspace.
-    pub fn define(
-        color_type: ColorType,
-        range: ColorRange,
-        primaries: ColorPrimaries,
-        transfer: TransferCharacteristics,
-        matrix: MatrixCoefficients,
-        chroma: ?ChromaLocation,
-    ) Colorspace {
-        const ret = C.SDL_DEFINE_COLORSPACE(
-            @intFromEnum(color_type),
-            @intFromEnum(range),
-            @intFromEnum(primaries),
-            @intFromEnum(transfer),
-            @intFromEnum(matrix),
-            if (chroma == null) C.SDL_CHROMA_LOCATION_NONE else @intFromEnum(chroma),
-        );
-        return Colorspace{ .value = ret };
-    }
-
-    /// Get the color space type.
-    pub fn getType(
-        self: Colorspace,
-    ) ?ColorType {
-        const ret = C.SDL_COLORSPACETYPE(
-            self.value,
-        );
-        if (ret == C.SDL_COLOR_TYPE_UNKNOWN)
-            return null;
-        return @enumFromInt(ret);
-    }
-
-    /// Get the color space range.
-    pub fn getRange(
-        self: Colorspace,
-    ) ?ColorRange {
-        const ret = C.SDL_COLORSPACERANGE(
-            self.value,
-        );
-        if (ret == C.SDL_COLOR_RANGE_UNKNOWN)
-            return null;
-        return @enumFromInt(ret);
-    }
-
-    /// Get the color space chroma.
-    pub fn getChromaLocation(
-        self: Colorspace,
-    ) ?ChromaLocation {
-        const ret = C.SDL_COLORSPACECHROMA(
-            self.value,
-        );
-        if (ret == C.SDL_CHROMA_LOCATION_NONE)
-            return null;
-        return @enumFromInt(ret);
-    }
-
-    /// Get the color space primaries.
-    pub fn getColorPrimaries(
-        self: Colorspace,
-    ) ?ColorPrimaries {
-        const ret = C.SDL_COLORSPACEPRIMARIES(
-            self.value,
-        );
-        if (ret == C.SDL_COLOR_PRIMARIES_UNKNOWN)
-            return null;
-        return @enumFromInt(ret);
-    }
-
-    /// Get the color space transfer characteristics.
-    pub fn getTransferCharacteristics(
-        self: Colorspace,
-    ) ?TransferCharacteristics {
-        const ret = C.SDL_COLORSPACETRANSFER(
-            self.value,
-        );
-        if (ret == C.SDL_TRANSFER_CHARACTERISTICS_UNKNOWN)
-            return null;
-        return @enumFromInt(ret);
-    }
-
-    /// Get the color space matrix.
-    pub fn getMatrix(
-        self: Colorspace,
-    ) MatrixCoefficients {
-        const ret = C.SDL_COLORSPACEMATRIX(
-            self.value,
-        );
-        return @enumFromInt(ret);
-    }
-
-    /// If the matrix is BT601.
-    pub fn isMatrixBT601(
-        self: Colorspace,
-    ) bool {
-        const ret = C.SDL_ISCOLORSPACE_MATRIX_BT601(
-            self.value,
-        );
-        return ret;
-    }
-
-    /// If the matrix is BT709.
-    pub fn isMatrixBT709(
-        self: Colorspace,
-    ) bool {
-        const ret = C.SDL_ISCOLORSPACE_MATRIX_BT709(
-            self.value,
-        );
-        return ret;
-    }
-
-    /// If the matrix is BT2020 NCL.
-    pub fn isMatrixBT2020_NCL(
-        self: Colorspace,
-    ) bool {
-        const ret = C.SDL_ISCOLORSPACE_MATRIX_BT2020_NCL(
-            self.value,
-        );
-        return ret;
-    }
-
-    /// If the color space is limited range.
-    pub fn isLimitedRange(
-        self: Colorspace,
-    ) bool {
-        const ret = C.SDL_ISCOLORSPACE_LIMITED_RANGE(
-            self.value,
-        );
-        return ret;
-    }
-
-    /// If the color space is full range.
-    pub fn isFullRange(
-        self: Colorspace,
-    ) bool {
-        const ret = C.SDL_ISCOLORSPACE_FULL_RANGE(
-            self.value,
-        );
-        return ret;
+        return errors.wrapCallBool(ret);
     }
 };
 
 /// Raw pixel value.
-pub const Pixel = struct {
+///
+/// ## Version
+/// This struct is provided by zig-sdl3.
+pub const Pixel = packed struct {
     value: u32,
 };
 
-/// Details about the format of a pixel.
-pub const FormatDetails = struct {
-    format: ?Format,
-    bits_per_pixel: u8,
-    bytes_per_pixel: u8,
-    r_mask: u32,
-    g_mask: u32,
-    b_mask: u32,
-    r_bits: u8,
-    g_bits: u8,
-    b_bits: u8,
-    a_bits: u8,
-    r_shift: u8,
-    g_shift: u8,
-    b_shift: u8,
-    a_shift: u8,
+/// Colorspace transfer characteristics.
+///
+/// ## Remarks
+/// These are as described by https://www.itu.int/rec/T-REC-H.273-201612-S/en.
+///
+/// ## Version
+/// This enum is available since SDL 3.2.0.
+pub const TransferCharacteristics = enum(c_uint) {
+    /// Rec. ITU-R BT.709-6 / ITU-R BT1361.
+    bt709 = C.SDL_TRANSFER_CHARACTERISTICS_BT709,
+    unspecified = C.SDL_TRANSFER_CHARACTERISTICS_UNSPECIFIED,
+    /// ITU-R BT.470-6 System M / ITU-R BT1700 625 PAL & SECAM.
+    gamma22 = C.SDL_TRANSFER_CHARACTERISTICS_GAMMA22,
+    /// ITU-R BT.470-6 System B, G.
+    gamma28 = C.SDL_TRANSFER_CHARACTERISTICS_GAMMA28,
+    /// SMPTE ST 170M / ITU-R BT.601-7 525 or 625.
+    bt601 = C.SDL_TRANSFER_CHARACTERISTICS_BT601,
+    /// SMPTE ST 240M.
+    smpte240 = C.SDL_TRANSFER_CHARACTERISTICS_SMPTE240,
+    linear = C.SDL_TRANSFER_CHARACTERISTICS_LINEAR,
+    log100 = C.SDL_TRANSFER_CHARACTERISTICS_LOG100,
+    log100_sqrt10 = C.SDL_TRANSFER_CHARACTERISTICS_LOG100_SQRT10,
+    /// IEC 61966-2-4.
+    iec61966 = C.SDL_TRANSFER_CHARACTERISTICS_IEC61966,
+    /// ITU-R BT1361 Extended Colour Gamut.
+    bt1361 = C.SDL_TRANSFER_CHARACTERISTICS_BT1361,
+    /// IEC 61966-2-1 (sRGB or sYCC).
+    srgb = C.SDL_TRANSFER_CHARACTERISTICS_SRGB,
+    /// ITU-R BT2020 for 10-bit system.
+    bt2020_10bit = C.SDL_TRANSFER_CHARACTERISTICS_BT2020_10BIT,
+    /// ITU-R BT2020 for 12-bit system.
+    bt2020_12bit = C.SDL_TRANSFER_CHARACTERISTICS_BT2020_12BIT,
+    /// SMPTE ST 2084 for 10-, 12-, 14- and 16-bit system.
+    pq = C.SDL_TRANSFER_CHARACTERISTICS_PQ,
+    /// SMPTE ST 428-1.
+    smpte428 = C.SDL_TRANSFER_CHARACTERISTICS_SMPTE428,
+    /// ARIB STD-B67, known as hybrid log-gamma (HLG).
+    hlg = C.SDL_TRANSFER_CHARACTERISTICS_HLG,
+    custom = C.SDL_TRANSFER_CHARACTERISTICS_CUSTOM,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(data: C.SDL_PixelFormatDetails) FormatDetails {
-        return .{
-            .format = if (data.format == C.SDL_PIXELFORMAT_UNKNOWN) null else Format{ .value = data.format },
-            .bits_per_pixel = @intCast(data.bits_per_pixel),
-            .bytes_per_pixel = @intCast(data.bytes_per_pixel),
-            .r_mask = @intCast(data.Rmask),
-            .g_mask = @intCast(data.Gmask),
-            .b_mask = @intCast(data.Bmask),
-            .r_bits = @intCast(data.Rbits),
-            .g_bits = @intCast(data.Gbits),
-            .b_bits = @intCast(data.Bbits),
-            .a_bits = @intCast(data.Abits),
-            .r_shift = @intCast(data.Rshift),
-            .g_shift = @intCast(data.Gshift),
-            .b_shift = @intCast(data.Bshift),
-            .a_shift = @intCast(data.Ashift),
-        };
+    pub fn fromSdl(value: C.SDL_TransferCharacteristics) ?TransferCharacteristics {
+        if (value == C.SDL_TRANSFER_CHARACTERISTICS_UNKNOWN)
+            return null;
+        return @enumFromInt(value);
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: FormatDetails) C.SDL_PixelFormatDetails {
-        return .{
-            .format = Format.toSdl(self.format),
-            .bits_per_pixel = @intCast(self.bits_per_pixel),
-            .bytes_per_pixel = @intCast(self.bytes_per_pixel),
-            .Rmask = @intCast(self.r_mask),
-            .Gmask = @intCast(self.g_mask),
-            .Bmask = @intCast(self.b_mask),
-            .Rbits = @intCast(self.r_bits),
-            .Gbits = @intCast(self.g_bits),
-            .Bbits = @intCast(self.b_bits),
-            .Abits = @intCast(self.a_bits),
-            .Rshift = @intCast(self.r_shift),
-            .Gshift = @intCast(self.g_shift),
-            .Bshift = @intCast(self.b_shift),
-            .Ashift = @intCast(self.a_shift),
-        };
-    }
-
-    /// Map an RGB triple to an opaque pixel value for a given pixel format.
-    pub fn mapRgb(
-        self: FormatDetails,
-        palette: ?Palette,
-        r: u8,
-        g: u8,
-        b: u8,
-    ) Pixel {
-        const self_sdl: C.SDL_PixelFormatDetails = self.toSdl();
-        const ret = C.SDL_MapRGB(
-            &self_sdl,
-            if (palette) |palette_val| palette_val.value else null,
-            @intCast(r),
-            @intCast(g),
-            @intCast(b),
-        );
-        return Pixel{ .value = ret };
-    }
-
-    /// Map an RGBA quadruple to a transparent pixel value for a given pixel format.
-    pub fn mapRgba(
-        self: FormatDetails,
-        palette: ?Palette,
-        r: u8,
-        g: u8,
-        b: u8,
-        a: u8,
-    ) Pixel {
-        const self_sdl: C.SDL_PixelFormatDetails = self.toSdl();
-        const ret = C.SDL_MapRGBA(
-            &self_sdl,
-            if (palette) |palette_val| palette_val.value else null,
-            @intCast(r),
-            @intCast(g),
-            @intCast(b),
-            @intCast(a),
-        );
-        return Pixel{ .value = ret };
-    }
-
-    /// Get RGB values from a pixel in the specified format.
-    pub fn getRgb(
-        self: FormatDetails,
-        pixel: Pixel,
-        palette: ?Palette,
-    ) struct { r: u8, g: u8, b: u8 } {
-        const self_sdl: C.SDL_PixelFormatDetails = self.toSdl();
-        var r: u8 = undefined;
-        var g: u8 = undefined;
-        var b: u8 = undefined;
-        const ret = C.SDL_GetRGB(
-            @intCast(pixel.value),
-            &self_sdl,
-            if (palette) |palette_val| palette_val.value else null,
-            &r,
-            &g,
-            &b,
-        );
-        _ = ret;
-        return .{ .r = r, .g = g, .b = b };
-    }
-
-    /// Get RGBA values from a pixel in the specified format.
-    pub fn getRgba(
-        self: FormatDetails,
-        pixel: Pixel,
-        palette: ?Palette,
-    ) struct { r: u8, g: u8, b: u8, a: u8 } {
-        const self_sdl: C.SDL_PixelFormatDetails = self.toSdl();
-        var r: u8 = undefined;
-        var g: u8 = undefined;
-        var b: u8 = undefined;
-        var a: u8 = undefined;
-        const ret = C.SDL_GetRGBA(
-            @intCast(pixel.value),
-            &self_sdl,
-            if (palette) |palette_val| palette_val.value else null,
-            &r,
-            &g,
-            &b,
-            &a,
-        );
-        _ = ret;
-        return .{ .r = r, .g = g, .b = b, .a = a };
+    pub fn toSdl(self: ?TransferCharacteristics) C.SDL_TransferCharacteristics {
+        if (self) |val|
+            return @intFromEnum(val);
+        return C.SDL_TRANSFER_CHARACTERISTICS_UNKNOWN;
     }
 };
 
+/// Pixel type.
+///
+/// ## Version
+/// This enum is available since SDL 3.2.0.
+pub const Type = enum(c_uint) {
+    index1 = C.SDL_PIXELTYPE_INDEX1,
+    index2 = C.SDL_PIXELTYPE_INDEX2,
+    index4 = C.SDL_PIXELTYPE_INDEX4,
+    index8 = C.SDL_PIXELTYPE_INDEX8,
+    packed8 = C.SDL_PIXELTYPE_PACKED8,
+    packed16 = C.SDL_PIXELTYPE_PACKED16,
+    packed32 = C.SDL_PIXELTYPE_PACKED32,
+    array_u8 = C.SDL_PIXELTYPE_ARRAYU8,
+    array_u16 = C.SDL_PIXELTYPE_ARRAYU16,
+    array_u32 = C.SDL_PIXELTYPE_ARRAYU32,
+    array_f16 = C.SDL_PIXELTYPE_ARRAYF16,
+    array_f32 = C.SDL_PIXELTYPE_ARRAYF32,
+
+    /// Convert from an SDL value.
+    pub fn fromSdl(value: C.SDL_PixelType) ?Type {
+        if (value == C.SDL_PIXELTYPE_UNKNOWN)
+            return null;
+        return @enumFromInt(value);
+    }
+
+    /// Convert to an SDL value.
+    pub fn toSdl(self: ?Type) C.SDL_PixelType {
+        if (self) |val|
+            return @intFromEnum(val);
+        return C.SDL_PIXELTYPE_UNKNOWN;
+    }
+};
+
+/// Map an RGB triple to an opaque pixel value for a surface.
+///
+/// ## Function Parameters
+/// * `surface`: The surface to use for the pixel format and palette.
+/// * `r`: The red component of the pixel in the range 0-255.
+/// * `g`: The green component of the pixel in the range 0-255.
+/// * `b`: The blue component of the pixel in the range 0-255.
+///
+/// ## Return Value
+/// Returns a pixel value.
+///
+/// ## Remarks
+/// This function maps the RGB color value to the specified pixel format and returns the pixel value best approximating the given RGB color value for the given pixel format.
+///
+/// If the surface has a palette, the index of the closest matching color in the palette will be returned.
+///
+/// If the surface pixel format has an alpha component it will be returned as all 1 bits (fully opaque).
+///
+/// If the pixel format bpp (color depth) is less than 32-bpp then the unused upper bits of the return value can safely be ignored
+/// (e.g., with a 16-bpp format the return value can be assigned to a `u16`, and similarly a `u8` for an 8-bpp format).
+///
+/// ## Thread Safety
+/// It is safe to call this function from any thread, as long as the palette is not modified.
+///
+/// ## Version
+/// This function is available since SDL 3.2.0.
+pub fn mapSurfaceRgb(
+    surface_value: surface.Surface,
+    r: u8,
+    g: u8,
+    b: u8,
+) Pixel {
+    const ret = C.SDL_MapSurfaceRGB(
+        surface_value.value,
+        r,
+        g,
+        b,
+    );
+    return Pixel{ .value = ret };
+}
+
+/// Map an RGBA quadruple to a pixel value for a surface.
+///
+/// ## Function Parameters
+/// * `surface`: The surface to use for the pixel format and palette.
+/// * `r`: The red component of the pixel in the range 0-255.
+/// * `g`: The green component of the pixel in the range 0-255.
+/// * `b`: The blue component of the pixel in the range 0-255.
+/// * `a`: The alpha component of the pixel in the range 0-255.
+///
+/// ## Return Value
+/// Returns a pixel value.
+///
+/// ## Remarks
+/// This function maps the RGBA color value to the specified pixel format and returns the pixel value best approximating the given RGBA color value for the given pixel format.
+///
+/// If the surface pixel format has no alpha component the alpha value will be ignored (as it will be in formats with a palette).
+///
+/// If the surface has a palette, the index of the closest matching color in the palette will be returned.
+///
+/// If the pixel format bpp (color depth) is less than 32-bpp then the unused upper bits of the return value can safely be ignored
+/// (e.g., with a 16-bpp format the return value can be assigned to a `u16`, and similarly a `u8` for an 8-bpp format).
+///
+/// ## Thread Safety
+/// It is safe to call this function from any thread, as long as the palette is not modified.
+///
+/// ## Version
+/// This function is available since SDL 3.2.0.
+pub fn mapSurfaceRgba(
+    surface_value: surface.Surface,
+    r: u8,
+    g: u8,
+    b: u8,
+    a: u8,
+) Pixel {
+    const ret = C.SDL_MapSurfaceRGBA(
+        surface_value.value,
+        r,
+        g,
+        b,
+        a,
+    );
+    return Pixel{ .value = ret };
+}
+
 /// Get the order type of a pixel type.
-fn OrderType(pixel_type: Type) type {
+///
+/// ## Function Parameters
+/// * `pixel_type`: The pixel type.
+///
+/// ## Return Value
+/// The type for the pixel order.
+///
+/// ## Version
+/// This function is provided by zig-sdl3.
+inline fn OrderType(
+    pixel_type: Type,
+) type {
     return switch (pixel_type) {
-        .Index1, .Index2, .Index4, .Index8 => IndexOrder,
-        .Packed8, .Packed16, .Packed32 => PackedOrder,
-        .ArrayU8, .ArrayU16, .ArrayU32, .ArrayF16, .ArrayF32 => ArrayOrder,
+        .index1, .index2, .index4, .index8 => BitmapOrder,
+        .packed8, .packed16, .packed32 => PackedOrder,
+        .arrayU8, .arrayU16, .arrayU32, .arrayF16, .arrayF32 => ArrayOrder,
     };
 }
 
-/// A fully opaque 8-bit alpha value.
-pub const alpha_opaque: u8 = 255;
-
-/// A fully transparent 8-bit alpha value.
-pub const alpha_transparent: u8 = 0;
-
-/// A fully opaque float alpha value.
-pub const alpha_opaque_float: f32 = 1;
-
-/// A fully transparent float alpha value.
-pub const alpha_transparent_float: f32 = 0;
-
-/// A structure that represents a color as RGBA components.
-pub const Color = C.SDL_Color;
-
-/// The bits of this structure can be directly reinterpreted as a float-packed.
-pub const FColor = C.SDL_FColor;
+// Pixel tests.
+test "Pixels" {
+    std.testing.refAllDeclsRecursive(@This());
+}
