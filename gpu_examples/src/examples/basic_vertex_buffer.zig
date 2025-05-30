@@ -107,7 +107,7 @@ pub fn init() !common.Context {
     ctx.device.unmapTransferBuffer(transfer_buffer);
 
     // Upload transfer data to the vertex buffer.
-    const upload_cmd_buf = try ctx.device.aquireCommandBuffer();
+    const upload_cmd_buf = try ctx.device.acquireCommandBuffer();
     const copy_pass = upload_cmd_buf.beginCopyPass();
     copy_pass.uploadToBuffer(.{
         .transfer_buffer = transfer_buffer,
@@ -131,8 +131,8 @@ pub fn update(ctx: common.Context) !void {
 pub fn draw(ctx: common.Context) !void {
 
     // Get command buffer and swapchain texture.
-    const cmd_buf = try ctx.device.aquireCommandBuffer();
-    const swapchain_texture = try cmd_buf.waitAndAquireSwapchainTexture(ctx.window);
+    const cmd_buf = try ctx.device.acquireCommandBuffer();
+    const swapchain_texture = try cmd_buf.waitAndAcquireSwapchainTexture(ctx.window);
     if (swapchain_texture.texture) |texture| {
 
         // Start a render pass if the swapchain texture is available. Make sure to clear it.

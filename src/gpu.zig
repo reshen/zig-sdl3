@@ -989,7 +989,7 @@ pub const CommandBuffer = packed struct {
     ///
     /// ## Version
     /// This function is available since SDL 3.2.0.
-    pub fn waitAndAquireSwapchainTexture(
+    pub fn waitAndAcquireSwapchainTexture(
         self: CommandBuffer,
         window: video.Window,
     ) !struct { texture: ?Texture, width: u32, height: u32 } {
@@ -1707,7 +1707,7 @@ pub const Device = packed struct {
     ///
     /// ## Version
     /// This function is available since SDL 3.2.0.
-    pub fn aquireCommandBuffer(
+    pub fn acquireCommandBuffer(
         self: Device,
     ) !CommandBuffer {
         return .{
@@ -1722,7 +1722,7 @@ pub const Device = packed struct {
     /// * `window`: An SDL window.
     ///
     /// ## Remarks
-    /// This must be called before `gpu.CommandBuffer.aquireSwapchainTexture()` is called using the window.
+    /// This must be called before `gpu.CommandBuffer.acquireSwapchainTexture()` is called using the window.
     /// You should only call this function from the thread that created the window.
     ///
     /// The swapchain will be created with `gpu.SwapChainComposition.sdr` and `gpu.PresentMode.vsync`.
@@ -2000,7 +2000,7 @@ pub const Device = packed struct {
     /// * `create_info`: A struct describing the state of the transfer buffer to create.
     ///
     /// ## Return Value
-    /// Returns a texture object.
+    /// Returns a transfer buffer on success.
     ///
     /// ## Remarks
     /// Download buffers can be particularly expensive to create, so it is good practice to reuse them if data will be downloaded regularly.
