@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const std = @import("std");
 
 /// True if (and only if) the compiler supports PowerPC Altivec intrinsics.
@@ -8,7 +8,7 @@ const std = @import("std");
 ///
 /// ## Version
 /// This constant is available since SDL 3.2.0.
-pub const altivec = @hasDecl(C, "SDL_ALTIVEC_INTRINSICS");
+pub const altivec = @hasDecl(c, "SDL_ALTIVEC_INTRINSICS");
 
 /// True if (and only if) the compiler supports Intel AVX intrinsics.
 ///
@@ -17,7 +17,7 @@ pub const altivec = @hasDecl(C, "SDL_ALTIVEC_INTRINSICS");
 ///
 /// ## Version
 /// This constant is available since SDL 3.2.0.
-pub const avx = @hasDecl(C, "SDL_AVX_INTRINSICS");
+pub const avx = @hasDecl(c, "SDL_AVX_INTRINSICS");
 
 /// True if (and only if) the compiler supports Intel AVX2 intrinsics.
 ///
@@ -26,7 +26,7 @@ pub const avx = @hasDecl(C, "SDL_AVX_INTRINSICS");
 ///
 /// ## Version
 /// This constant is available since SDL 3.2.0.
-pub const avx2 = @hasDecl(C, "SDL_AVX2_INTRINSICS");
+pub const avx2 = @hasDecl(c, "SDL_AVX2_INTRINSICS");
 
 /// True if (and only if) the compiler supports Intel AVX-512F intrinsics.
 ///
@@ -37,7 +37,7 @@ pub const avx2 = @hasDecl(C, "SDL_AVX2_INTRINSICS");
 ///
 /// ## Version
 /// This constant is available since SDL 3.2.0.
-pub const avx512f = @hasDecl(C, "SDL_AVX512F_INTRINSICS");
+pub const avx512f = @hasDecl(c, "SDL_AVX512F_INTRINSICS");
 
 /// True if (and only if) the compiler supports Loongarch LSX intrinsics.
 ///
@@ -46,7 +46,7 @@ pub const avx512f = @hasDecl(C, "SDL_AVX512F_INTRINSICS");
 ///
 /// ## Version
 /// This constant is available since SDL 3.2.0.
-pub const lasx = @hasDecl(C, "SDL_LASX_INTRINSICS");
+pub const lasx = @hasDecl(c, "SDL_LASX_INTRINSICS");
 
 /// True if (and only if) the compiler supports Loongarch LSX intrinsics.
 ///
@@ -55,7 +55,7 @@ pub const lasx = @hasDecl(C, "SDL_LASX_INTRINSICS");
 ///
 /// ## Version
 /// This constant is available since SDL 3.2.0.
-pub const lsx = @hasDecl(C, "SDL_LSX_INTRINSICS");
+pub const lsx = @hasDecl(c, "SDL_LSX_INTRINSICS");
 
 /// True if (and only if) the compiler supports Intel MMX intrinsics.
 ///
@@ -64,7 +64,7 @@ pub const lsx = @hasDecl(C, "SDL_LSX_INTRINSICS");
 ///
 /// ## Version
 /// This constant is available since SDL 3.2.0.
-pub const mmx = @hasDecl(C, "SDL_MMX_INTRINSICS");
+pub const mmx = @hasDecl(c, "SDL_MMX_INTRINSICS");
 
 /// True if (and only if) the compiler supports ARM NEON intrinsics.
 ///
@@ -73,7 +73,7 @@ pub const mmx = @hasDecl(C, "SDL_MMX_INTRINSICS");
 ///
 /// ## Version
 /// This constant is available since SDL 3.2.0.
-pub const neon = @hasDecl(C, "SDL_NEON_INTRINSICS");
+pub const neon = @hasDecl(c, "SDL_NEON_INTRINSICS");
 
 /// True if (and only if) the compiler supports Intel SSE intrinsics.
 ///
@@ -82,7 +82,7 @@ pub const neon = @hasDecl(C, "SDL_NEON_INTRINSICS");
 ///
 /// ## Version
 /// This constant is available since SDL 3.2.0.
-pub const sse = @hasDecl(C, "SDL_SSE_INTRINSICS");
+pub const sse = @hasDecl(c, "SDL_SSE_INTRINSICS");
 
 /// True if (and only if) the compiler supports Intel SSE2 intrinsics.
 ///
@@ -91,7 +91,7 @@ pub const sse = @hasDecl(C, "SDL_SSE_INTRINSICS");
 ///
 /// ## Version
 /// This constant is available since SDL 3.2.0.
-pub const sse2 = @hasDecl(C, "SDL_SSE2_INTRINSICS");
+pub const sse2 = @hasDecl(c, "SDL_SSE2_INTRINSICS");
 
 /// True if (and only if) the compiler supports Intel SSE3 intrinsics.
 ///
@@ -100,7 +100,7 @@ pub const sse2 = @hasDecl(C, "SDL_SSE2_INTRINSICS");
 ///
 /// ## Version
 /// This constant is available since SDL 3.2.0.
-pub const sse3 = @hasDecl(C, "SDL_SSE3_INTRINSICS");
+pub const sse3 = @hasDecl(c, "SDL_SSE3_INTRINSICS");
 
 /// True if (and only if) the compiler supports Intel SSE4.1 intrinsics.
 ///
@@ -109,7 +109,7 @@ pub const sse3 = @hasDecl(C, "SDL_SSE3_INTRINSICS");
 ///
 /// ## Version
 /// This constant is available since SDL 3.2.0.
-pub const sse41 = @hasDecl(C, "SDL_SSE4_1_INTRINSICS");
+pub const sse41 = @hasDecl(c, "SDL_SSE4_1_INTRINSICS");
 
 /// True if (and only if) the compiler supports Intel SSE4.2 intrinsics.
 ///
@@ -118,7 +118,7 @@ pub const sse41 = @hasDecl(C, "SDL_SSE4_1_INTRINSICS");
 ///
 /// ## Version
 /// This constant is available since SDL 3.2.0.
-pub const sse42 = @hasDecl(C, "SDL_SSE4_2_INTRINSICS");
+pub const sse42 = @hasDecl(c, "SDL_SSE4_2_INTRINSICS");
 
 // Targeting does not make sense for this file.
 

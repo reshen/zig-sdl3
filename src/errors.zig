@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const std = @import("std");
 
 /// Callback for when an SDL error occurs.
@@ -65,7 +65,7 @@ pub fn callErrorCallback() void {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn clear() void {
-    _ = C.SDL_ClearError();
+    _ = c.SDL_ClearError();
 }
 
 /// Standardize error reporting on unsupported operations.
@@ -84,7 +84,7 @@ pub fn clear() void {
 pub fn invalidParamError(
     err: [:0]const u8,
 ) !void {
-    _ = C.SDL_InvalidParamError(err.ptr);
+    _ = c.SDL_InvalidParamError(err.ptr);
     return error.SdlError;
 }
 
@@ -116,7 +116,7 @@ pub fn invalidParamError(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn get() ?[:0]const u8 {
-    const ret = C.SDL_GetError();
+    const ret = c.SDL_GetError();
     const converted_ret = std.mem.span(ret);
     if (std.mem.eql(u8, converted_ret, ""))
         return null;
@@ -141,7 +141,7 @@ pub fn get() ?[:0]const u8 {
 pub fn set(
     err: [:0]const u8,
 ) !void {
-    _ = C.SDL_SetError(
+    _ = c.SDL_SetError(
         "%s",
         err.ptr,
     );
@@ -159,7 +159,7 @@ pub fn set(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn signalOutOfMemory() !void {
-    _ = C.SDL_OutOfMemory();
+    _ = c.SDL_OutOfMemory();
     return error.SdlError;
 }
 
@@ -174,7 +174,7 @@ pub fn signalOutOfMemory() !void {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn unsupported() !void {
-    _ = C.SDL_Unsupported();
+    _ = c.SDL_Unsupported();
     return error.SdlError;
 }
 

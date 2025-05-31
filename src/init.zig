@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const std = @import("std");
 const stdinc = @import("stdinc.zig");
@@ -12,7 +12,7 @@ const stdinc = @import("stdinc.zig");
 /// This datatype is available since SDL 3.2.0.
 pub const MainThreadCallback = *const fn (
     user_data: ?*anyopaque,
-) callconv(.C) void;
+) callconv(.c) void;
 
 /// These are the flags which may be passed to `init.init()`.
 ///
@@ -49,29 +49,29 @@ pub const Flags = struct {
     };
 
     /// Convert from an SDL value.
-    pub fn fromSdl(flags: C.SDL_InitFlags) Flags {
+    pub fn fromSdl(flags: c.SDL_InitFlags) Flags {
         return .{
-            .audio = (flags & C.SDL_INIT_AUDIO) != 0,
-            .video = (flags & C.SDL_INIT_VIDEO) != 0,
-            .joystick = (flags & C.SDL_INIT_JOYSTICK) != 0,
-            .haptic = (flags & C.SDL_INIT_HAPTIC) != 0,
-            .gamepad = (flags & C.SDL_INIT_GAMEPAD) != 0,
-            .events = (flags & C.SDL_INIT_EVENTS) != 0,
-            .sensor = (flags & C.SDL_INIT_SENSOR) != 0,
-            .camera = (flags & C.SDL_INIT_CAMERA) != 0,
+            .audio = (flags & c.SDL_INIT_AUDIO) != 0,
+            .video = (flags & c.SDL_INIT_VIDEO) != 0,
+            .joystick = (flags & c.SDL_INIT_JOYSTICK) != 0,
+            .haptic = (flags & c.SDL_INIT_HAPTIC) != 0,
+            .gamepad = (flags & c.SDL_INIT_GAMEPAD) != 0,
+            .events = (flags & c.SDL_INIT_EVENTS) != 0,
+            .sensor = (flags & c.SDL_INIT_SENSOR) != 0,
+            .camera = (flags & c.SDL_INIT_CAMERA) != 0,
         };
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: Flags) C.SDL_InitFlags {
-        return (if (self.audio) @as(C.SDL_InitFlags, C.SDL_INIT_AUDIO) else 0) |
-            (if (self.video) @as(C.SDL_InitFlags, C.SDL_INIT_VIDEO) else 0) |
-            (if (self.joystick) @as(C.SDL_InitFlags, C.SDL_INIT_JOYSTICK) else 0) |
-            (if (self.haptic) @as(C.SDL_InitFlags, C.SDL_INIT_HAPTIC) else 0) |
-            (if (self.gamepad) @as(C.SDL_InitFlags, C.SDL_INIT_GAMEPAD) else 0) |
-            (if (self.events) @as(C.SDL_InitFlags, C.SDL_INIT_EVENTS) else 0) |
-            (if (self.sensor) @as(C.SDL_InitFlags, C.SDL_INIT_SENSOR) else 0) |
-            (if (self.camera) @as(C.SDL_InitFlags, C.SDL_INIT_CAMERA) else 0) |
+    pub fn toSdl(self: Flags) c.SDL_InitFlags {
+        return (if (self.audio) @as(c.SDL_InitFlags, c.SDL_INIT_AUDIO) else 0) |
+            (if (self.video) @as(c.SDL_InitFlags, c.SDL_INIT_VIDEO) else 0) |
+            (if (self.joystick) @as(c.SDL_InitFlags, c.SDL_INIT_JOYSTICK) else 0) |
+            (if (self.haptic) @as(c.SDL_InitFlags, c.SDL_INIT_HAPTIC) else 0) |
+            (if (self.gamepad) @as(c.SDL_InitFlags, c.SDL_INIT_GAMEPAD) else 0) |
+            (if (self.events) @as(c.SDL_InitFlags, c.SDL_INIT_EVENTS) else 0) |
+            (if (self.sensor) @as(c.SDL_InitFlags, c.SDL_INIT_SENSOR) else 0) |
+            (if (self.camera) @as(c.SDL_InitFlags, c.SDL_INIT_CAMERA) else 0) |
             0;
     }
 };
@@ -112,19 +112,19 @@ pub const AppMetadataProperty = enum {
 
     /// Convert from an SDL string.
     pub fn fromSdl(val: [:0]const u8) AppMetadataProperty {
-        if (std.mem.eql(u8, C.SDL_PROP_APP_METADATA_NAME_STRING, val))
+        if (std.mem.eql(u8, c.SDL_PROP_APP_METADATA_NAME_STRING, val))
             return .name;
-        if (std.mem.eql(u8, C.SDL_PROP_APP_METADATA_VERSION_STRING, val))
+        if (std.mem.eql(u8, c.SDL_PROP_APP_METADATA_VERSION_STRING, val))
             return .version;
-        if (std.mem.eql(u8, C.SDL_PROP_APP_METADATA_IDENTIFIER_STRING, val))
+        if (std.mem.eql(u8, c.SDL_PROP_APP_METADATA_IDENTIFIER_STRING, val))
             return .identifier;
-        if (std.mem.eql(u8, C.SDL_PROP_APP_METADATA_CREATOR_STRING, val))
+        if (std.mem.eql(u8, c.SDL_PROP_APP_METADATA_CREATOR_STRING, val))
             return .creator;
-        if (std.mem.eql(u8, C.SDL_PROP_APP_METADATA_COPYRIGHT_STRING, val))
+        if (std.mem.eql(u8, c.SDL_PROP_APP_METADATA_COPYRIGHT_STRING, val))
             return .copyright;
-        if (std.mem.eql(u8, C.SDL_PROP_APP_METADATA_URL_STRING, val))
+        if (std.mem.eql(u8, c.SDL_PROP_APP_METADATA_URL_STRING, val))
             return .url;
-        if (std.mem.eql(u8, C.SDL_PROP_APP_METADATA_TYPE_STRING, val))
+        if (std.mem.eql(u8, c.SDL_PROP_APP_METADATA_TYPE_STRING, val))
             return .program_type;
         return .name;
     }
@@ -132,13 +132,13 @@ pub const AppMetadataProperty = enum {
     /// Convert to an SDL string.
     pub fn toSdl(self: AppMetadataProperty) [:0]const u8 {
         return switch (self) {
-            .name => C.SDL_PROP_APP_METADATA_NAME_STRING,
-            .version => C.SDL_PROP_APP_METADATA_VERSION_STRING,
-            .identifier => C.SDL_PROP_APP_METADATA_IDENTIFIER_STRING,
-            .creator => C.SDL_PROP_APP_METADATA_CREATOR_STRING,
-            .copyright => C.SDL_PROP_APP_METADATA_COPYRIGHT_STRING,
-            .url => C.SDL_PROP_APP_METADATA_URL_STRING,
-            .program_type => C.SDL_PROP_APP_METADATA_TYPE_STRING,
+            .name => c.SDL_PROP_APP_METADATA_NAME_STRING,
+            .version => c.SDL_PROP_APP_METADATA_VERSION_STRING,
+            .identifier => c.SDL_PROP_APP_METADATA_IDENTIFIER_STRING,
+            .creator => c.SDL_PROP_APP_METADATA_CREATOR_STRING,
+            .copyright => c.SDL_PROP_APP_METADATA_COPYRIGHT_STRING,
+            .url => c.SDL_PROP_APP_METADATA_URL_STRING,
+            .program_type => c.SDL_PROP_APP_METADATA_TYPE_STRING,
         };
     }
 };
@@ -166,7 +166,7 @@ pub const AppMetadataProperty = enum {
 pub fn init(
     flags: Flags,
 ) !void {
-    const ret = C.SDL_Init(
+    const ret = c.SDL_Init(
         flags.toSdl(),
     );
     return errors.wrapCallBool(ret);
@@ -186,7 +186,7 @@ pub fn init(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn isMainThread() bool {
-    return C.SDL_IsMainThread();
+    return c.SDL_IsMainThread();
 }
 
 /// Shut down specific SDL subsystems.
@@ -202,7 +202,7 @@ pub fn isMainThread() bool {
 pub fn quit(
     flags: Flags,
 ) void {
-    C.SDL_QuitSubSystem(
+    c.SDL_QuitSubSystem(
         flags.toSdl(),
     );
 }
@@ -231,7 +231,7 @@ pub fn runOnMainThread(
     user_data: ?*anyopaque,
     wait_complete: bool,
 ) !void {
-    const ret = C.SDL_RunOnMainThread(callback, user_data, wait_complete);
+    const ret = c.SDL_RunOnMainThread(callback, user_data, wait_complete);
     return errors.wrapCallBool(ret);
 }
 
@@ -247,7 +247,7 @@ pub fn runOnMainThread(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn shutdown() void {
-    C.SDL_Quit();
+    c.SDL_Quit();
 }
 
 /// Specify basic metadata about your app.
@@ -282,7 +282,7 @@ pub fn setAppMetadata(
     app_version: ?[:0]const u8,
     app_identifier: ?[:0]const u8,
 ) !void {
-    const ret = C.SDL_SetAppMetadata(
+    const ret = c.SDL_SetAppMetadata(
         if (app_name) |str_capture| str_capture.ptr else null,
         if (app_version) |str_capture| str_capture.ptr else null,
         if (app_identifier) |str_capture| str_capture.ptr else null,
@@ -317,7 +317,7 @@ pub fn setAppMetadataProperty(
     property: AppMetadataProperty,
     value: ?[:0]const u8,
 ) !void {
-    const ret = C.SDL_SetAppMetadataProperty(
+    const ret = c.SDL_SetAppMetadataProperty(
         property.toSdl(),
         if (value) |str_capture| str_capture.ptr else null,
     );
@@ -345,7 +345,7 @@ pub fn setAppMetadataProperty(
 pub fn getAppMetadataProperty(
     property: AppMetadataProperty,
 ) ?[:0]const u8 {
-    const ret = C.SDL_GetAppMetadataProperty(
+    const ret = c.SDL_GetAppMetadataProperty(
         property.toSdl(),
     );
     if (ret == null)
@@ -366,13 +366,13 @@ pub fn getAppMetadataProperty(
 pub fn wasInit(
     flags: Flags,
 ) Flags {
-    const ret = C.SDL_WasInit(
+    const ret = c.SDL_WasInit(
         flags.toSdl(),
     );
     return Flags.fromSdl(ret);
 }
 
-fn testRunOnMainThreadCb(user_data: ?*anyopaque) callconv(.C) void {
+fn testRunOnMainThreadCb(user_data: ?*anyopaque) callconv(.c) void {
     const ptr: *i32 = @ptrCast(@alignCast(user_data.?));
     ptr.* = -1;
 }

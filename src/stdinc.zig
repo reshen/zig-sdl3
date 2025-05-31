@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const std = @import("std");
 
@@ -7,11 +7,11 @@ const std = @import("std");
 /// ## Version
 /// This struct is available since SDL 3.2.0.
 pub const Environment = packed struct {
-    value: *C.SDL_Environment,
+    value: *c.SDL_Environment,
 
     // Size tests.
     comptime {
-        std.debug.assert(@sizeOf(*C.SDL_Environment) == @sizeOf(Environment));
+        std.debug.assert(@sizeOf(*c.SDL_Environment) == @sizeOf(Environment));
     }
 };
 
@@ -30,7 +30,7 @@ fn sdlAlloc(ptr: *anyopaque, len: usize, alignment: std.mem.Alignment, ret_addr:
     _ = ptr;
     _ = alignment;
     _ = ret_addr;
-    const ret = C.SDL_malloc(len);
+    const ret = c.SDL_malloc(len);
     if (ret) |val| {
         return @as([*]u8, @alignCast(@ptrCast(val)));
     }
@@ -50,7 +50,7 @@ fn sdlRemap(ptr: *anyopaque, memory: []u8, alignment: std.mem.Alignment, new_len
     _ = ptr;
     _ = alignment;
     _ = ret_addr;
-    const ret = C.SDL_realloc(memory.ptr, new_len);
+    const ret = c.SDL_realloc(memory.ptr, new_len);
     if (ret) |val| {
         return @as([*]u8, @alignCast(@ptrCast(val)));
     }
@@ -61,7 +61,7 @@ fn sdlFree(ptr: *anyopaque, memory: []u8, alignment: std.mem.Alignment, ret_addr
     _ = ptr;
     _ = alignment;
     _ = ret_addr;
-    C.SDL_free(memory.ptr);
+    c.SDL_free(memory.ptr);
 }
 
 /// A callback used to implement `stdinc.calloc()`.
@@ -81,7 +81,7 @@ fn sdlFree(ptr: *anyopaque, memory: []u8, alignment: std.mem.Alignment, ret_addr
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const CallocFunc = *const fn (num_members: usize, size: usize) callconv(.C) ?*anyopaque;
+pub const CallocFunc = *const fn (num_members: usize, size: usize) callconv(.c) ?*anyopaque;
 
 /// A callback used to implement `stdinc.free()`.
 ///
@@ -96,7 +96,7 @@ pub const CallocFunc = *const fn (num_members: usize, size: usize) callconv(.C) 
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const FreeFunc = *const fn (mem: ?*anyopaque) callconv(.C) void;
+pub const FreeFunc = *const fn (mem: ?*anyopaque) callconv(.c) void;
 
 /// A callback used to implement `stdinc.malloc()`.
 ///
@@ -114,7 +114,7 @@ pub const FreeFunc = *const fn (mem: ?*anyopaque) callconv(.C) void;
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const MallocFunc = *const fn (size: usize) callconv(.C) ?*anyopaque;
+pub const MallocFunc = *const fn (size: usize) callconv(.c) ?*anyopaque;
 
 /// A callback used to implement `stdinc.realloc()`.
 ///
@@ -133,7 +133,7 @@ pub const MallocFunc = *const fn (size: usize) callconv(.C) ?*anyopaque;
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const ReallocFunc = *const fn (mem: ?*anyopaque, size: usize) callconv(.C) ?*anyopaque;
+pub const ReallocFunc = *const fn (mem: ?*anyopaque, size: usize) callconv(.c) ?*anyopaque;
 
 /// Free allocated memory.
 ///
@@ -154,9 +154,9 @@ pub fn free(mem: anytype) void {
     switch (@typeInfo(@TypeOf(mem))) {
         .pointer => |pt| {
             if (pt.size == .slice) {
-                C.SDL_free(@ptrCast(mem.ptr));
+                c.SDL_free(@ptrCast(mem.ptr));
             } else {
-                C.SDL_free(@ptrCast(mem));
+                c.SDL_free(@ptrCast(mem));
             }
         },
         else => @compileError("Invalid argument to SDL free"),
@@ -183,7 +183,7 @@ pub fn getOriginalMemoryFunctions() struct { malloc: MallocFunc, calloc: CallocF
     var calloc_fn: ?CallocFunc = undefined;
     var realloc_fn: ?ReallocFunc = undefined;
     var free_fn: ?FreeFunc = undefined;
-    C.SDL_GetOriginalMemoryFunctions(
+    c.SDL_GetOriginalMemoryFunctions(
         &malloc_fn,
         &calloc_fn,
         &realloc_fn,
@@ -231,7 +231,7 @@ pub fn setMemoryFunctions(
     realloc_fn: ReallocFunc,
     free_fn: FreeFunc,
 ) !void {
-    const ret = C.SDL_SetMemoryFunctions(
+    const ret = c.SDL_SetMemoryFunctions(
         malloc_fn,
         calloc_fn,
         realloc_fn,
@@ -248,7 +248,7 @@ const Allocation = struct {
     buf: void,
 };
 
-fn allocCalloc(num_members: usize, size: usize) callconv(.C) ?*anyopaque {
+fn allocCalloc(num_members: usize, size: usize) callconv(.c) ?*anyopaque {
     const custom_allocator_val = custom_allocator orelse return null;
     const total_buf = custom_allocator_val.alloc(u8, size * num_members + @sizeOf(Allocation)) catch return null;
     const allocation: *Allocation = @ptrCast(@alignCast(total_buf.ptr));
@@ -256,14 +256,14 @@ fn allocCalloc(num_members: usize, size: usize) callconv(.C) ?*anyopaque {
     return &allocation.buf;
 }
 
-fn allocFree(mem: ?*anyopaque) callconv(.C) void {
+fn allocFree(mem: ?*anyopaque) callconv(.c) void {
     const raw_ptr = mem orelse return;
     const custom_allocator_val = custom_allocator orelse return;
     const allocation: *Allocation = @alignCast(@fieldParentPtr("buf", @as(*void, @ptrCast(raw_ptr))));
     custom_allocator_val.free(@as([*]u8, @ptrCast(raw_ptr))[0..allocation.size]);
 }
 
-fn allocMalloc(size: usize) callconv(.C) ?*anyopaque {
+fn allocMalloc(size: usize) callconv(.c) ?*anyopaque {
     const custom_allocator_val = custom_allocator orelse return null;
     const total_buf = custom_allocator_val.alloc(u8, size + @sizeOf(Allocation)) catch return null;
     const allocation: *Allocation = @ptrCast(@alignCast(total_buf.ptr));
@@ -271,7 +271,7 @@ fn allocMalloc(size: usize) callconv(.C) ?*anyopaque {
     return &allocation.buf;
 }
 
-fn allocRealloc(mem: ?*anyopaque, size: usize) callconv(.C) ?*anyopaque {
+fn allocRealloc(mem: ?*anyopaque, size: usize) callconv(.c) ?*anyopaque {
     const raw_ptr = mem orelse return null;
     const custom_allocator_val = custom_allocator orelse return null;
     var allocation: *Allocation = @alignCast(@fieldParentPtr("buf", @as(*void, @ptrCast(raw_ptr))));

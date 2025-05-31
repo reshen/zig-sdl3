@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const std = @import("std");
 
 /// Determine if a unsigned 32-bit value has exactly one bit set.
@@ -19,7 +19,7 @@ const std = @import("std");
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn hasExactlyOneBitSet(val: u32) bool {
-    return C.SDL_HasExactlyOneBitSet32(val);
+    return c.SDL_HasExactlyOneBitSet32(val);
 }
 
 /// Get the index of the most significant (set) bit in a 32-bit number.
@@ -36,7 +36,7 @@ pub fn hasExactlyOneBitSet(val: u32) bool {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn mostSignificantBitIndex(val: u32) ?u5 {
-    const ret = C.SDL_MostSignificantBitIndex32(val);
+    const ret = c.SDL_MostSignificantBitIndex32(val);
     if (ret == -1)
         return null;
     return @intCast(ret);

@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const pixels = @import("pixels.zig");
 const properties = @import("properties.zig");
@@ -17,46 +17,46 @@ const video = @import("video.zig");
 /// This enum is available since SDL 3.2.0.
 pub const BlendFactor = enum(c_uint) {
     /// 0.
-    zero = C.SDL_GPU_BLENDFACTOR_ZERO,
+    zero = c.SDL_GPU_BLENDFACTOR_ZERO,
     /// 1.
-    one = C.SDL_GPU_BLENDFACTOR_ONE,
+    one = c.SDL_GPU_BLENDFACTOR_ONE,
     /// Source color.
-    src_color = C.SDL_GPU_BLENDFACTOR_SRC_COLOR,
+    src_color = c.SDL_GPU_BLENDFACTOR_SRC_COLOR,
     /// 1 - Source color.
-    one_minus_src_color = C.SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_COLOR,
+    one_minus_src_color = c.SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_COLOR,
     /// Destination color.
-    dst_color = C.SDL_GPU_BLENDFACTOR_DST_COLOR,
+    dst_color = c.SDL_GPU_BLENDFACTOR_DST_COLOR,
     /// 1 - Destination color.
-    one_minus_dst_color = C.SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_COLOR,
+    one_minus_dst_color = c.SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_COLOR,
     /// Source alpha.
-    src_alpha = C.SDL_GPU_BLENDFACTOR_SRC_ALPHA,
+    src_alpha = c.SDL_GPU_BLENDFACTOR_SRC_ALPHA,
     /// 1 - Source alpha.
-    one_minus_src_alpha = C.SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+    one_minus_src_alpha = c.SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
     /// Destination alpha.
-    dst_alpha = C.SDL_GPU_BLENDFACTOR_DST_ALPHA,
+    dst_alpha = c.SDL_GPU_BLENDFACTOR_DST_ALPHA,
     /// 1 - Destination alpha.
-    one_minus_dst_alpha = C.SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_ALPHA,
+    one_minus_dst_alpha = c.SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_ALPHA,
     /// Blend constant.
-    constant_color = C.SDL_GPU_BLENDFACTOR_CONSTANT_COLOR,
+    constant_color = c.SDL_GPU_BLENDFACTOR_CONSTANT_COLOR,
     /// 1 - Blend constant.
-    one_minus_constant_color = C.SDL_GPU_BLENDFACTOR_ONE_MINUS_CONSTANT_COLOR,
+    one_minus_constant_color = c.SDL_GPU_BLENDFACTOR_ONE_MINUS_CONSTANT_COLOR,
     /// Min(Source alpha, Destination alpha).
-    src_alpha_saturate = C.SDL_GPU_BLENDFACTOR_SRC_ALPHA_SATURATE,
+    src_alpha_saturate = c.SDL_GPU_BLENDFACTOR_SRC_ALPHA_SATURATE,
 
     /// Make a blend factor from SDL.
-    pub fn fromSdl(val: C.SDL_GPUBlendFactor) ?BlendFactor {
-        if (val == C.SDL_GPU_BLENDFACTOR_INVALID) {
+    pub fn fromSdl(val: c.SDL_GPUBlendFactor) ?BlendFactor {
+        if (val == c.SDL_GPU_BLENDFACTOR_INVALID) {
             return null;
         }
         return @enumFromInt(val);
     }
 
     /// Convert a blend factor to an SDL value.
-    pub fn toSdl(val: ?BlendFactor) C.SDL_GPUBlendFactor {
+    pub fn toSdl(val: ?BlendFactor) c.SDL_GPUBlendFactor {
         if (val) |tmp| {
             return @intFromEnum(tmp);
         }
-        return C.SDL_GPU_BLENDFACTOR_INVALID;
+        return c.SDL_GPU_BLENDFACTOR_INVALID;
     }
 };
 
@@ -70,30 +70,30 @@ pub const BlendFactor = enum(c_uint) {
 /// This enum is available since SDL 3.2.0.
 pub const BlendOperation = enum(c_uint) {
     /// (Source * Source Factor) + (Destination * Destination Factor).
-    add = C.SDL_BLENDOPERATION_ADD,
+    add = c.SDL_BLENDOPERATION_ADD,
     /// (Source * Source Factor) - (Destination * Destination Factor).
-    subtract = C.SDL_BLENDOPERATION_SUBTRACT,
+    subtract = c.SDL_BLENDOPERATION_SUBTRACT,
     /// (Destination * Destination Factor) - (Source * Source Factor).
-    reverse_subtract = C.SDL_BLENDOPERATION_REV_SUBTRACT,
+    reverse_subtract = c.SDL_BLENDOPERATION_REV_SUBTRACT,
     /// Min(Source, Destination).
-    min = C.SDL_BLENDOPERATION_MINIMUM,
+    min = c.SDL_BLENDOPERATION_MINIMUM,
     /// Max(Source, Destination).
-    max = C.SDL_BLENDOPERATION_MAXIMUM,
+    max = c.SDL_BLENDOPERATION_MAXIMUM,
 
     /// Create from SDL.
-    pub fn fromSdl(val: C.SDL_GPUBlendOp) ?BlendOperation {
-        if (val == C.SDL_GPU_BLENDOP_INVALID) {
+    pub fn fromSdl(val: c.SDL_GPUBlendOp) ?BlendOperation {
+        if (val == c.SDL_GPU_BLENDOP_INVALID) {
             return null;
         }
         return @enumFromInt(val);
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(val: ?BlendOperation) C.SDL_GPUBlendOp {
+    pub fn toSdl(val: ?BlendOperation) c.SDL_GPUBlendOp {
         if (val) |tmp| {
             return @intFromEnum(tmp);
         }
-        return C.SDL_GPU_BLENDOP_INVALID;
+        return c.SDL_GPU_BLENDOP_INVALID;
     }
 };
 
@@ -119,7 +119,7 @@ pub const BlitInfo = struct {
     cycle: bool,
 
     /// Convert from SDL.
-    pub fn fromSdl(value: C.SDL_GPUBlitInfo) BlitInfo {
+    pub fn fromSdl(value: c.SDL_GPUBlitInfo) BlitInfo {
         return .{
             .source = BlitRegion.fromSdl(value.source),
             .destination = BlitRegion.fromSdl(value.destination),
@@ -132,7 +132,7 @@ pub const BlitInfo = struct {
     }
 
     /// Convert to SDL.
-    pub fn toSdl(self: BlitInfo) C.SDL_GPUBlitInfo {
+    pub fn toSdl(self: BlitInfo) c.SDL_GPUBlitInfo {
         return .{
             .source = self.source.toSdl(),
             .destination = self.destination.toSdl(),
@@ -161,7 +161,7 @@ pub const BlitRegion = struct {
     region: rect.Rect(u32),
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_GPUBlitRegion) BlitRegion {
+    pub fn fromSdl(value: c.SDL_GPUBlitRegion) BlitRegion {
         return .{
             .texture = .{ .value = value.texture.? },
             .mip_level = value.mip_level,
@@ -176,7 +176,7 @@ pub const BlitRegion = struct {
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: BlitRegion) C.SDL_GPUBlitRegion {
+    pub fn toSdl(self: BlitRegion) c.SDL_GPUBlitRegion {
         return .{
             .texture = self.texture.value,
             .mip_level = self.mip_level,
@@ -197,7 +197,7 @@ pub const BlitRegion = struct {
 /// ## Version
 /// This struct is available since SDL 3.2.0.
 pub const Buffer = packed struct {
-    value: *C.SDL_GPUBuffer,
+    value: *c.SDL_GPUBuffer,
 };
 
 /// A structure specifying parameters in a buffer binding call.
@@ -213,11 +213,11 @@ pub const BufferBinding = extern struct {
 
     // Binding tests.
     comptime {
-        std.debug.assert(@sizeOf(C.SDL_GPUBufferBinding) == @sizeOf(BufferBinding));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUBufferBinding, "buffer")) == @sizeOf(@FieldType(BufferBinding, "buffer")));
-        std.debug.assert(@offsetOf(C.SDL_GPUBufferBinding, "buffer") == @offsetOf(BufferBinding, "buffer"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUBufferBinding, "offset")) == @sizeOf(@FieldType(BufferBinding, "offset")));
-        std.debug.assert(@offsetOf(C.SDL_GPUBufferBinding, "offset") == @offsetOf(BufferBinding, "offset"));
+        std.debug.assert(@sizeOf(c.SDL_GPUBufferBinding) == @sizeOf(BufferBinding));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUBufferBinding, "buffer")) == @sizeOf(@FieldType(BufferBinding, "buffer")));
+        std.debug.assert(@offsetOf(c.SDL_GPUBufferBinding, "buffer") == @offsetOf(BufferBinding, "buffer"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUBufferBinding, "offset")) == @sizeOf(@FieldType(BufferBinding, "offset")));
+        std.debug.assert(@offsetOf(c.SDL_GPUBufferBinding, "offset") == @offsetOf(BufferBinding, "offset"));
     }
 };
 
@@ -234,7 +234,7 @@ pub const BufferCreateInfo = struct {
     props: ?properties.Group = null,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_GPUBufferCreateInfo) BufferCreateInfo {
+    pub fn fromSdl(value: c.SDL_GPUBufferCreateInfo) BufferCreateInfo {
         return .{
             .usage = BufferUsageFlags.fromSdl(value.usage),
             .size = value.size,
@@ -243,7 +243,7 @@ pub const BufferCreateInfo = struct {
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: BufferCreateInfo) C.SDL_GPUBufferCreateInfo {
+    pub fn toSdl(self: BufferCreateInfo) c.SDL_GPUBufferCreateInfo {
         return .{
             .usage = self.usage.toSdl(),
             .size = self.size,
@@ -266,7 +266,7 @@ pub const BufferLocation = struct {
     offset: u32,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_GPUBufferLocation) BufferLocation {
+    pub fn fromSdl(value: c.SDL_GPUBufferLocation) BufferLocation {
         return .{
             .buffer = .{ .value = value.buffer.? },
             .offset = value.offset,
@@ -274,7 +274,7 @@ pub const BufferLocation = struct {
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: BufferLocation) C.SDL_GPUBufferLocation {
+    pub fn toSdl(self: BufferLocation) c.SDL_GPUBufferLocation {
         return .{
             .buffer = self.buffer.value,
             .offset = self.offset,
@@ -298,7 +298,7 @@ pub const BufferRegion = struct {
     size: u32,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_GPUBufferRegion) BufferRegion {
+    pub fn fromSdl(value: c.SDL_GPUBufferRegion) BufferRegion {
         return .{
             .buffer = .{ .value = value.buffer.? },
             .offset = value.offset,
@@ -307,7 +307,7 @@ pub const BufferRegion = struct {
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: BufferRegion) C.SDL_GPUBufferRegion {
+    pub fn toSdl(self: BufferRegion) c.SDL_GPUBufferRegion {
         return .{
             .buffer = self.buffer.value,
             .offset = self.offset,
@@ -345,32 +345,32 @@ pub const BufferUsageFlags = struct {
     compute_storage_write: bool = false,
 
     /// Convert flags from SDL.
-    pub fn fromSdl(val: C.SDL_GPUBufferUsageFlags) BufferUsageFlags {
+    pub fn fromSdl(val: c.SDL_GPUBufferUsageFlags) BufferUsageFlags {
         return .{
-            .vertex = val & C.SDL_GPU_BUFFERUSAGE_VERTEX != 0,
-            .index = val & C.SDL_GPU_BUFFERUSAGE_INDEX != 0,
-            .indirect = val & C.SDL_GPU_BUFFERUSAGE_INDIRECT != 0,
-            .graphics_storage_read = val & C.SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ != 0,
-            .compute_storage_read = val & C.SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_READ != 0,
-            .compute_storage_write = val & C.SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_WRITE != 0,
+            .vertex = val & c.SDL_GPU_BUFFERUSAGE_VERTEX != 0,
+            .index = val & c.SDL_GPU_BUFFERUSAGE_INDEX != 0,
+            .indirect = val & c.SDL_GPU_BUFFERUSAGE_INDIRECT != 0,
+            .graphics_storage_read = val & c.SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ != 0,
+            .compute_storage_read = val & c.SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_READ != 0,
+            .compute_storage_write = val & c.SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_WRITE != 0,
         };
     }
 
     /// Get the SDL flags.
-    pub fn toSdl(self: BufferUsageFlags) C.SDL_GPUBufferUsageFlags {
-        var ret: C.SDL_GPUBufferUsageFlags = 0;
+    pub fn toSdl(self: BufferUsageFlags) c.SDL_GPUBufferUsageFlags {
+        var ret: c.SDL_GPUBufferUsageFlags = 0;
         if (self.vertex)
-            ret |= C.SDL_GPU_BUFFERUSAGE_VERTEX;
+            ret |= c.SDL_GPU_BUFFERUSAGE_VERTEX;
         if (self.index)
-            ret |= C.SDL_GPU_BUFFERUSAGE_INDEX;
+            ret |= c.SDL_GPU_BUFFERUSAGE_INDEX;
         if (self.indirect)
-            ret |= C.SDL_GPU_BUFFERUSAGE_INDIRECT;
+            ret |= c.SDL_GPU_BUFFERUSAGE_INDIRECT;
         if (self.graphics_storage_read)
-            ret |= C.SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ;
+            ret |= c.SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ;
         if (self.compute_storage_read)
-            ret |= C.SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_READ;
+            ret |= c.SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_READ;
         if (self.compute_storage_write)
-            ret |= C.SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_WRITE;
+            ret |= c.SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_WRITE;
         return ret;
     }
 };
@@ -379,7 +379,7 @@ pub const BufferUsageFlags = struct {
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const ColorComponentFlags = packed struct(C.SDL_GPUColorComponentFlags) {
+pub const ColorComponentFlags = packed struct(c.SDL_GPUColorComponentFlags) {
     red: bool = false,
     green: bool = false,
     blue: bool = false,
@@ -388,11 +388,11 @@ pub const ColorComponentFlags = packed struct(C.SDL_GPUColorComponentFlags) {
 
     // Flag tests.
     comptime {
-        std.debug.assert(@sizeOf(C.SDL_GPUColorComponentFlags) == @sizeOf(ColorComponentFlags));
-        std.debug.assert(C.SDL_GPU_COLORCOMPONENT_R == @as(C.SDL_GPUColorComponentFlags, @bitCast(ColorComponentFlags{ .red = true })));
-        std.debug.assert(C.SDL_GPU_COLORCOMPONENT_G == @as(C.SDL_GPUColorComponentFlags, @bitCast(ColorComponentFlags{ .green = true })));
-        std.debug.assert(C.SDL_GPU_COLORCOMPONENT_B == @as(C.SDL_GPUColorComponentFlags, @bitCast(ColorComponentFlags{ .blue = true })));
-        std.debug.assert(C.SDL_GPU_COLORCOMPONENT_A == @as(C.SDL_GPUColorComponentFlags, @bitCast(ColorComponentFlags{ .alpha = true })));
+        std.debug.assert(@sizeOf(c.SDL_GPUColorComponentFlags) == @sizeOf(ColorComponentFlags));
+        std.debug.assert(c.SDL_GPU_COLORCOMPONENT_R == @as(c.SDL_GPUColorComponentFlags, @bitCast(ColorComponentFlags{ .red = true })));
+        std.debug.assert(c.SDL_GPU_COLORCOMPONENT_G == @as(c.SDL_GPUColorComponentFlags, @bitCast(ColorComponentFlags{ .green = true })));
+        std.debug.assert(c.SDL_GPU_COLORCOMPONENT_B == @as(c.SDL_GPUColorComponentFlags, @bitCast(ColorComponentFlags{ .blue = true })));
+        std.debug.assert(c.SDL_GPU_COLORCOMPONENT_A == @as(c.SDL_GPUColorComponentFlags, @bitCast(ColorComponentFlags{ .alpha = true })));
     }
 };
 
@@ -425,25 +425,25 @@ pub const ColorTargetBlendState = extern struct {
 
     // Size tests.
     comptime {
-        std.debug.assert(@sizeOf(C.SDL_GPUColorTargetBlendState) == @sizeOf(ColorTargetBlendState));
-        std.debug.assert(@offsetOf(C.SDL_GPUColorTargetBlendState, "src_color_blendfactor") == @offsetOf(ColorTargetBlendState, "source_color"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUColorTargetBlendState, "src_color_blendfactor")) == @sizeOf(@FieldType(ColorTargetBlendState, "source_color")));
-        std.debug.assert(@offsetOf(C.SDL_GPUColorTargetBlendState, "dst_color_blendfactor") == @offsetOf(ColorTargetBlendState, "destination_color"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUColorTargetBlendState, "dst_color_blendfactor")) == @sizeOf(@FieldType(ColorTargetBlendState, "destination_color")));
-        std.debug.assert(@offsetOf(C.SDL_GPUColorTargetBlendState, "color_blend_op") == @offsetOf(ColorTargetBlendState, "color_blend"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUColorTargetBlendState, "color_blend_op")) == @sizeOf(@FieldType(ColorTargetBlendState, "color_blend")));
-        std.debug.assert(@offsetOf(C.SDL_GPUColorTargetBlendState, "src_alpha_blendfactor") == @offsetOf(ColorTargetBlendState, "source_alpha"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUColorTargetBlendState, "src_alpha_blendfactor")) == @sizeOf(@FieldType(ColorTargetBlendState, "source_alpha")));
-        std.debug.assert(@offsetOf(C.SDL_GPUColorTargetBlendState, "dst_alpha_blendfactor") == @offsetOf(ColorTargetBlendState, "destination_alpha"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUColorTargetBlendState, "dst_alpha_blendfactor")) == @sizeOf(@FieldType(ColorTargetBlendState, "destination_alpha")));
-        std.debug.assert(@offsetOf(C.SDL_GPUColorTargetBlendState, "alpha_blend_op") == @offsetOf(ColorTargetBlendState, "alpha_blend"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUColorTargetBlendState, "alpha_blend_op")) == @sizeOf(@FieldType(ColorTargetBlendState, "alpha_blend")));
-        std.debug.assert(@offsetOf(C.SDL_GPUColorTargetBlendState, "color_write_mask") == @offsetOf(ColorTargetBlendState, "color_write_mask"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUColorTargetBlendState, "color_write_mask")) == @sizeOf(@FieldType(ColorTargetBlendState, "color_write_mask")));
-        std.debug.assert(@offsetOf(C.SDL_GPUColorTargetBlendState, "enable_blend") == @offsetOf(ColorTargetBlendState, "enable_blend"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUColorTargetBlendState, "enable_blend")) == @sizeOf(@FieldType(ColorTargetBlendState, "enable_blend")));
-        std.debug.assert(@offsetOf(C.SDL_GPUColorTargetBlendState, "enable_color_write_mask") == @offsetOf(ColorTargetBlendState, "enable_color_write_mask"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUColorTargetBlendState, "enable_color_write_mask")) == @sizeOf(@FieldType(ColorTargetBlendState, "enable_color_write_mask")));
+        std.debug.assert(@sizeOf(c.SDL_GPUColorTargetBlendState) == @sizeOf(ColorTargetBlendState));
+        std.debug.assert(@offsetOf(c.SDL_GPUColorTargetBlendState, "src_color_blendfactor") == @offsetOf(ColorTargetBlendState, "source_color"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUColorTargetBlendState, "src_color_blendfactor")) == @sizeOf(@FieldType(ColorTargetBlendState, "source_color")));
+        std.debug.assert(@offsetOf(c.SDL_GPUColorTargetBlendState, "dst_color_blendfactor") == @offsetOf(ColorTargetBlendState, "destination_color"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUColorTargetBlendState, "dst_color_blendfactor")) == @sizeOf(@FieldType(ColorTargetBlendState, "destination_color")));
+        std.debug.assert(@offsetOf(c.SDL_GPUColorTargetBlendState, "color_blend_op") == @offsetOf(ColorTargetBlendState, "color_blend"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUColorTargetBlendState, "color_blend_op")) == @sizeOf(@FieldType(ColorTargetBlendState, "color_blend")));
+        std.debug.assert(@offsetOf(c.SDL_GPUColorTargetBlendState, "src_alpha_blendfactor") == @offsetOf(ColorTargetBlendState, "source_alpha"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUColorTargetBlendState, "src_alpha_blendfactor")) == @sizeOf(@FieldType(ColorTargetBlendState, "source_alpha")));
+        std.debug.assert(@offsetOf(c.SDL_GPUColorTargetBlendState, "dst_alpha_blendfactor") == @offsetOf(ColorTargetBlendState, "destination_alpha"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUColorTargetBlendState, "dst_alpha_blendfactor")) == @sizeOf(@FieldType(ColorTargetBlendState, "destination_alpha")));
+        std.debug.assert(@offsetOf(c.SDL_GPUColorTargetBlendState, "alpha_blend_op") == @offsetOf(ColorTargetBlendState, "alpha_blend"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUColorTargetBlendState, "alpha_blend_op")) == @sizeOf(@FieldType(ColorTargetBlendState, "alpha_blend")));
+        std.debug.assert(@offsetOf(c.SDL_GPUColorTargetBlendState, "color_write_mask") == @offsetOf(ColorTargetBlendState, "color_write_mask"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUColorTargetBlendState, "color_write_mask")) == @sizeOf(@FieldType(ColorTargetBlendState, "color_write_mask")));
+        std.debug.assert(@offsetOf(c.SDL_GPUColorTargetBlendState, "enable_blend") == @offsetOf(ColorTargetBlendState, "enable_blend"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUColorTargetBlendState, "enable_blend")) == @sizeOf(@FieldType(ColorTargetBlendState, "enable_blend")));
+        std.debug.assert(@offsetOf(c.SDL_GPUColorTargetBlendState, "enable_color_write_mask") == @offsetOf(ColorTargetBlendState, "enable_color_write_mask"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUColorTargetBlendState, "enable_color_write_mask")) == @sizeOf(@FieldType(ColorTargetBlendState, "enable_color_write_mask")));
     }
 };
 
@@ -459,11 +459,11 @@ pub const ColorTargetDescription = extern struct {
 
     // Size tests.
     comptime {
-        std.debug.assert(@sizeOf(C.SDL_GPUColorTargetDescription) == @sizeOf(ColorTargetDescription));
-        std.debug.assert(@offsetOf(C.SDL_GPUColorTargetDescription, "format") == @offsetOf(ColorTargetDescription, "format"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUColorTargetDescription, "format")) == @sizeOf(@FieldType(ColorTargetDescription, "format")));
-        std.debug.assert(@offsetOf(C.SDL_GPUColorTargetDescription, "blend_state") == @offsetOf(ColorTargetDescription, "blend_state"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUColorTargetDescription, "blend_state")) == @sizeOf(@FieldType(ColorTargetDescription, "blend_state")));
+        std.debug.assert(@sizeOf(c.SDL_GPUColorTargetDescription) == @sizeOf(ColorTargetDescription));
+        std.debug.assert(@offsetOf(c.SDL_GPUColorTargetDescription, "format") == @offsetOf(ColorTargetDescription, "format"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUColorTargetDescription, "format")) == @sizeOf(@FieldType(ColorTargetDescription, "format")));
+        std.debug.assert(@offsetOf(c.SDL_GPUColorTargetDescription, "blend_state") == @offsetOf(ColorTargetDescription, "blend_state"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUColorTargetDescription, "blend_state")) == @sizeOf(@FieldType(ColorTargetDescription, "blend_state")));
     }
 };
 
@@ -517,29 +517,29 @@ pub const ColorTargetInfo = extern struct {
 
     // Size tests.
     comptime {
-        std.debug.assert(@sizeOf(C.SDL_GPUColorTargetInfo) == @sizeOf(ColorTargetInfo));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUColorTargetInfo, "texture")) == @sizeOf(@FieldType(ColorTargetInfo, "texture")));
-        std.debug.assert(@offsetOf(C.SDL_GPUColorTargetInfo, "texture") == @offsetOf(ColorTargetInfo, "texture"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUColorTargetInfo, "mip_level")) == @sizeOf(@FieldType(ColorTargetInfo, "mip_level")));
-        std.debug.assert(@offsetOf(C.SDL_GPUColorTargetInfo, "mip_level") == @offsetOf(ColorTargetInfo, "mip_level"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUColorTargetInfo, "layer_or_depth_plane")) == @sizeOf(@FieldType(ColorTargetInfo, "layer_or_depth_plane")));
-        std.debug.assert(@offsetOf(C.SDL_GPUColorTargetInfo, "layer_or_depth_plane") == @offsetOf(ColorTargetInfo, "layer_or_depth_plane"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUColorTargetInfo, "clear_color")) == @sizeOf(@FieldType(ColorTargetInfo, "clear_color")));
-        std.debug.assert(@offsetOf(C.SDL_GPUColorTargetInfo, "clear_color") == @offsetOf(ColorTargetInfo, "clear_color"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUColorTargetInfo, "load_op")) == @sizeOf(@FieldType(ColorTargetInfo, "load")));
-        std.debug.assert(@offsetOf(C.SDL_GPUColorTargetInfo, "load_op") == @offsetOf(ColorTargetInfo, "load"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUColorTargetInfo, "store_op")) == @sizeOf(@FieldType(ColorTargetInfo, "store")));
-        std.debug.assert(@offsetOf(C.SDL_GPUColorTargetInfo, "store_op") == @offsetOf(ColorTargetInfo, "store"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUColorTargetInfo, "resolve_texture")) == @sizeOf(@FieldType(ColorTargetInfo, "resolve_texture")));
-        std.debug.assert(@offsetOf(C.SDL_GPUColorTargetInfo, "resolve_texture") == @offsetOf(ColorTargetInfo, "resolve_texture"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUColorTargetInfo, "resolve_mip_level")) == @sizeOf(@FieldType(ColorTargetInfo, "resolve_mip_level")));
-        std.debug.assert(@offsetOf(C.SDL_GPUColorTargetInfo, "resolve_mip_level") == @offsetOf(ColorTargetInfo, "resolve_mip_level"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUColorTargetInfo, "resolve_layer")) == @sizeOf(@FieldType(ColorTargetInfo, "resolve_layer")));
-        std.debug.assert(@offsetOf(C.SDL_GPUColorTargetInfo, "resolve_layer") == @offsetOf(ColorTargetInfo, "resolve_layer"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUColorTargetInfo, "cycle")) == @sizeOf(@FieldType(ColorTargetInfo, "cycle")));
-        std.debug.assert(@offsetOf(C.SDL_GPUColorTargetInfo, "cycle") == @offsetOf(ColorTargetInfo, "cycle"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUColorTargetInfo, "cycle_resolve_texture")) == @sizeOf(@FieldType(ColorTargetInfo, "cycle_resolve_texture")));
-        std.debug.assert(@offsetOf(C.SDL_GPUColorTargetInfo, "cycle_resolve_texture") == @offsetOf(ColorTargetInfo, "cycle_resolve_texture"));
+        std.debug.assert(@sizeOf(c.SDL_GPUColorTargetInfo) == @sizeOf(ColorTargetInfo));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUColorTargetInfo, "texture")) == @sizeOf(@FieldType(ColorTargetInfo, "texture")));
+        std.debug.assert(@offsetOf(c.SDL_GPUColorTargetInfo, "texture") == @offsetOf(ColorTargetInfo, "texture"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUColorTargetInfo, "mip_level")) == @sizeOf(@FieldType(ColorTargetInfo, "mip_level")));
+        std.debug.assert(@offsetOf(c.SDL_GPUColorTargetInfo, "mip_level") == @offsetOf(ColorTargetInfo, "mip_level"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUColorTargetInfo, "layer_or_depth_plane")) == @sizeOf(@FieldType(ColorTargetInfo, "layer_or_depth_plane")));
+        std.debug.assert(@offsetOf(c.SDL_GPUColorTargetInfo, "layer_or_depth_plane") == @offsetOf(ColorTargetInfo, "layer_or_depth_plane"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUColorTargetInfo, "clear_color")) == @sizeOf(@FieldType(ColorTargetInfo, "clear_color")));
+        std.debug.assert(@offsetOf(c.SDL_GPUColorTargetInfo, "clear_color") == @offsetOf(ColorTargetInfo, "clear_color"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUColorTargetInfo, "load_op")) == @sizeOf(@FieldType(ColorTargetInfo, "load")));
+        std.debug.assert(@offsetOf(c.SDL_GPUColorTargetInfo, "load_op") == @offsetOf(ColorTargetInfo, "load"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUColorTargetInfo, "store_op")) == @sizeOf(@FieldType(ColorTargetInfo, "store")));
+        std.debug.assert(@offsetOf(c.SDL_GPUColorTargetInfo, "store_op") == @offsetOf(ColorTargetInfo, "store"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUColorTargetInfo, "resolve_texture")) == @sizeOf(@FieldType(ColorTargetInfo, "resolve_texture")));
+        std.debug.assert(@offsetOf(c.SDL_GPUColorTargetInfo, "resolve_texture") == @offsetOf(ColorTargetInfo, "resolve_texture"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUColorTargetInfo, "resolve_mip_level")) == @sizeOf(@FieldType(ColorTargetInfo, "resolve_mip_level")));
+        std.debug.assert(@offsetOf(c.SDL_GPUColorTargetInfo, "resolve_mip_level") == @offsetOf(ColorTargetInfo, "resolve_mip_level"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUColorTargetInfo, "resolve_layer")) == @sizeOf(@FieldType(ColorTargetInfo, "resolve_layer")));
+        std.debug.assert(@offsetOf(c.SDL_GPUColorTargetInfo, "resolve_layer") == @offsetOf(ColorTargetInfo, "resolve_layer"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUColorTargetInfo, "cycle")) == @sizeOf(@FieldType(ColorTargetInfo, "cycle")));
+        std.debug.assert(@offsetOf(c.SDL_GPUColorTargetInfo, "cycle") == @offsetOf(ColorTargetInfo, "cycle"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUColorTargetInfo, "cycle_resolve_texture")) == @sizeOf(@FieldType(ColorTargetInfo, "cycle_resolve_texture")));
+        std.debug.assert(@offsetOf(c.SDL_GPUColorTargetInfo, "cycle_resolve_texture") == @offsetOf(ColorTargetInfo, "cycle_resolve_texture"));
     }
 };
 
@@ -560,7 +560,7 @@ pub const ColorTargetInfo = extern struct {
 /// ## Version
 /// This struct is available since SDL 3.2.0.
 pub const CommandBuffer = packed struct {
-    value: *C.SDL_GPUCommandBuffer,
+    value: *c.SDL_GPUCommandBuffer,
 
     /// Acquire a texture to use in presentation.
     ///
@@ -596,8 +596,8 @@ pub const CommandBuffer = packed struct {
     ) !struct { texture: ?Texture, width: u32, height: u32 } {
         var width: u32 = undefined;
         var height: u32 = undefined;
-        var texture: ?*C.SDL_GPUTexture = undefined;
-        try errors.wrapCallBool(C.SDL_AcquireGPUSwapchainTexture(self.value, window.value, &texture, &width, &height));
+        var texture: ?*c.SDL_GPUTexture = undefined;
+        try errors.wrapCallBool(c.SDL_AcquireGPUSwapchainTexture(self.value, window.value, &texture, &width, &height));
         return .{
             .texture = if (texture) |val| .{ .value = val } else null,
             .width = width,
@@ -638,7 +638,7 @@ pub const CommandBuffer = packed struct {
         storage_buffer_bindings: []const StorageBufferReadWriteBinding,
     ) ComputePass {
         return .{
-            .value = C.SDL_BeginGPUComputePass(
+            .value = c.SDL_BeginGPUComputePass(
                 self.value,
                 @ptrCast(storage_texture_bindings.ptr),
                 @intCast(storage_texture_bindings.len),
@@ -666,7 +666,7 @@ pub const CommandBuffer = packed struct {
         self: CommandBuffer,
     ) CopyPass {
         return .{
-            .value = C.SDL_BeginGPUCopyPass(self.value).?,
+            .value = c.SDL_BeginGPUCopyPass(self.value).?,
         };
     }
 
@@ -700,7 +700,7 @@ pub const CommandBuffer = packed struct {
     ) RenderPass {
         const depth_stencil = if (depth_stencil_target_info) |val| val.toSdl() else undefined;
         return .{
-            .value = C.SDL_BeginGPURenderPass(
+            .value = c.SDL_BeginGPURenderPass(
                 self.value,
                 @ptrCast(color_target_infos.ptr),
                 @intCast(color_target_infos.len),
@@ -725,7 +725,7 @@ pub const CommandBuffer = packed struct {
         blit_info: BlitInfo,
     ) void {
         const blit_info_sdl = blit_info.toSdl();
-        C.SDL_BlitGPUTexture(
+        c.SDL_BlitGPUTexture(
             self.value,
             &blit_info_sdl,
         );
@@ -750,7 +750,7 @@ pub const CommandBuffer = packed struct {
     pub fn cancel(
         self: CommandBuffer,
     ) !void {
-        return errors.wrapCallBool(C.SDL_CancelGPUCommandBuffer(self.value));
+        return errors.wrapCallBool(c.SDL_CancelGPUCommandBuffer(self.value));
     }
 
     /// Generates mipmaps for the given texture.
@@ -768,7 +768,7 @@ pub const CommandBuffer = packed struct {
         self: CommandBuffer,
         texture: Texture,
     ) void {
-        C.SDL_GenerateMipmapsForGPUTexture(
+        c.SDL_GenerateMipmapsForGPUTexture(
             self.value,
             texture.value,
         );
@@ -789,7 +789,7 @@ pub const CommandBuffer = packed struct {
         self: CommandBuffer,
         text: [:0]const u8,
     ) void {
-        C.SDL_InsertGPUDebugLabel(
+        c.SDL_InsertGPUDebugLabel(
             self.value,
             text.ptr,
         );
@@ -804,7 +804,7 @@ pub const CommandBuffer = packed struct {
     pub fn popDebugGroup(
         self: CommandBuffer,
     ) void {
-        C.SDL_PopGPUDebugGroup(
+        c.SDL_PopGPUDebugGroup(
             self.value,
         );
     }
@@ -829,7 +829,7 @@ pub const CommandBuffer = packed struct {
         slot_index: u32,
         data: []const u8,
     ) void {
-        C.SDL_PushGPUComputeUniformData(
+        c.SDL_PushGPUComputeUniformData(
             self.value,
             slot_index,
             data.ptr,
@@ -857,7 +857,7 @@ pub const CommandBuffer = packed struct {
         self: CommandBuffer,
         name: [:0]const u8,
     ) void {
-        C.SDL_PushGPUDebugGroup(
+        c.SDL_PushGPUDebugGroup(
             self.value,
             name.ptr,
         );
@@ -883,7 +883,7 @@ pub const CommandBuffer = packed struct {
         slot_index: u32,
         data: []const u8,
     ) void {
-        C.SDL_PushGPUFragmentUniformData(
+        c.SDL_PushGPUFragmentUniformData(
             self.value,
             slot_index,
             data.ptr,
@@ -911,7 +911,7 @@ pub const CommandBuffer = packed struct {
         slot_index: u32,
         data: []const u8,
     ) void {
-        C.SDL_PushGPUVertexUniformData(
+        c.SDL_PushGPUVertexUniformData(
             self.value,
             slot_index,
             data.ptr,
@@ -936,7 +936,7 @@ pub const CommandBuffer = packed struct {
     pub fn submit(
         self: CommandBuffer,
     ) !void {
-        return errors.wrapCallBool(C.SDL_SubmitGPUCommandBuffer(self.value));
+        return errors.wrapCallBool(c.SDL_SubmitGPUCommandBuffer(self.value));
     }
 
     /// Submits a command buffer so its commands can be processed on the GPU, and acquires a fence associated with the command buffer.
@@ -960,7 +960,7 @@ pub const CommandBuffer = packed struct {
     pub fn submitAndAcquireFence(
         self: CommandBuffer,
     ) !Fence {
-        return .{ .value = try errors.wrapNull(*C.SDL_GPUFence, C.SDL_SubmitGPUCommandBufferAndAcquireFence(self.value)) };
+        return .{ .value = try errors.wrapNull(*c.SDL_GPUFence, c.SDL_SubmitGPUCommandBufferAndAcquireFence(self.value)) };
     }
 
     /// Blocks the thread until a swapchain texture is available to be acquired, and then acquires it.
@@ -995,8 +995,8 @@ pub const CommandBuffer = packed struct {
     ) !struct { texture: ?Texture, width: u32, height: u32 } {
         var width: u32 = undefined;
         var height: u32 = undefined;
-        var texture: ?*C.SDL_GPUTexture = undefined;
-        try errors.wrapCallBool(C.SDL_WaitAndAcquireGPUSwapchainTexture(self.value, window.value, &texture, &width, &height));
+        var texture: ?*c.SDL_GPUTexture = undefined;
+        try errors.wrapCallBool(c.SDL_WaitAndAcquireGPUSwapchainTexture(self.value, window.value, &texture, &width, &height));
         return .{
             .texture = if (texture) |val| .{ .value = val } else null,
             .width = width,
@@ -1011,36 +1011,36 @@ pub const CommandBuffer = packed struct {
 /// This enum is available since SDL 3.2.0.
 pub const CompareOperation = enum(c_uint) {
     /// The comparison always evaluates false.
-    never = C.SDL_GPU_COMPAREOP_NEVER,
+    never = c.SDL_GPU_COMPAREOP_NEVER,
     /// The comparison evaluates reference < test.
-    less = C.SDL_GPU_COMPAREOP_LESS,
+    less = c.SDL_GPU_COMPAREOP_LESS,
     /// The comparison evaluates reference == test.
-    equal = C.SDL_GPU_COMPAREOP_EQUAL,
+    equal = c.SDL_GPU_COMPAREOP_EQUAL,
     /// The comparison evaluates reference <= test.
-    less_or_equal = C.SDL_GPU_COMPAREOP_LESS_OR_EQUAL,
+    less_or_equal = c.SDL_GPU_COMPAREOP_LESS_OR_EQUAL,
     /// The comparison evaluates reference > test.
-    greater = C.SDL_GPU_COMPAREOP_GREATER,
+    greater = c.SDL_GPU_COMPAREOP_GREATER,
     /// The comparison evaluates reference != test.
-    not_equal = C.SDL_GPU_COMPAREOP_NOT_EQUAL,
+    not_equal = c.SDL_GPU_COMPAREOP_NOT_EQUAL,
     /// The comparison evaluates reference >= test.
-    greater_or_equal = C.SDL_GPU_COMPAREOP_GREATER_OR_EQUAL,
+    greater_or_equal = c.SDL_GPU_COMPAREOP_GREATER_OR_EQUAL,
     /// The comparison always evaluates true.
-    always = C.SDL_GPU_COMPAREOP_ALWAYS,
+    always = c.SDL_GPU_COMPAREOP_ALWAYS,
 
     /// Create from SDL.
-    pub fn fromSdl(val: C.SDL_GPUCompareOp) ?CompareOperation {
-        if (val == C.SDL_GPU_COMPAREOP_INVALID) {
+    pub fn fromSdl(val: c.SDL_GPUCompareOp) ?CompareOperation {
+        if (val == c.SDL_GPU_COMPAREOP_INVALID) {
             return null;
         }
         return @enumFromInt(val);
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(val: ?CompareOperation) C.SDL_GPUCompareOp {
+    pub fn toSdl(val: ?CompareOperation) c.SDL_GPUCompareOp {
         if (val) |tmp| {
             return @intFromEnum(tmp);
         }
-        return C.SDL_GPU_COMPAREOP_INVALID;
+        return c.SDL_GPU_COMPAREOP_INVALID;
     }
 };
 
@@ -1052,7 +1052,7 @@ pub const CompareOperation = enum(c_uint) {
 /// ## Version
 /// This struct is available since SDL 3.2.0.
 pub const ComputePass = packed struct {
-    value: *C.SDL_GPUComputePass,
+    value: *c.SDL_GPUComputePass,
 
     /// Binds a compute pipeline on a command buffer for use in compute dispatch.
     ///
@@ -1066,7 +1066,7 @@ pub const ComputePass = packed struct {
         self: ComputePass,
         compute_pipeline: ComputePipeline,
     ) void {
-        C.SDL_BindGPUComputePipeline(self.value, compute_pipeline.value);
+        c.SDL_BindGPUComputePipeline(self.value, compute_pipeline.value);
     }
 
     /// Binds texture-sampler pairs for use on the compute shader.
@@ -1088,7 +1088,7 @@ pub const ComputePass = packed struct {
         first_slot: u32,
         texture_sampler_bindings: []const TextureSamplerBinding,
     ) void {
-        C.SDL_BindGPUComputeSamplers(
+        c.SDL_BindGPUComputeSamplers(
             self.value,
             first_slot,
             @ptrCast(texture_sampler_bindings.ptr),
@@ -1115,7 +1115,7 @@ pub const ComputePass = packed struct {
         first_slot: u32,
         storage_buffers: []const Buffer,
     ) void {
-        C.SDL_BindGPUComputeStorageBuffers(
+        c.SDL_BindGPUComputeStorageBuffers(
             self.value,
             first_slot,
             @ptrCast(storage_buffers.ptr),
@@ -1142,7 +1142,7 @@ pub const ComputePass = packed struct {
         first_slot: u32,
         storage_textures: []const Texture,
     ) void {
-        C.SDL_BindGPUComputeStorageTextures(
+        c.SDL_BindGPUComputeStorageTextures(
             self.value,
             first_slot,
             @ptrCast(storage_textures.ptr),
@@ -1173,7 +1173,7 @@ pub const ComputePass = packed struct {
         group_count_y: u32,
         group_count_z: u32,
     ) void {
-        C.SDL_DispatchGPUCompute(
+        c.SDL_DispatchGPUCompute(
             self.value,
             group_count_x,
             group_count_y,
@@ -1203,7 +1203,7 @@ pub const ComputePass = packed struct {
         buffer: Buffer,
         offset: u32,
     ) void {
-        C.SDL_DispatchGPUComputeIndirect(
+        c.SDL_DispatchGPUComputeIndirect(
             self.value,
             buffer.value,
             offset,
@@ -1224,7 +1224,7 @@ pub const ComputePass = packed struct {
     pub fn end(
         self: ComputePass,
     ) void {
-        C.SDL_EndGPUComputePass(self.value);
+        c.SDL_EndGPUComputePass(self.value);
     }
 };
 
@@ -1236,7 +1236,7 @@ pub const ComputePass = packed struct {
 /// ## Version
 /// This struct is available since SDL 3.2.0.
 pub const ComputePipeline = packed struct {
-    value: *C.SDL_GPUComputePipeline,
+    value: *c.SDL_GPUComputePipeline,
 };
 
 /// A structure specifying the parameters of a compute pipeline state.
@@ -1276,7 +1276,7 @@ pub const ComputePipelineCreateInfo = struct {
     props: ?properties.Group = null,
 
     /// From an SDL value.
-    pub fn fromSdl(value: C.SDL_GPUComputePipelineCreateInfo) ComputePipelineCreateInfo {
+    pub fn fromSdl(value: c.SDL_GPUComputePipelineCreateInfo) ComputePipelineCreateInfo {
         return .{
             .code = value.code[0..value.code_size],
             .entry_point = std.mem.span(value.entrypoint),
@@ -1295,7 +1295,7 @@ pub const ComputePipelineCreateInfo = struct {
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: ComputePipelineCreateInfo) C.SDL_GPUComputePipelineCreateInfo {
+    pub fn toSdl(self: ComputePipelineCreateInfo) c.SDL_GPUComputePipelineCreateInfo {
         return .{
             .code = self.code.ptr,
             .code_size = self.code.len,
@@ -1323,7 +1323,7 @@ pub const ComputePipelineCreateInfo = struct {
 /// ## Version
 /// This struct is available since SDL 3.2.0.
 pub const CopyPass = packed struct {
-    value: *C.SDL_GPUCopyPass,
+    value: *c.SDL_GPUCopyPass,
 
     /// Performs a buffer-to-buffer copy.
     ///
@@ -1349,7 +1349,7 @@ pub const CopyPass = packed struct {
     ) void {
         const source_sdl = source.toSdl();
         const destination_sdl = destination.toSdl();
-        C.SDL_CopyGPUBufferToBuffer(
+        c.SDL_CopyGPUBufferToBuffer(
             self.value,
             &source_sdl,
             &destination_sdl,
@@ -1377,7 +1377,7 @@ pub const CopyPass = packed struct {
     ) void {
         const source_sdl = source.toSdl();
         const destination_sdl = destination.toSdl();
-        C.SDL_DownloadFromGPUBuffer(
+        c.SDL_DownloadFromGPUBuffer(
             self.value,
             &source_sdl,
             &destination_sdl,
@@ -1403,7 +1403,7 @@ pub const CopyPass = packed struct {
     ) void {
         const source_sdl = source.toSdl();
         const destination_sdl = destination.toSdl();
-        C.SDL_DownloadFromGPUTexture(
+        c.SDL_DownloadFromGPUTexture(
             self.value,
             &source_sdl,
             &destination_sdl,
@@ -1420,7 +1420,7 @@ pub const CopyPass = packed struct {
     pub fn end(
         self: CopyPass,
     ) void {
-        C.SDL_EndGPUCopyPass(
+        c.SDL_EndGPUCopyPass(
             self.value,
         );
     }
@@ -1453,7 +1453,7 @@ pub const CopyPass = packed struct {
     ) void {
         const source_sdl = source.toSdl();
         const destination_sdl = destination.toSdl();
-        C.SDL_CopyGPUTextureToTexture(
+        c.SDL_CopyGPUTextureToTexture(
             self.value,
             &source_sdl,
             &destination_sdl,
@@ -1486,7 +1486,7 @@ pub const CopyPass = packed struct {
     ) void {
         const source_sdl = source.toSdl();
         const destination_sdl = destination.toSdl();
-        C.SDL_UploadToGPUBuffer(
+        c.SDL_UploadToGPUBuffer(
             self.value,
             &source_sdl,
             &destination_sdl,
@@ -1518,7 +1518,7 @@ pub const CopyPass = packed struct {
     ) void {
         const source_sdl = source.toSdl();
         const destination_sdl = destination.toSdl();
-        C.SDL_UploadToGPUTexture(
+        c.SDL_UploadToGPUTexture(
             self.value,
             &source_sdl,
             &destination_sdl,
@@ -1535,12 +1535,12 @@ pub const CopyPass = packed struct {
 /// ## Version
 /// This enum is available since SDL 3.2.0.
 pub const CubeMap = enum(c_uint) {
-    positive_x = C.SDL_GPU_CUBEMAPFACE_POSITIVEX,
-    negative_x = C.SDL_GPU_CUBEMAPFACE_NEGATIVEX,
-    positive_y = C.SDL_GPU_CUBEMAPFACE_POSITIVEY,
-    negative_y = C.SDL_GPU_CUBEMAPFACE_NEGATIVEY,
-    positive_z = C.SDL_GPU_CUBEMAPFACE_POSITIVEZ,
-    negative_z = C.SDL_GPU_CUBEMAPFACE_NEGATIVEZ,
+    positive_x = c.SDL_GPU_CUBEMAPFACE_POSITIVEX,
+    negative_x = c.SDL_GPU_CUBEMAPFACE_NEGATIVEX,
+    positive_y = c.SDL_GPU_CUBEMAPFACE_POSITIVEY,
+    negative_y = c.SDL_GPU_CUBEMAPFACE_NEGATIVEY,
+    positive_z = c.SDL_GPU_CUBEMAPFACE_POSITIVEZ,
+    negative_z = c.SDL_GPU_CUBEMAPFACE_NEGATIVEZ,
 };
 
 /// Specifies the facing direction in which triangle faces will be culled.
@@ -1549,11 +1549,11 @@ pub const CubeMap = enum(c_uint) {
 /// This enum is available since SDL 3.2.0.
 pub const CullMode = enum(c_uint) {
     /// No triangles are culled.
-    none = C.SDL_GPU_CULLMODE_NONE,
+    none = c.SDL_GPU_CULLMODE_NONE,
     /// Front-facing triangles are culled.
-    front = C.SDL_GPU_CULLMODE_FRONT,
+    front = c.SDL_GPU_CULLMODE_FRONT,
     /// Back-facing triangles are culled.
-    back = C.SDL_GPU_CULLMODE_BACK,
+    back = c.SDL_GPU_CULLMODE_BACK,
 };
 
 /// A structure specifying the parameters of the graphics pipeline depth stencil state. TODO!!!
@@ -1579,7 +1579,7 @@ pub const DepthStencilState = struct {
     enable_stencil_test: bool = false,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_GPUDepthStencilState) DepthStencilState {
+    pub fn fromSdl(value: c.SDL_GPUDepthStencilState) DepthStencilState {
         return .{
             .compare = @enumFromInt(value.compare_op),
             .back_stencil_state = StencilOperationState.fromSdl(value.back_stencil_state),
@@ -1593,7 +1593,7 @@ pub const DepthStencilState = struct {
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: DepthStencilState) C.SDL_GPUDepthStencilState {
+    pub fn toSdl(self: DepthStencilState) c.SDL_GPUDepthStencilState {
         return .{
             .compare_op = @intFromEnum(self.compare),
             .back_stencil_state = self.back_stencil_state.toSdl(),
@@ -1653,7 +1653,7 @@ pub const DepthStencilTargetInfo = struct {
     clear_stencil: u8,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_GPUDepthStencilTargetInfo) DepthStencilTargetInfo {
+    pub fn fromSdl(value: c.SDL_GPUDepthStencilTargetInfo) DepthStencilTargetInfo {
         return .{
             .texture = .{ .value = value.texture.? },
             .clear_depth = value.clear_depth,
@@ -1667,7 +1667,7 @@ pub const DepthStencilTargetInfo = struct {
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: DepthStencilTargetInfo) C.SDL_GPUDepthStencilTargetInfo {
+    pub fn toSdl(self: DepthStencilTargetInfo) c.SDL_GPUDepthStencilTargetInfo {
         return .{
             .texture = self.texture.value,
             .clear_depth = self.clear_depth,
@@ -1686,7 +1686,7 @@ pub const DepthStencilTargetInfo = struct {
 /// ## Version
 /// This struct is available since SDL 3.2.0.
 pub const Device = packed struct {
-    value: *C.SDL_GPUDevice,
+    value: *c.SDL_GPUDevice,
 
     /// Acquire a command buffer.
     ///
@@ -1712,7 +1712,7 @@ pub const Device = packed struct {
         self: Device,
     ) !CommandBuffer {
         return .{
-            .value = try errors.wrapNull(*C.SDL_GPUCommandBuffer, C.SDL_AcquireGPUCommandBuffer(self.value)),
+            .value = try errors.wrapNull(*c.SDL_GPUCommandBuffer, c.SDL_AcquireGPUCommandBuffer(self.value)),
         };
     }
 
@@ -1738,7 +1738,7 @@ pub const Device = packed struct {
         self: Device,
         window: video.Window,
     ) !void {
-        return errors.wrapCallBool(C.SDL_ClaimWindowForGPUDevice(
+        return errors.wrapCallBool(c.SDL_ClaimWindowForGPUDevice(
             self.value,
             window.value,
         ));
@@ -1778,8 +1778,8 @@ pub const Device = packed struct {
         const create_info_sdl = create_info.toSdl();
         return .{
             .value = try errors.wrapNull(
-                *C.SDL_GPUBuffer,
-                C.SDL_CreateGPUBuffer(self.value, &create_info_sdl),
+                *c.SDL_GPUBuffer,
+                c.SDL_CreateGPUBuffer(self.value, &create_info_sdl),
             ),
         };
     }
@@ -1823,7 +1823,7 @@ pub const Device = packed struct {
     ) !ComputePipeline {
         const create_info_sdl = create_info.toSdl();
         return .{
-            .value = try errors.wrapNull(*C.SDL_GPUComputePipeline, C.SDL_CreateGPUComputePipeline(self.value, &create_info_sdl)),
+            .value = try errors.wrapNull(*c.SDL_GPUComputePipeline, c.SDL_CreateGPUComputePipeline(self.value, &create_info_sdl)),
         };
     }
 
@@ -1850,7 +1850,7 @@ pub const Device = packed struct {
     ) !GraphicsPipeline {
         const create_info_sdl = create_info.toSdl();
         return .{
-            .value = try errors.wrapNull(*C.SDL_GPUGraphicsPipeline, C.SDL_CreateGPUGraphicsPipeline(
+            .value = try errors.wrapNull(*c.SDL_GPUGraphicsPipeline, c.SDL_CreateGPUGraphicsPipeline(
                 self.value,
                 &create_info_sdl,
             )),
@@ -1880,7 +1880,7 @@ pub const Device = packed struct {
     ) !Sampler {
         const create_info_sdl = create_info.toSdl();
         return .{
-            .value = try errors.wrapNull(*C.SDL_GPUSampler, C.SDL_CreateGPUSampler(
+            .value = try errors.wrapNull(*c.SDL_GPUSampler, c.SDL_CreateGPUSampler(
                 self.value,
                 &create_info_sdl,
             )),
@@ -1944,7 +1944,7 @@ pub const Device = packed struct {
     ) !Shader {
         const create_info_sdl = create_info.toSdl();
         return .{
-            .value = try errors.wrapNull(*C.SDL_GPUShader, C.SDL_CreateGPUShader(
+            .value = try errors.wrapNull(*c.SDL_GPUShader, c.SDL_CreateGPUShader(
                 self.value,
                 &create_info_sdl,
             )),
@@ -1987,7 +1987,7 @@ pub const Device = packed struct {
     ) !Texture {
         const create_info_sdl = create_info.toSdl();
         return .{
-            .value = try errors.wrapNull(*C.SDL_GPUTexture, C.SDL_CreateGPUTexture(
+            .value = try errors.wrapNull(*c.SDL_GPUTexture, c.SDL_CreateGPUTexture(
                 self.value,
                 &create_info_sdl,
             )),
@@ -2019,7 +2019,7 @@ pub const Device = packed struct {
     ) !TransferBuffer {
         const create_info_sdl = create_info.toSdl();
         return .{
-            .value = try errors.wrapNull(*C.SDL_GPUTransferBuffer, C.SDL_CreateGPUTransferBuffer(
+            .value = try errors.wrapNull(*c.SDL_GPUTransferBuffer, c.SDL_CreateGPUTransferBuffer(
                 self.value,
                 &create_info_sdl,
             )),
@@ -2036,43 +2036,43 @@ pub const Device = packed struct {
     pub fn deinit(
         self: Device,
     ) void {
-        return C.SDL_DestroyGPUDevice(
+        return c.SDL_DestroyGPUDevice(
             self.value,
         );
     }
 
-    /// Call this to resume GPU operation on Xbox when you receive the `events.Type.will_enter_foreground` event.
-    ///
-    /// ## Function Parameters
-    /// * `self`: A GPU context.
-    ///
-    /// ## Remarks
-    /// When resuming, this function MUST be called before calling any other `gpu` functions.
-    ///
-    /// ## Version
-    /// This function is available since SDL 3.2.0.
-    pub fn gdkResume(
-        self: Device,
-    ) void {
-        C.SDL_GDKResumeGPU(self.value);
-    }
+    // /// Call this to resume GPU operation on Xbox when you receive the `events.Type.will_enter_foreground` event.
+    // ///
+    // /// ## Function Parameters
+    // /// * `self`: A GPU context.
+    // ///
+    // /// ## Remarks
+    // /// When resuming, this function MUST be called before calling any other `gpu` functions.
+    // ///
+    // /// ## Version
+    // /// This function is available since SDL 3.2.0.
+    // pub fn gdkResume(
+    //     self: Device,
+    // ) void {
+    //     c.SDL_GDKResumeGPU(self.value);
+    // }
 
-    /// Call this to suspend GPU operation on Xbox when you receive the `events.Type.did_enter_background` event.
-    ///
-    /// ## Function Parameters
-    /// * `self`: A GPU context.
-    ///
-    /// ## Remarks
-    /// Do NOT call any `gpu` functions after calling this function!
-    /// This must also be called before calling `gpu.Device.gdkSuspendComplete()`.
-    ///
-    /// ## Version
-    /// This function is available since SDL 3.2.0.
-    pub fn gdkSuspend(
-        self: Device,
-    ) void {
-        C.SDL_GDKSuspendGPU(self.value);
-    }
+    // /// Call this to suspend GPU operation on Xbox when you receive the `events.Type.did_enter_background` event.
+    // ///
+    // /// ## Function Parameters
+    // /// * `self`: A GPU context.
+    // ///
+    // /// ## Remarks
+    // /// Do NOT call any `gpu` functions after calling this function!
+    // /// This must also be called before calling `gpu.Device.gdkSuspendComplete()`.
+    // ///
+    // /// ## Version
+    // /// This function is available since SDL 3.2.0.
+    // pub fn gdkSuspend(
+    //     self: Device,
+    // ) void {
+    //     c.SDL_GDKSuspendGPU(self.value);
+    // }
 
     /// Returns the name of the backend used to create this GPU context.
     ///
@@ -2087,7 +2087,7 @@ pub const Device = packed struct {
     pub fn getDriver(
         self: Device,
     ) ![:0]const u8 {
-        return errors.wrapCallCString(C.SDL_GetGPUDeviceDriver(
+        return errors.wrapCallCString(c.SDL_GetGPUDeviceDriver(
             self.value,
         ));
     }
@@ -2100,7 +2100,7 @@ pub const Device = packed struct {
     //     self: Device,
     // ) !properties.Group {
     //     return .{
-    //         .value = try errors.wrapCall(C.SDL_PropertiesID, C.SDL_GetGPUDeviceProperties(self.value), 0),
+    //         .value = try errors.wrapCall(c.SDL_PropertiesID, c.SDL_GetGPUDeviceProperties(self.value), 0),
     //     };
     // }
 
@@ -2118,8 +2118,8 @@ pub const Device = packed struct {
         self: Device,
     ) ShaderFormatFlags {
         return ShaderFormatFlags.fromSdl(
-            C.SDL_GetGPUShaderFormats(self.value),
-        );
+            c.SDL_GetGPUShaderFormats(self.value),
+        ).?;
     }
 
     /// Obtains the texture format of the swapchain for the given window.
@@ -2140,7 +2140,7 @@ pub const Device = packed struct {
         self: Device,
         window: video.Window,
     ) TextureFormat {
-        return @enumFromInt(C.SDL_GetGPUSwapchainTextureFormat(
+        return @enumFromInt(c.SDL_GetGPUSwapchainTextureFormat(
             self.value,
             window.value,
         ));
@@ -2171,7 +2171,7 @@ pub const Device = packed struct {
         name: ?[:0]const u8,
     ) !Device {
         return .{
-            .value = try errors.wrapNull(*C.SDL_GPUDevice, C.SDL_CreateGPUDevice(
+            .value = try errors.wrapNull(*c.SDL_GPUDevice, c.SDL_CreateGPUDevice(
                 ShaderFormatFlags.toSdl(shader_format),
                 debug_mode,
                 if (name) |val| val.ptr else null,
@@ -2186,7 +2186,7 @@ pub const Device = packed struct {
         props: properties.Group,
     ) !Device {
         return .{
-            .value = try errors.wrapNull(*C.SDL_GPUDevice, C.SDL_CreateGPUDeviceWithProperties(
+            .value = try errors.wrapNull(*c.SDL_GPUDevice, c.SDL_CreateGPUDeviceWithProperties(
                 props.value,
             )),
         };
@@ -2213,7 +2213,7 @@ pub const Device = packed struct {
         transfer_buffer: TransferBuffer,
         cycle: bool,
     ) ![*]u8 {
-        return @alignCast(@ptrCast(try errors.wrapNull(*anyopaque, C.SDL_MapGPUTransferBuffer(
+        return @alignCast(@ptrCast(try errors.wrapNull(*anyopaque, c.SDL_MapGPUTransferBuffer(
             self.value,
             transfer_buffer.value,
             cycle,
@@ -2234,8 +2234,8 @@ pub const Device = packed struct {
     pub fn queryFence(
         self: Device,
         fence: Fence,
-    ) void {
-        return C.SDL_QueryGPUFence(
+    ) bool {
+        return c.SDL_QueryGPUFence(
             self.value,
             fence.value,
         );
@@ -2256,7 +2256,7 @@ pub const Device = packed struct {
         self: Device,
         buffer: Buffer,
     ) void {
-        C.SDL_ReleaseGPUBuffer(
+        c.SDL_ReleaseGPUBuffer(
             self.value,
             buffer.value,
         );
@@ -2277,7 +2277,7 @@ pub const Device = packed struct {
         self: Device,
         compute_pipeline: ComputePipeline,
     ) void {
-        C.SDL_ReleaseGPUComputePipeline(
+        c.SDL_ReleaseGPUComputePipeline(
             self.value,
             compute_pipeline.value,
         );
@@ -2298,7 +2298,7 @@ pub const Device = packed struct {
         self: Device,
         fence: Fence,
     ) void {
-        C.SDL_ReleaseGPUFence(
+        c.SDL_ReleaseGPUFence(
             self.value,
             fence.value,
         );
@@ -2319,7 +2319,7 @@ pub const Device = packed struct {
         self: Device,
         graphics_pipeline: GraphicsPipeline,
     ) void {
-        C.SDL_ReleaseGPUGraphicsPipeline(
+        c.SDL_ReleaseGPUGraphicsPipeline(
             self.value,
             graphics_pipeline.value,
         );
@@ -2340,7 +2340,7 @@ pub const Device = packed struct {
         self: Device,
         sampler: Sampler,
     ) void {
-        C.SDL_ReleaseGPUSampler(
+        c.SDL_ReleaseGPUSampler(
             self.value,
             sampler.value,
         );
@@ -2361,7 +2361,7 @@ pub const Device = packed struct {
         self: Device,
         shader: Shader,
     ) void {
-        C.SDL_ReleaseGPUShader(
+        c.SDL_ReleaseGPUShader(
             self.value,
             shader.value,
         );
@@ -2382,7 +2382,7 @@ pub const Device = packed struct {
         self: Device,
         texture: Texture,
     ) void {
-        C.SDL_ReleaseGPUTexture(
+        c.SDL_ReleaseGPUTexture(
             self.value,
             texture.value,
         );
@@ -2403,7 +2403,7 @@ pub const Device = packed struct {
         self: Device,
         transfer_buffer: TransferBuffer,
     ) void {
-        C.SDL_ReleaseGPUTransferBuffer(
+        c.SDL_ReleaseGPUTransferBuffer(
             self.value,
             transfer_buffer.value,
         );
@@ -2421,7 +2421,7 @@ pub const Device = packed struct {
         self: Device,
         window: video.Window,
     ) void {
-        C.SDL_ReleaseWindowFromGPUDevice(
+        c.SDL_ReleaseWindowFromGPUDevice(
             self.value,
             window.value,
         );
@@ -2451,7 +2451,7 @@ pub const Device = packed struct {
         self: Device,
         allowed_frames_in_flight: u32,
     ) !void {
-        return errors.wrapCallBool(C.SDL_SetGPUAllowedFramesInFlight(
+        return errors.wrapCallBool(c.SDL_SetGPUAllowedFramesInFlight(
             self.value,
             allowed_frames_in_flight,
         ));
@@ -2477,7 +2477,7 @@ pub const Device = packed struct {
         buffer: Buffer,
         text: [:0]const u8,
     ) void {
-        C.SDL_SetGPUBufferName(
+        c.SDL_SetGPUBufferName(
             self.value,
             buffer.value,
             text.ptr,
@@ -2506,7 +2506,7 @@ pub const Device = packed struct {
         swapchain_composition: SwapchainComposition,
         present_mode: PresentMode,
     ) !void {
-        return errors.wrapCallBool(C.SDL_SetGPUSwapchainParameters(
+        return errors.wrapCallBool(c.SDL_SetGPUSwapchainParameters(
             self.value,
             window.value,
             @intFromEnum(swapchain_composition),
@@ -2534,7 +2534,7 @@ pub const Device = packed struct {
         texture: Texture,
         text: [:0]const u8,
     ) void {
-        C.SDL_SetGPUTextureName(
+        c.SDL_SetGPUTextureName(
             self.value,
             texture.value,
             text.ptr,
@@ -2560,7 +2560,7 @@ pub const Device = packed struct {
         texture_type: TextureType,
         usage: TextureUsageFlags,
     ) bool {
-        return C.SDL_GPUTextureSupportsFormat(
+        return c.SDL_GPUTextureSupportsFormat(
             self.value,
             @intFromEnum(format),
             @intFromEnum(texture_type),
@@ -2585,7 +2585,7 @@ pub const Device = packed struct {
         format: TextureFormat,
         sample_count: SampleCount,
     ) bool {
-        return C.SDL_GPUTextureSupportsSampleCount(
+        return c.SDL_GPUTextureSupportsSampleCount(
             self.value,
             @intFromEnum(format),
             @intFromEnum(sample_count),
@@ -2604,7 +2604,7 @@ pub const Device = packed struct {
         self: Device,
         transfer_buffer: TransferBuffer,
     ) void {
-        C.SDL_UnmapGPUTransferBuffer(
+        c.SDL_UnmapGPUTransferBuffer(
             self.value,
             transfer_buffer.value,
         );
@@ -2624,7 +2624,7 @@ pub const Device = packed struct {
         wait_all: bool,
         fences: []const Fence,
     ) !void {
-        return errors.wrapCallBool(C.SDL_WaitForGPUFences(
+        return errors.wrapCallBool(c.SDL_WaitForGPUFences(
             self.value,
             wait_all,
             @ptrCast(fences.ptr),
@@ -2642,7 +2642,7 @@ pub const Device = packed struct {
     pub fn waitForIdle(
         self: Device,
     ) !void {
-        return errors.wrapCallBool(C.SDL_WaitForGPUIdle(
+        return errors.wrapCallBool(c.SDL_WaitForGPUIdle(
             self.value,
         ));
     }
@@ -2662,7 +2662,7 @@ pub const Device = packed struct {
         self: Device,
         window: video.Window,
     ) !void {
-        return errors.wrapCallBool(C.SDL_WaitForGPUSwapchain(
+        return errors.wrapCallBool(c.SDL_WaitForGPUSwapchain(
             self.value,
             window.value,
         ));
@@ -2688,7 +2688,7 @@ pub const Device = packed struct {
         window: video.Window,
         present_mode: PresentMode,
     ) bool {
-        return C.SDL_WindowSupportsGPUPresentMode(
+        return c.SDL_WindowSupportsGPUPresentMode(
             self.value,
             window.value,
             @intFromEnum(present_mode),
@@ -2715,7 +2715,7 @@ pub const Device = packed struct {
         window: video.Window,
         swapchain_composition: SwapchainComposition,
     ) bool {
-        return C.SDL_WindowSupportsGPUSwapchainComposition(
+        return c.SDL_WindowSupportsGPUSwapchainComposition(
             self.value,
             window.value,
             @intFromEnum(swapchain_composition),
@@ -2728,7 +2728,7 @@ pub const Device = packed struct {
 /// ## Version
 /// This struct is available since SDL 3.2.0.
 pub const Fence = packed struct {
-    value: *C.SDL_GPUFence,
+    value: *c.SDL_GPUFence,
 };
 
 /// Specifies the fill mode of the graphics pipeline.
@@ -2737,9 +2737,9 @@ pub const Fence = packed struct {
 /// This enum is available since SDL 3.2.0.
 pub const FillMode = enum(c_uint) {
     /// Polygons will be rendered via rasterization.
-    fill = C.SDL_GPU_FILLMODE_FILL,
+    fill = c.SDL_GPU_FILLMODE_FILL,
     /// Polygon edges will be drawn as line segments.
-    line = C.SDL_GPU_FILLMODE_LINE,
+    line = c.SDL_GPU_FILLMODE_LINE,
 };
 
 /// Specifies a filter operation used by a sampler.
@@ -2748,9 +2748,9 @@ pub const FillMode = enum(c_uint) {
 /// This enum is available since SDL 3.2.0.
 pub const Filter = enum(c_uint) {
     /// Point filtering.
-    nearest = C.SDL_GPU_FILTER_NEAREST,
+    nearest = c.SDL_GPU_FILTER_NEAREST,
     /// Linear filtering.
-    linear = C.SDL_GPU_FILTER_LINEAR,
+    linear = c.SDL_GPU_FILTER_LINEAR,
 };
 
 /// Specifies the vertex winding that will cause a triangle to be determined to be front-facing.
@@ -2759,9 +2759,9 @@ pub const Filter = enum(c_uint) {
 /// This enum is available since SDL 3.2.0.
 pub const FrontFace = enum(c_uint) {
     /// A triangle with counter-clockwise vertex winding will be considered front-facing.
-    counter_clockwise = C.SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE,
+    counter_clockwise = c.SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE,
     /// A triangle with clockwise vertex winding will be considered front-facing.
-    clockwise = C.SDL_GPU_FRONTFACE_CLOCKWISE,
+    clockwise = c.SDL_GPU_FRONTFACE_CLOCKWISE,
 };
 
 /// An opaque handle representing a graphics pipeline.
@@ -2772,7 +2772,7 @@ pub const FrontFace = enum(c_uint) {
 /// ## Version
 /// This struct is available since SDL 3.2.0.
 pub const GraphicsPipeline = packed struct {
-    value: *C.SDL_GPUGraphicsPipeline,
+    value: *c.SDL_GPUGraphicsPipeline,
 };
 
 /// A structure specifying the parameters of a graphics pipeline state.
@@ -2800,7 +2800,7 @@ pub const GraphicsPipelineCreateInfo = struct {
     props: ?properties.Group = null,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_GPUGraphicsPipelineCreateInfo) GraphicsPipelineCreateInfo {
+    pub fn fromSdl(value: c.SDL_GPUGraphicsPipelineCreateInfo) GraphicsPipelineCreateInfo {
         return .{
             .vertex_shader = .{ .value = value.vertex_shader.? },
             .fragment_shader = .{ .value = value.fragment_shader.? },
@@ -2815,7 +2815,7 @@ pub const GraphicsPipelineCreateInfo = struct {
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: GraphicsPipelineCreateInfo) C.SDL_GPUGraphicsPipelineCreateInfo {
+    pub fn toSdl(self: GraphicsPipelineCreateInfo) c.SDL_GPUGraphicsPipelineCreateInfo {
         return .{
             .vertex_shader = self.vertex_shader.value,
             .fragment_shader = self.fragment_shader.value,
@@ -2841,7 +2841,7 @@ pub const GraphicsPipelineTargetInfo = struct {
     depth_stencil_format: ?TextureFormat = null,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_GPUGraphicsPipelineTargetInfo) GraphicsPipelineTargetInfo {
+    pub fn fromSdl(value: c.SDL_GPUGraphicsPipelineTargetInfo) GraphicsPipelineTargetInfo {
         return .{
             .color_target_descriptions = @as([*]const ColorTargetDescription, @ptrCast(value.color_target_descriptions))[0..@intCast(value.num_color_targets)],
             .depth_stencil_format = if (value.has_depth_stencil_target) @enumFromInt(value.depth_stencil_format) else null,
@@ -2849,7 +2849,7 @@ pub const GraphicsPipelineTargetInfo = struct {
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: GraphicsPipelineTargetInfo) C.SDL_GPUGraphicsPipelineTargetInfo {
+    pub fn toSdl(self: GraphicsPipelineTargetInfo) c.SDL_GPUGraphicsPipelineTargetInfo {
         return .{
             .color_target_descriptions = @ptrCast(self.color_target_descriptions.ptr),
             .num_color_targets = @intCast(self.color_target_descriptions.len),
@@ -2865,9 +2865,9 @@ pub const GraphicsPipelineTargetInfo = struct {
 /// This enum is available since SDL 3.2.0.
 pub const IndexElementSize = enum(c_uint) {
     /// The index elements are 16-bit.
-    indices_16bit = C.SDL_GPU_INDEXELEMENTSIZE_16BIT,
+    indices_16bit = c.SDL_GPU_INDEXELEMENTSIZE_16BIT,
     /// The index elements are 32-bit.
-    indices_32bit = C.SDL_GPU_INDEXELEMENTSIZE_32BIT,
+    indices_32bit = c.SDL_GPU_INDEXELEMENTSIZE_32BIT,
 };
 
 /// A structure specifying the parameters of an indexed indirect draw command.
@@ -2893,17 +2893,17 @@ pub const IndexedIndirectDrawCommand = extern struct {
 
     // Size tests.
     comptime {
-        std.debug.assert(@sizeOf(C.SDL_GPUIndexedIndirectDrawCommand) == @sizeOf(IndexedIndirectDrawCommand));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUIndexedIndirectDrawCommand, "num_indices")) == @sizeOf(@FieldType(IndexedIndirectDrawCommand, "num_indices")));
-        std.debug.assert(@offsetOf(C.SDL_GPUIndexedIndirectDrawCommand, "num_indices") == @offsetOf(IndexedIndirectDrawCommand, "num_indices"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUIndexedIndirectDrawCommand, "num_instances")) == @sizeOf(@FieldType(IndexedIndirectDrawCommand, "num_instances")));
-        std.debug.assert(@offsetOf(C.SDL_GPUIndexedIndirectDrawCommand, "num_instances") == @offsetOf(IndexedIndirectDrawCommand, "num_instances"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUIndexedIndirectDrawCommand, "first_index")) == @sizeOf(@FieldType(IndexedIndirectDrawCommand, "first_index")));
-        std.debug.assert(@offsetOf(C.SDL_GPUIndexedIndirectDrawCommand, "first_index") == @offsetOf(IndexedIndirectDrawCommand, "first_index"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUIndexedIndirectDrawCommand, "vertex_offset")) == @sizeOf(@FieldType(IndexedIndirectDrawCommand, "vertex_offset")));
-        std.debug.assert(@offsetOf(C.SDL_GPUIndexedIndirectDrawCommand, "vertex_offset") == @offsetOf(IndexedIndirectDrawCommand, "vertex_offset"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUIndexedIndirectDrawCommand, "first_instance")) == @sizeOf(@FieldType(IndexedIndirectDrawCommand, "first_instance")));
-        std.debug.assert(@offsetOf(C.SDL_GPUIndexedIndirectDrawCommand, "first_instance") == @offsetOf(IndexedIndirectDrawCommand, "first_instance"));
+        std.debug.assert(@sizeOf(c.SDL_GPUIndexedIndirectDrawCommand) == @sizeOf(IndexedIndirectDrawCommand));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUIndexedIndirectDrawCommand, "num_indices")) == @sizeOf(@FieldType(IndexedIndirectDrawCommand, "num_indices")));
+        std.debug.assert(@offsetOf(c.SDL_GPUIndexedIndirectDrawCommand, "num_indices") == @offsetOf(IndexedIndirectDrawCommand, "num_indices"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUIndexedIndirectDrawCommand, "num_instances")) == @sizeOf(@FieldType(IndexedIndirectDrawCommand, "num_instances")));
+        std.debug.assert(@offsetOf(c.SDL_GPUIndexedIndirectDrawCommand, "num_instances") == @offsetOf(IndexedIndirectDrawCommand, "num_instances"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUIndexedIndirectDrawCommand, "first_index")) == @sizeOf(@FieldType(IndexedIndirectDrawCommand, "first_index")));
+        std.debug.assert(@offsetOf(c.SDL_GPUIndexedIndirectDrawCommand, "first_index") == @offsetOf(IndexedIndirectDrawCommand, "first_index"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUIndexedIndirectDrawCommand, "vertex_offset")) == @sizeOf(@FieldType(IndexedIndirectDrawCommand, "vertex_offset")));
+        std.debug.assert(@offsetOf(c.SDL_GPUIndexedIndirectDrawCommand, "vertex_offset") == @offsetOf(IndexedIndirectDrawCommand, "vertex_offset"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUIndexedIndirectDrawCommand, "first_instance")) == @sizeOf(@FieldType(IndexedIndirectDrawCommand, "first_instance")));
+        std.debug.assert(@offsetOf(c.SDL_GPUIndexedIndirectDrawCommand, "first_instance") == @offsetOf(IndexedIndirectDrawCommand, "first_instance"));
     }
 };
 
@@ -2921,13 +2921,13 @@ pub const IndirectDispatchCommand = extern struct {
 
     // Size tests.
     comptime {
-        std.debug.assert(@sizeOf(C.SDL_GPUIndirectDispatchCommand) == @sizeOf(IndirectDispatchCommand));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUIndirectDispatchCommand, "groupcount_x")) == @sizeOf(@FieldType(IndirectDispatchCommand, "group_count_x")));
-        std.debug.assert(@offsetOf(C.SDL_GPUIndirectDispatchCommand, "groupcount_x") == @offsetOf(IndirectDispatchCommand, "group_count_x"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUIndirectDispatchCommand, "groupcount_y")) == @sizeOf(@FieldType(IndirectDispatchCommand, "group_count_y")));
-        std.debug.assert(@offsetOf(C.SDL_GPUIndirectDispatchCommand, "groupcount_y") == @offsetOf(IndirectDispatchCommand, "group_count_y"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUIndirectDispatchCommand, "groupcount_z")) == @sizeOf(@FieldType(IndirectDispatchCommand, "group_count_z")));
-        std.debug.assert(@offsetOf(C.SDL_GPUIndirectDispatchCommand, "groupcount_z") == @offsetOf(IndirectDispatchCommand, "group_count_z"));
+        std.debug.assert(@sizeOf(c.SDL_GPUIndirectDispatchCommand) == @sizeOf(IndirectDispatchCommand));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUIndirectDispatchCommand, "groupcount_x")) == @sizeOf(@FieldType(IndirectDispatchCommand, "group_count_x")));
+        std.debug.assert(@offsetOf(c.SDL_GPUIndirectDispatchCommand, "groupcount_x") == @offsetOf(IndirectDispatchCommand, "group_count_x"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUIndirectDispatchCommand, "groupcount_y")) == @sizeOf(@FieldType(IndirectDispatchCommand, "group_count_y")));
+        std.debug.assert(@offsetOf(c.SDL_GPUIndirectDispatchCommand, "groupcount_y") == @offsetOf(IndirectDispatchCommand, "group_count_y"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUIndirectDispatchCommand, "groupcount_z")) == @sizeOf(@FieldType(IndirectDispatchCommand, "group_count_z")));
+        std.debug.assert(@offsetOf(c.SDL_GPUIndirectDispatchCommand, "groupcount_z") == @offsetOf(IndirectDispatchCommand, "group_count_z"));
     }
 };
 
@@ -2952,15 +2952,15 @@ pub const IndirectDrawCommand = extern struct {
 
     // Size tests.
     comptime {
-        std.debug.assert(@sizeOf(C.SDL_GPUIndirectDrawCommand) == @sizeOf(IndirectDrawCommand));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUIndirectDrawCommand, "num_vertices")) == @sizeOf(@FieldType(IndirectDrawCommand, "num_vertices")));
-        std.debug.assert(@offsetOf(C.SDL_GPUIndirectDrawCommand, "num_vertices") == @offsetOf(IndirectDrawCommand, "num_vertices"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUIndirectDrawCommand, "num_instances")) == @sizeOf(@FieldType(IndirectDrawCommand, "num_instances")));
-        std.debug.assert(@offsetOf(C.SDL_GPUIndirectDrawCommand, "num_instances") == @offsetOf(IndirectDrawCommand, "num_instances"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUIndirectDrawCommand, "first_vertex")) == @sizeOf(@FieldType(IndirectDrawCommand, "first_vertex")));
-        std.debug.assert(@offsetOf(C.SDL_GPUIndirectDrawCommand, "first_vertex") == @offsetOf(IndirectDrawCommand, "first_vertex"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUIndirectDrawCommand, "first_instance")) == @sizeOf(@FieldType(IndirectDrawCommand, "first_instance")));
-        std.debug.assert(@offsetOf(C.SDL_GPUIndirectDrawCommand, "first_instance") == @offsetOf(IndirectDrawCommand, "first_instance"));
+        std.debug.assert(@sizeOf(c.SDL_GPUIndirectDrawCommand) == @sizeOf(IndirectDrawCommand));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUIndirectDrawCommand, "num_vertices")) == @sizeOf(@FieldType(IndirectDrawCommand, "num_vertices")));
+        std.debug.assert(@offsetOf(c.SDL_GPUIndirectDrawCommand, "num_vertices") == @offsetOf(IndirectDrawCommand, "num_vertices"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUIndirectDrawCommand, "num_instances")) == @sizeOf(@FieldType(IndirectDrawCommand, "num_instances")));
+        std.debug.assert(@offsetOf(c.SDL_GPUIndirectDrawCommand, "num_instances") == @offsetOf(IndirectDrawCommand, "num_instances"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUIndirectDrawCommand, "first_vertex")) == @sizeOf(@FieldType(IndirectDrawCommand, "first_vertex")));
+        std.debug.assert(@offsetOf(c.SDL_GPUIndirectDrawCommand, "first_vertex") == @offsetOf(IndirectDrawCommand, "first_vertex"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUIndirectDrawCommand, "first_instance")) == @sizeOf(@FieldType(IndirectDrawCommand, "first_instance")));
+        std.debug.assert(@offsetOf(c.SDL_GPUIndirectDrawCommand, "first_instance") == @offsetOf(IndirectDrawCommand, "first_instance"));
     }
 };
 
@@ -2970,12 +2970,12 @@ pub const IndirectDrawCommand = extern struct {
 /// This enum is available since SDL 3.2.0.
 pub const LoadOperation = enum(c_uint) {
     /// The previous contents of the texture will be preserved.
-    load = C.SDL_GPU_LOADOP_LOAD,
+    load = c.SDL_GPU_LOADOP_LOAD,
     /// The contents of the texture will be cleared to a color.
-    clear = C.SDL_GPU_LOADOP_CLEAR,
+    clear = c.SDL_GPU_LOADOP_CLEAR,
     /// The previous contents of the texture need not be preserved.
     /// The contents will be undefined.
-    do_not_care = C.SDL_GPU_LOADOP_DONT_CARE,
+    do_not_care = c.SDL_GPU_LOADOP_DONT_CARE,
 };
 
 /// A structure specifying the parameters of the graphics pipeline multisample state.
@@ -2995,7 +2995,7 @@ pub const MultisampleState = struct {
     // enable_alpha_to_coverage: bool,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_GPUMultisampleState) MultisampleState {
+    pub fn fromSdl(value: c.SDL_GPUMultisampleState) MultisampleState {
         return .{
             .sample_count = @enumFromInt(value.sample_count),
             .sample_mask = value.sample_mask,
@@ -3005,7 +3005,7 @@ pub const MultisampleState = struct {
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: MultisampleState) C.SDL_GPUMultisampleState {
+    pub fn toSdl(self: MultisampleState) c.SDL_GPUMultisampleState {
         return .{
             .sample_count = @intFromEnum(self.sample_count),
             .sample_mask = self.sample_mask,
@@ -3031,15 +3031,15 @@ pub const PresentMode = enum(c_uint) {
     /// No tearing is possible.
     /// If there is a pending image to present, the new image is enqueued for presentation.
     /// Disallows tearing at the cost of visual latency.
-    vsync = C.SDL_GPU_PRESENTMODE_VSYNC,
+    vsync = c.SDL_GPU_PRESENTMODE_VSYNC,
     /// Immediately presents.
     /// Lowest latency option, but tearing may occur.
-    immediate = C.SDL_GPU_PRESENTMODE_IMMEDIATE,
+    immediate = c.SDL_GPU_PRESENTMODE_IMMEDIATE,
     /// Waits for vblank before presenting.
     /// No tearing is possible.
     /// If there is a pending image to present, the pending image is replaced by the new image.
     /// Similar to `gpu.PresentMode.vsync`, but with reduced visual latency.
-    mailbox = C.SDL_GPU_PRESENTMODE_MAILBOX,
+    mailbox = c.SDL_GPU_PRESENTMODE_MAILBOX,
 };
 
 /// Specifies the primitive topology of a graphics pipeline.
@@ -3059,15 +3059,15 @@ pub const PresentMode = enum(c_uint) {
 /// This enum is available since SDL 3.2.0.
 pub const PrimitiveType = enum(c_uint) {
     /// A series of separate triangles.
-    triangle_list = C.SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+    triangle_list = c.SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
     /// A series of connected triangles.
-    triangle_strip = C.SDL_GPU_PRIMITIVETYPE_TRIANGLESTRIP,
+    triangle_strip = c.SDL_GPU_PRIMITIVETYPE_TRIANGLESTRIP,
     /// A series of separate lines.
-    line_list = C.SDL_GPU_PRIMITIVETYPE_LINELIST,
+    line_list = c.SDL_GPU_PRIMITIVETYPE_LINELIST,
     /// A series of connected lines.
-    line_strip = C.SDL_GPU_PRIMITIVETYPE_LINESTRIP,
+    line_strip = c.SDL_GPU_PRIMITIVETYPE_LINESTRIP,
     /// A series of separate points.
-    point_list = C.SDL_GPU_PRIMITIVETYPE_POINTLIST,
+    point_list = c.SDL_GPU_PRIMITIVETYPE_POINTLIST,
 };
 
 /// A structure specifying the parameters of the graphics pipeline rasterizer state.
@@ -3100,7 +3100,7 @@ pub const RasterizerState = struct {
     enable_depth_clip: bool = false,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_GPURasterizerState) RasterizerState {
+    pub fn fromSdl(value: c.SDL_GPURasterizerState) RasterizerState {
         return .{
             .fill_mode = @enumFromInt(value.fill_mode),
             .cull_mode = @enumFromInt(value.cull_mode),
@@ -3114,7 +3114,7 @@ pub const RasterizerState = struct {
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: RasterizerState) C.SDL_GPURasterizerState {
+    pub fn toSdl(self: RasterizerState) c.SDL_GPURasterizerState {
         return .{
             .fill_mode = @intFromEnum(self.fill_mode),
             .cull_mode = @intFromEnum(self.cull_mode),
@@ -3136,7 +3136,7 @@ pub const RasterizerState = struct {
 /// ## Version
 /// This struct is available since SDL 3.2.0.
 pub const RenderPass = packed struct {
-    value: *C.SDL_GPURenderPass,
+    value: *c.SDL_GPURenderPass,
 
     /// Binds texture-sampler pairs for use on the fragment shader.
     ///
@@ -3157,7 +3157,7 @@ pub const RenderPass = packed struct {
         first_slot: u32,
         texture_sampler_bindings: []const TextureSamplerBinding,
     ) void {
-        C.SDL_BindGPUFragmentSamplers(
+        c.SDL_BindGPUFragmentSamplers(
             self.value,
             first_slot,
             @ptrCast(texture_sampler_bindings.ptr),
@@ -3184,7 +3184,7 @@ pub const RenderPass = packed struct {
         first_slot: u32,
         storage_buffers: []const Buffer,
     ) void {
-        C.SDL_BindGPUFragmentStorageBuffers(
+        c.SDL_BindGPUFragmentStorageBuffers(
             self.value,
             first_slot,
             @ptrCast(storage_buffers.ptr),
@@ -3211,7 +3211,7 @@ pub const RenderPass = packed struct {
         first_slot: u32,
         storage_textures: []const Texture,
     ) void {
-        C.SDL_BindGPUFragmentStorageTextures(
+        c.SDL_BindGPUFragmentStorageTextures(
             self.value,
             first_slot,
             @ptrCast(storage_textures.ptr),
@@ -3234,7 +3234,7 @@ pub const RenderPass = packed struct {
         self: RenderPass,
         graphics_pipeline: GraphicsPipeline,
     ) void {
-        C.SDL_BindGPUGraphicsPipeline(
+        c.SDL_BindGPUGraphicsPipeline(
             self.value,
             graphics_pipeline.value,
         );
@@ -3254,7 +3254,7 @@ pub const RenderPass = packed struct {
         binding: BufferBinding,
         index_element_size: IndexElementSize,
     ) void {
-        C.SDL_BindGPUIndexBuffer(
+        c.SDL_BindGPUIndexBuffer(
             self.value,
             @ptrCast(&binding),
             @intFromEnum(index_element_size),
@@ -3275,7 +3275,7 @@ pub const RenderPass = packed struct {
         first_slot: u32,
         bindings: []const BufferBinding,
     ) void {
-        C.SDL_BindGPUVertexBuffers(
+        c.SDL_BindGPUVertexBuffers(
             self.value,
             first_slot,
             @ptrCast(bindings.ptr),
@@ -3302,7 +3302,7 @@ pub const RenderPass = packed struct {
         first_slot: u32,
         texture_sampler_bindings: []const TextureSamplerBinding,
     ) void {
-        C.SDL_BindGPUVertexSamplers(
+        c.SDL_BindGPUVertexSamplers(
             self.value,
             first_slot,
             @ptrCast(texture_sampler_bindings.ptr),
@@ -3329,7 +3329,7 @@ pub const RenderPass = packed struct {
         first_slot: u32,
         storage_buffers: []const Buffer,
     ) void {
-        C.SDL_BindGPUVertexStorageBuffers(
+        c.SDL_BindGPUVertexStorageBuffers(
             self.value,
             first_slot,
             @ptrCast(storage_buffers.ptr),
@@ -3356,7 +3356,7 @@ pub const RenderPass = packed struct {
         first_slot: u32,
         storage_textures: []const Texture,
     ) void {
-        C.SDL_BindGPUVertexStorageTextures(
+        c.SDL_BindGPUVertexStorageTextures(
             self.value,
             first_slot,
             @ptrCast(storage_textures.ptr),
@@ -3391,7 +3391,7 @@ pub const RenderPass = packed struct {
         vertex_offset: i32,
         first_instance: u32,
     ) void {
-        C.SDL_DrawGPUIndexedPrimitives(
+        c.SDL_DrawGPUIndexedPrimitives(
             self.value,
             num_indices,
             num_instances,
@@ -3421,7 +3421,7 @@ pub const RenderPass = packed struct {
         offset: u32,
         draw_count: u32,
     ) void {
-        C.SDL_DrawGPUIndexedPrimitivesIndirect(
+        c.SDL_DrawGPUIndexedPrimitivesIndirect(
             self.value,
             buffer.value,
             offset,
@@ -3454,7 +3454,7 @@ pub const RenderPass = packed struct {
         first_vertex: u32,
         first_instance: u32,
     ) void {
-        C.SDL_DrawGPUPrimitives(
+        c.SDL_DrawGPUPrimitives(
             self.value,
             num_vertices,
             num_instances,
@@ -3483,7 +3483,7 @@ pub const RenderPass = packed struct {
         offset: u32,
         draw_count: u32,
     ) void {
-        C.SDL_DrawGPUPrimitivesIndirect(
+        c.SDL_DrawGPUPrimitivesIndirect(
             self.value,
             buffer.value,
             offset,
@@ -3505,7 +3505,7 @@ pub const RenderPass = packed struct {
     pub fn end(
         self: RenderPass,
     ) void {
-        C.SDL_EndGPURenderPass(
+        c.SDL_EndGPURenderPass(
             self.value,
         );
     }
@@ -3522,7 +3522,7 @@ pub const RenderPass = packed struct {
         self: RenderPass,
         blend_constants: pixels.FColor,
     ) void {
-        C.SDL_SetGPUBlendConstants(
+        c.SDL_SetGPUBlendConstants(
             self.value,
             blend_constants,
         );
@@ -3540,7 +3540,7 @@ pub const RenderPass = packed struct {
         self: RenderPass,
         scissor: rect.IRect,
     ) void {
-        C.SDL_SetGPUScissor(
+        c.SDL_SetGPUScissor(
             self.value,
             @ptrCast(&scissor),
         );
@@ -3558,7 +3558,7 @@ pub const RenderPass = packed struct {
         self: RenderPass,
         reference: u8,
     ) void {
-        C.SDL_SetGPUStencilReference(
+        c.SDL_SetGPUStencilReference(
             self.value,
             reference,
         );
@@ -3577,7 +3577,7 @@ pub const RenderPass = packed struct {
         viewport: Viewport,
     ) void {
         const viewport_sdl = viewport.toSdl();
-        C.SDL_SetGPUViewport(
+        c.SDL_SetGPUViewport(
             self.value,
             &viewport_sdl,
         );
@@ -3593,10 +3593,10 @@ pub const RenderPass = packed struct {
 /// ## Version
 /// This enum is available since SDL 3.2.0.
 pub const SampleCount = enum(c_uint) {
-    no_multisampling = C.SDL_GPU_SAMPLECOUNT_1,
-    msaa_2x = C.SDL_GPU_SAMPLECOUNT_2,
-    msaa_4x = C.SDL_GPU_SAMPLECOUNT_4,
-    msaa_8x = C.SDL_GPU_SAMPLECOUNT_8,
+    no_multisampling = c.SDL_GPU_SAMPLECOUNT_1,
+    msaa_2x = c.SDL_GPU_SAMPLECOUNT_2,
+    msaa_4x = c.SDL_GPU_SAMPLECOUNT_4,
+    msaa_8x = c.SDL_GPU_SAMPLECOUNT_8,
 };
 
 /// An opaque handle representing a sampler.
@@ -3604,7 +3604,7 @@ pub const SampleCount = enum(c_uint) {
 /// ## Version
 /// This struct is available since SDL 3.2.0.
 pub const Sampler = packed struct {
-    value: *C.SDL_GPUSampler,
+    value: *c.SDL_GPUSampler,
 };
 
 /// Specifies behavior of texture sampling when the coordinates exceed the 0-1 range.
@@ -3613,11 +3613,11 @@ pub const Sampler = packed struct {
 /// This enum is available since SDL 3.2.0.
 pub const SamplerAddressMode = enum(c_uint) {
     /// Specifies that the coordinates will wrap around.
-    repeat = C.SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
+    repeat = c.SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
     /// Specifies that the coordinates will wrap around mirrored.
-    mirrored_repeat = C.SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT,
+    mirrored_repeat = c.SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT,
     /// Specifies that the coordinates will clamp to the 0-1 range.
-    clamp_to_edge = C.SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+    clamp_to_edge = c.SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
 };
 
 /// A structure specifying the parameters of a sampler.
@@ -3655,7 +3655,7 @@ pub const SamplerCreateInfo = struct {
     props: ?properties.Group = null,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_GPUSamplerCreateInfo) SamplerCreateInfo {
+    pub fn fromSdl(value: c.SDL_GPUSamplerCreateInfo) SamplerCreateInfo {
         return .{
             .min_filter = @enumFromInt(value.min_filter),
             .mag_filter = @enumFromInt(value.mag_filter),
@@ -3673,7 +3673,7 @@ pub const SamplerCreateInfo = struct {
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: SamplerCreateInfo) C.SDL_GPUSamplerCreateInfo {
+    pub fn toSdl(self: SamplerCreateInfo) c.SDL_GPUSamplerCreateInfo {
         return .{
             .min_filter = @intFromEnum(self.min_filter),
             .mag_filter = @intFromEnum(self.mag_filter),
@@ -3699,9 +3699,9 @@ pub const SamplerCreateInfo = struct {
 /// This enum is available since SDL 3.2.0.
 pub const SamplerMipmapMode = enum(c_uint) {
     /// Point filtering.
-    nearest = C.SDL_GPU_SAMPLERMIPMAPMODE_NEAREST,
+    nearest = c.SDL_GPU_SAMPLERMIPMAPMODE_NEAREST,
     /// Linear filtering.
-    linear = C.SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
+    linear = c.SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
 };
 
 /// An opaque handle representing a compiled shader object.
@@ -3709,7 +3709,7 @@ pub const SamplerMipmapMode = enum(c_uint) {
 /// ## Version
 /// This struct is available since SDL 3.2.0.
 pub const Shader = packed struct {
-    value: *C.SDL_GPUShader,
+    value: *c.SDL_GPUShader,
 };
 
 /// A structure specifying code and metadata for creating a shader object.
@@ -3737,7 +3737,7 @@ pub const ShaderCreateInfo = struct {
     props: ?properties.Group = null,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_GPUShaderCreateInfo) ShaderCreateInfo {
+    pub fn fromSdl(value: c.SDL_GPUShaderCreateInfo) ShaderCreateInfo {
         return .{
             .code = value.code[0..value.code_size],
             .entry_point = std.mem.span(value.entrypoint),
@@ -3752,7 +3752,7 @@ pub const ShaderCreateInfo = struct {
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: ShaderCreateInfo) C.SDL_GPUShaderCreateInfo {
+    pub fn toSdl(self: ShaderCreateInfo) c.SDL_GPUShaderCreateInfo {
         return .{
             .code = self.code.ptr,
             .code_size = self.code.len,
@@ -3790,38 +3790,38 @@ pub const ShaderFormatFlags = struct {
     metal_lib: bool = false,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_GPUShaderFormat) ?ShaderFormatFlags {
-        if (value == C.SDL_GPU_SHADERFORMAT_INVALID)
+    pub fn fromSdl(value: c.SDL_GPUShaderFormat) ?ShaderFormatFlags {
+        if (value == c.SDL_GPU_SHADERFORMAT_INVALID)
             return null;
         return .{
-            .private = value & C.SDL_GPU_SHADERFORMAT_PRIVATE > 0,
-            .spirv = value & C.SDL_GPU_SHADERFORMAT_SPIRV > 0,
-            .dxbc = value & C.SDL_GPU_SHADERFORMAT_DXBC > 0,
-            .dxil = value & C.SDL_GPU_SHADERFORMAT_DXIL > 0,
-            .msl = value & C.SDL_GPU_SHADERFORMAT_MSL > 0,
-            .metal_lib = value & C.SDL_GPU_SHADERFORMAT_METALLIB > 0,
+            .private = value & c.SDL_GPU_SHADERFORMAT_PRIVATE > 0,
+            .spirv = value & c.SDL_GPU_SHADERFORMAT_SPIRV > 0,
+            .dxbc = value & c.SDL_GPU_SHADERFORMAT_DXBC > 0,
+            .dxil = value & c.SDL_GPU_SHADERFORMAT_DXIL > 0,
+            .msl = value & c.SDL_GPU_SHADERFORMAT_MSL > 0,
+            .metal_lib = value & c.SDL_GPU_SHADERFORMAT_METALLIB > 0,
         };
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: ?ShaderFormatFlags) C.SDL_GPUShaderFormat {
+    pub fn toSdl(self: ?ShaderFormatFlags) c.SDL_GPUShaderFormat {
         if (self) |val| {
-            var ret: C.SDL_GPUShaderFormat = 0;
+            var ret: c.SDL_GPUShaderFormat = 0;
             if (val.private)
-                ret |= C.SDL_GPU_SHADERFORMAT_PRIVATE;
+                ret |= c.SDL_GPU_SHADERFORMAT_PRIVATE;
             if (val.spirv)
-                ret |= C.SDL_GPU_SHADERFORMAT_SPIRV;
+                ret |= c.SDL_GPU_SHADERFORMAT_SPIRV;
             if (val.dxbc)
-                ret |= C.SDL_GPU_SHADERFORMAT_DXBC;
+                ret |= c.SDL_GPU_SHADERFORMAT_DXBC;
             if (val.dxil)
-                ret |= C.SDL_GPU_SHADERFORMAT_DXIL;
+                ret |= c.SDL_GPU_SHADERFORMAT_DXIL;
             if (val.msl)
-                ret |= C.SDL_GPU_SHADERFORMAT_MSL;
+                ret |= c.SDL_GPU_SHADERFORMAT_MSL;
             if (val.metal_lib)
-                ret |= C.SDL_GPU_SHADERFORMAT_METALLIB;
+                ret |= c.SDL_GPU_SHADERFORMAT_METALLIB;
             return ret;
         }
-        return C.SDL_GPU_SHADERFORMAT_INVALID;
+        return c.SDL_GPU_SHADERFORMAT_INVALID;
     }
 
     /// Checks for GPU runtime support.
@@ -3839,7 +3839,7 @@ pub const ShaderFormatFlags = struct {
         self: ShaderFormatFlags,
         name: ?[:0]const u8,
     ) bool {
-        return C.SDL_GPUSupportsShaderFormats(
+        return c.SDL_GPUSupportsShaderFormats(
             ShaderFormatFlags.toSdl(self),
             if (name) |val| val.ptr else null,
         );
@@ -3851,8 +3851,8 @@ pub const ShaderFormatFlags = struct {
 /// ## Version
 /// This enum is available since SDL 3.2.0.
 pub const ShaderStage = enum(c_uint) {
-    vertex = C.SDL_GPU_SHADERSTAGE_VERTEX,
-    fragment = C.SDL_GPU_SHADERSTAGE_FRAGMENT,
+    vertex = c.SDL_GPU_SHADERSTAGE_VERTEX,
+    fragment = c.SDL_GPU_SHADERSTAGE_FRAGMENT,
 };
 
 /// Specifies what happens to a stored stencil value if stencil tests fail or pass.
@@ -3861,36 +3861,36 @@ pub const ShaderStage = enum(c_uint) {
 /// This enum is available since SDL 3.2.0.
 pub const StencilOperation = enum(c_uint) {
     /// Keeps the current value.
-    keep = C.SDL_GPU_STENCILOP_KEEP,
+    keep = c.SDL_GPU_STENCILOP_KEEP,
     /// Sets the value to 0.
-    zero = C.SDL_GPU_STENCILOP_ZERO,
+    zero = c.SDL_GPU_STENCILOP_ZERO,
     /// Sets the value to reference.
-    replace = C.SDL_GPU_STENCILOP_REPLACE,
+    replace = c.SDL_GPU_STENCILOP_REPLACE,
     /// Increments the current value and clamps to the maximum value.
-    increment_and_clamp = C.SDL_GPU_STENCILOP_INCREMENT_AND_CLAMP,
+    increment_and_clamp = c.SDL_GPU_STENCILOP_INCREMENT_AND_CLAMP,
     /// Decrements the current value and clamps to 0.
-    decrement_and_clamp = C.SDL_GPU_STENCILOP_DECREMENT_AND_CLAMP,
+    decrement_and_clamp = c.SDL_GPU_STENCILOP_DECREMENT_AND_CLAMP,
     /// Bitwise-inverts the current value.
-    invert = C.SDL_GPU_STENCILOP_INVERT,
+    invert = c.SDL_GPU_STENCILOP_INVERT,
     /// Increments the current value and wraps back to 0.
-    increment_and_wrap = C.SDL_GPU_STENCILOP_INCREMENT_AND_WRAP,
+    increment_and_wrap = c.SDL_GPU_STENCILOP_INCREMENT_AND_WRAP,
     /// Decrements the current value and wraps to the maximum value.
-    decrement_and_wrap = C.SDL_GPU_STENCILOP_DECREMENT_AND_WRAP,
+    decrement_and_wrap = c.SDL_GPU_STENCILOP_DECREMENT_AND_WRAP,
 
     /// Create from SDL.
-    pub fn fromSdl(val: C.SDL_GPUStencilOp) ?StencilOperation {
-        if (val == C.SDL_GPU_STENCILOP_INVALID) {
+    pub fn fromSdl(val: c.SDL_GPUStencilOp) ?StencilOperation {
+        if (val == c.SDL_GPU_STENCILOP_INVALID) {
             return null;
         }
         return @enumFromInt(val);
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(val: ?StencilOperation) C.SDL_GPUStencilOp {
+    pub fn toSdl(val: ?StencilOperation) c.SDL_GPUStencilOp {
         if (val) |tmp| {
             return @intFromEnum(tmp);
         }
-        return C.SDL_GPU_STENCILOP_INVALID;
+        return c.SDL_GPU_STENCILOP_INVALID;
     }
 };
 
@@ -3909,7 +3909,7 @@ pub const StencilOperationState = struct {
     compare: CompareOperation = .never,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_GPUStencilOpState) StencilOperationState {
+    pub fn fromSdl(value: c.SDL_GPUStencilOpState) StencilOperationState {
         return .{
             .fail = StencilOperation.fromSdl(value.fail_op).?,
             .pass = StencilOperation.fromSdl(value.pass_op).?,
@@ -3919,7 +3919,7 @@ pub const StencilOperationState = struct {
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: StencilOperationState) C.SDL_GPUStencilOpState {
+    pub fn toSdl(self: StencilOperationState) c.SDL_GPUStencilOpState {
         return .{
             .fail_op = StencilOperation.toSdl(self.fail),
             .pass_op = StencilOperation.toSdl(self.pass),
@@ -3945,11 +3945,11 @@ pub const StorageBufferReadWriteBinding = extern struct {
 
     // Size tests.
     comptime {
-        std.debug.assert(@sizeOf(C.SDL_GPUStorageBufferReadWriteBinding) == @sizeOf(StorageBufferReadWriteBinding));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUStorageBufferReadWriteBinding, "buffer")) == @sizeOf(@FieldType(StorageBufferReadWriteBinding, "buffer")));
-        std.debug.assert(@offsetOf(C.SDL_GPUStorageBufferReadWriteBinding, "buffer") == @offsetOf(StorageBufferReadWriteBinding, "buffer"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUStorageBufferReadWriteBinding, "cycle")) == @sizeOf(@FieldType(StorageBufferReadWriteBinding, "cycle")));
-        std.debug.assert(@offsetOf(C.SDL_GPUStorageBufferReadWriteBinding, "cycle") == @offsetOf(StorageBufferReadWriteBinding, "cycle"));
+        std.debug.assert(@sizeOf(c.SDL_GPUStorageBufferReadWriteBinding) == @sizeOf(StorageBufferReadWriteBinding));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUStorageBufferReadWriteBinding, "buffer")) == @sizeOf(@FieldType(StorageBufferReadWriteBinding, "buffer")));
+        std.debug.assert(@offsetOf(c.SDL_GPUStorageBufferReadWriteBinding, "buffer") == @offsetOf(StorageBufferReadWriteBinding, "buffer"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUStorageBufferReadWriteBinding, "cycle")) == @sizeOf(@FieldType(StorageBufferReadWriteBinding, "cycle")));
+        std.debug.assert(@offsetOf(c.SDL_GPUStorageBufferReadWriteBinding, "cycle") == @offsetOf(StorageBufferReadWriteBinding, "cycle"));
     }
 };
 
@@ -3972,15 +3972,15 @@ pub const StorageTextureReadWriteBinding = extern struct {
 
     // Size tests.
     comptime {
-        std.debug.assert(@sizeOf(C.SDL_GPUStorageTextureReadWriteBinding) == @sizeOf(StorageTextureReadWriteBinding));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUStorageTextureReadWriteBinding, "texture")) == @sizeOf(@FieldType(StorageTextureReadWriteBinding, "texture")));
-        std.debug.assert(@offsetOf(C.SDL_GPUStorageTextureReadWriteBinding, "texture") == @offsetOf(StorageTextureReadWriteBinding, "texture"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUStorageTextureReadWriteBinding, "mip_level")) == @sizeOf(@FieldType(StorageTextureReadWriteBinding, "mip_level")));
-        std.debug.assert(@offsetOf(C.SDL_GPUStorageTextureReadWriteBinding, "mip_level") == @offsetOf(StorageTextureReadWriteBinding, "mip_level"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUStorageTextureReadWriteBinding, "layer")) == @sizeOf(@FieldType(StorageTextureReadWriteBinding, "layer")));
-        std.debug.assert(@offsetOf(C.SDL_GPUStorageTextureReadWriteBinding, "layer") == @offsetOf(StorageTextureReadWriteBinding, "layer"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUStorageTextureReadWriteBinding, "cycle")) == @sizeOf(@FieldType(StorageTextureReadWriteBinding, "cycle")));
-        std.debug.assert(@offsetOf(C.SDL_GPUStorageTextureReadWriteBinding, "cycle") == @offsetOf(StorageTextureReadWriteBinding, "cycle"));
+        std.debug.assert(@sizeOf(c.SDL_GPUStorageTextureReadWriteBinding) == @sizeOf(StorageTextureReadWriteBinding));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUStorageTextureReadWriteBinding, "texture")) == @sizeOf(@FieldType(StorageTextureReadWriteBinding, "texture")));
+        std.debug.assert(@offsetOf(c.SDL_GPUStorageTextureReadWriteBinding, "texture") == @offsetOf(StorageTextureReadWriteBinding, "texture"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUStorageTextureReadWriteBinding, "mip_level")) == @sizeOf(@FieldType(StorageTextureReadWriteBinding, "mip_level")));
+        std.debug.assert(@offsetOf(c.SDL_GPUStorageTextureReadWriteBinding, "mip_level") == @offsetOf(StorageTextureReadWriteBinding, "mip_level"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUStorageTextureReadWriteBinding, "layer")) == @sizeOf(@FieldType(StorageTextureReadWriteBinding, "layer")));
+        std.debug.assert(@offsetOf(c.SDL_GPUStorageTextureReadWriteBinding, "layer") == @offsetOf(StorageTextureReadWriteBinding, "layer"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUStorageTextureReadWriteBinding, "cycle")) == @sizeOf(@FieldType(StorageTextureReadWriteBinding, "cycle")));
+        std.debug.assert(@offsetOf(c.SDL_GPUStorageTextureReadWriteBinding, "cycle") == @offsetOf(StorageTextureReadWriteBinding, "cycle"));
     }
 };
 
@@ -3990,16 +3990,16 @@ pub const StorageTextureReadWriteBinding = extern struct {
 /// This enum is available since SDL 3.2.0.
 pub const StoreOperation = enum(c_uint) {
     /// The contents generated during the render pass will be written to memory.
-    store = C.SDL_GPU_STOREOP_STORE,
+    store = c.SDL_GPU_STOREOP_STORE,
     /// The contents generated during the render pass are not needed and may be discarded.
     /// The contents will be undefined.
-    do_not_care = C.SDL_GPU_STOREOP_DONT_CARE,
+    do_not_care = c.SDL_GPU_STOREOP_DONT_CARE,
     /// The multisample contents generated during the render pass will be resolved to a non-multisample texture.
     /// The contents in the multisample texture may then be discarded and will be undefined.
-    resolve = C.SDL_GPU_STOREOP_RESOLVE,
+    resolve = c.SDL_GPU_STOREOP_RESOLVE,
     /// The multisample contents generated during the render pass will be resolved to a non-multisample texture.
     /// The contents in the multisample texture will be written to memory.
-    resolve_and_store = C.SDL_GPU_STOREOP_RESOLVE_AND_STORE,
+    resolve_and_store = c.SDL_GPU_STOREOP_RESOLVE_AND_STORE,
 };
 
 /// Specifies the texture format and colorspace of the swapchain textures.
@@ -4013,16 +4013,16 @@ pub const StoreOperation = enum(c_uint) {
 pub const SwapchainComposition = enum(c_uint) {
     /// B8G8R8A8 or R8G8B8A8 swapchain.
     /// Pixel values are in sRGB encoding.
-    sdr = C.SDL_GPU_SWAPCHAINCOMPOSITION_SDR,
+    sdr = c.SDL_GPU_SWAPCHAINCOMPOSITION_SDR,
     /// B8G8R8A8_SRGB or R8G8B8A8_SRGB swapchain.
     /// Pixel values are stored in memory in sRGB encoding but accessed in shaders in "linear sRGB" encoding which is sRGB but with a linear transfer function.
-    sdr_linear = C.SDL_GPU_SWAPCHAINCOMPOSITION_SDR_LINEAR,
+    sdr_linear = c.SDL_GPU_SWAPCHAINCOMPOSITION_SDR_LINEAR,
     /// R16G16B16A16_FLOAT swapchain.
     /// Pixel values are in extended linear sRGB encoding and permits values outside of the [0, 1] range.
-    hdr_extended_linear = C.SDL_GPU_SWAPCHAINCOMPOSITION_HDR_EXTENDED_LINEAR,
+    hdr_extended_linear = c.SDL_GPU_SWAPCHAINCOMPOSITION_HDR_EXTENDED_LINEAR,
     /// A2R10G10B10 or A2B10G10R10 swapchain.
     /// Pixel values are in BT.2020 ST2084 (PQ) encoding.
-    hdr10_st2084 = C.SDL_GPU_SWAPCHAINCOMPOSITION_HDR10_ST2084,
+    hdr10_st2084 = c.SDL_GPU_SWAPCHAINCOMPOSITION_HDR10_ST2084,
 };
 
 /// An opaque handle representing a texture.
@@ -4030,7 +4030,12 @@ pub const SwapchainComposition = enum(c_uint) {
 /// ## Version
 /// This struct is available since SDL 3.2.0.
 pub const Texture = packed struct {
-    value: ?*C.SDL_GPUTexture,
+    value: ?*c.SDL_GPUTexture,
+
+    // Size tests.
+    comptime {
+        std.debug.assert(@sizeOf(*c.SDL_GPUTexture) == @sizeOf(Texture));
+    }
 };
 
 /// A structure specifying the parameters of a texture.
@@ -4064,7 +4069,7 @@ pub const TextureCreateInfo = struct {
     props: ?properties.Group = null,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_GPUTextureCreateInfo) TextureCreateInfo {
+    pub fn fromSdl(value: c.SDL_GPUTextureCreateInfo) TextureCreateInfo {
         return .{
             .texture_type = @enumFromInt(value.type),
             .format = @enumFromInt(value.format),
@@ -4079,7 +4084,7 @@ pub const TextureCreateInfo = struct {
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: TextureCreateInfo) C.SDL_GPUTextureCreateInfo {
+    pub fn toSdl(self: TextureCreateInfo) c.SDL_GPUTextureCreateInfo {
         return .{
             .type = @intFromEnum(self.texture_type),
             .format = @intFromEnum(self.format),
@@ -4167,110 +4172,110 @@ pub const TextureCreateInfo = struct {
 /// ## Version
 /// This enum is available since SDL 3.2.0.
 pub const TextureFormat = enum(c_uint) {
-    a8_unorm = C.SDL_GPU_TEXTUREFORMAT_A8_UNORM,
-    r8_unorm = C.SDL_GPU_TEXTUREFORMAT_R8_UNORM,
-    r8g8_unorm = C.SDL_GPU_TEXTUREFORMAT_R8G8_UNORM,
-    r8g8b8a8_unorm = C.SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
-    r16_unorm = C.SDL_GPU_TEXTUREFORMAT_R16_UNORM,
-    r16g16_unorm = C.SDL_GPU_TEXTUREFORMAT_R16G16_UNORM,
-    r16g16b16a16_unorm = C.SDL_GPU_TEXTUREFORMAT_R16G16B16A16_UNORM,
-    r10g10b10a2_unorm = C.SDL_GPU_TEXTUREFORMAT_R10G10B10A2_UNORM,
-    b5g6r5_unorm = C.SDL_GPU_TEXTUREFORMAT_B5G6R5_UNORM,
-    b5g5r5a1_unorm = C.SDL_GPU_TEXTUREFORMAT_B5G5R5A1_UNORM,
-    b4g4r4a4_unorm = C.SDL_GPU_TEXTUREFORMAT_B4G4R4A4_UNORM,
-    b8g8r8a8_unorm = C.SDL_GPU_TEXTUREFORMAT_B8G8R8A8_UNORM,
-    bc1_rgba_unorm_compressed = C.SDL_GPU_TEXTUREFORMAT_BC1_RGBA_UNORM,
-    bc2_rgba_unorm_compressed = C.SDL_GPU_TEXTUREFORMAT_BC2_RGBA_UNORM,
-    bc3_rgba_unorm_compressed = C.SDL_GPU_TEXTUREFORMAT_BC3_RGBA_UNORM,
-    bc4_r_unorm_compressed = C.SDL_GPU_TEXTUREFORMAT_BC4_R_UNORM,
-    bc5_rg_unorm_compressed = C.SDL_GPU_TEXTUREFORMAT_BC5_RG_UNORM,
-    bc7_rgba_unorm_compressed = C.SDL_GPU_TEXTUREFORMAT_BC7_RGBA_UNORM,
-    bc6h_rgb_float_compressed = C.SDL_GPU_TEXTUREFORMAT_BC6H_RGB_FLOAT,
-    bc6h_rgb_ufloat_compressed = C.SDL_GPU_TEXTUREFORMAT_BC6H_RGB_UFLOAT,
-    r8_snorm = C.SDL_GPU_TEXTUREFORMAT_R8_SNORM,
-    r8g8_snorm = C.SDL_GPU_TEXTUREFORMAT_R8G8_SNORM,
-    r8g8b8a8_snorm = C.SDL_GPU_TEXTUREFORMAT_R8G8B8A8_SNORM,
-    r16_snorm = C.SDL_GPU_TEXTUREFORMAT_R16_SNORM,
-    r16g16_snorm = C.SDL_GPU_TEXTUREFORMAT_R16G16_SNORM,
-    r16g16b16a16_snorm = C.SDL_GPU_TEXTUREFORMAT_R16G16B16A16_SNORM,
-    r16_float = C.SDL_GPU_TEXTUREFORMAT_R16_FLOAT,
-    r16g16_float = C.SDL_GPU_TEXTUREFORMAT_R16G16_FLOAT,
-    r16g16b16a16_float = C.SDL_GPU_TEXTUREFORMAT_R16G16B16A16_FLOAT,
-    r32_float = C.SDL_GPU_TEXTUREFORMAT_R32_FLOAT,
-    r32g32_float = C.SDL_GPU_TEXTUREFORMAT_R32G32_FLOAT,
-    r32g32b32a32_float = C.SDL_GPU_TEXTUREFORMAT_R32G32B32A32_FLOAT,
-    r11g11b10_ufloat = C.SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT,
-    r8_uint = C.SDL_GPU_TEXTUREFORMAT_R8_UINT,
-    r8g8_uint = C.SDL_GPU_TEXTUREFORMAT_R8G8_UINT,
-    r8g8b8a8_uint = C.SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UINT,
-    r16_uint = C.SDL_GPU_TEXTUREFORMAT_R16_UINT,
-    r16g16_uint = C.SDL_GPU_TEXTUREFORMAT_R16G16_UINT,
-    r16g16b16a16_uint = C.SDL_GPU_TEXTUREFORMAT_R16G16B16A16_UINT,
-    r32_uint = C.SDL_GPU_TEXTUREFORMAT_R32_UINT,
-    r32g32_uint = C.SDL_GPU_TEXTUREFORMAT_R32G32_UINT,
-    r32g32b32a32_uint = C.SDL_GPU_TEXTUREFORMAT_R32G32B32A32_UINT,
-    r8_int = C.SDL_GPU_TEXTUREFORMAT_R8_INT,
-    r8g8_int = C.SDL_GPU_TEXTUREFORMAT_R8G8_INT,
-    r8g8b8a8_int = C.SDL_GPU_TEXTUREFORMAT_R8G8B8A8_INT,
-    r16_int = C.SDL_GPU_TEXTUREFORMAT_R16_INT,
-    r16g16_int = C.SDL_GPU_TEXTUREFORMAT_R16G16_INT,
-    r16g16b16a16_int = C.SDL_GPU_TEXTUREFORMAT_R16G16B16A16_INT,
-    r32_int = C.SDL_GPU_TEXTUREFORMAT_R32_INT,
-    r32g32_int = C.SDL_GPU_TEXTUREFORMAT_R32G32_INT,
-    r32g32b32a32_int = C.SDL_GPU_TEXTUREFORMAT_R32G32B32A32_INT,
-    r8g8b8a8_unorm_srgb = C.SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM_SRGB,
-    b8g8r8a8_unorm_srgb = C.SDL_GPU_TEXTUREFORMAT_B8G8R8A8_UNORM_SRGB,
-    bc1_rgba_unorm_srgb_compressed = C.SDL_GPU_TEXTUREFORMAT_BC1_RGBA_UNORM_SRGB,
-    bc2_rgba_unorm_srgb_compressed = C.SDL_GPU_TEXTUREFORMAT_BC2_RGBA_UNORM_SRGB,
-    bc3_rgba_unorm_srgb_compressed = C.SDL_GPU_TEXTUREFORMAT_BC3_RGBA_UNORM_SRGB,
-    bc7_rgba_unorm_srgb_compressed = C.SDL_GPU_TEXTUREFORMAT_BC7_RGBA_UNORM_SRGB,
-    depth16_unorm = C.SDL_GPU_TEXTUREFORMAT_D16_UNORM,
-    depth24_unorm = C.SDL_GPU_TEXTUREFORMAT_D24_UNORM,
-    depth32_float = C.SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
-    depth24_unorm_s8_uint = C.SDL_GPU_TEXTUREFORMAT_D24_UNORM_S8_UINT,
-    depth32_float_s8_uint = C.SDL_GPU_TEXTUREFORMAT_D32_FLOAT_S8_UINT,
-    astc_4x4_unorm_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_4x4_UNORM,
-    astc_5x4_unorm_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_5x4_UNORM,
-    astc_5x5_unorm_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_5x5_UNORM,
-    astc_6x5_unorm_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_6x5_UNORM,
-    astc_6x6_unorm_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_6x6_UNORM,
-    astc_8x5_unorm_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_8x5_UNORM,
-    astc_8x6_unorm_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_8x6_UNORM,
-    astc_8x8_unorm_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_8x8_UNORM,
-    astc_10x5_unorm_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_10x5_UNORM,
-    astc_10x6_unorm_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_10x6_UNORM,
-    astc_10x8_unorm_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_10x8_UNORM,
-    astc_10x10_unorm_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_10x10_UNORM,
-    astc_12x10_unorm_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_12x10_UNORM,
-    astc_12x12_unorm_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_12x12_UNORM,
-    astc_4x4_unorm_srgb_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_4x4_UNORM_SRGB,
-    astc_5x4_unorm_srgb_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_5x4_UNORM_SRGB,
-    astc_5x5_unorm_srgb_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_5x5_UNORM_SRGB,
-    astc_6x5_unorm_srgb_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_6x5_UNORM_SRGB,
-    astc_6x6_unorm_srgb_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_6x6_UNORM_SRGB,
-    astc_8x5_unorm_srgb_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_8x5_UNORM_SRGB,
-    astc_8x6_unorm_srgb_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_8x6_UNORM_SRGB,
-    astc_8x8_unorm_srgb_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_8x8_UNORM_SRGB,
-    astc_10x5_unorm_srgb_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_10x5_UNORM_SRGB,
-    astc_10x6_unorm_srgb_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_10x6_UNORM_SRGB,
-    astc_10x8_unorm_srgb_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_10x8_UNORM_SRGB,
-    astc_10x10_unorm_srgb_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_10x10_UNORM_SRGB,
-    astc_12x10_unorm_srgb_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_12x10_UNORM_SRGB,
-    astc_12x12_unorm_srgb_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_12x12_UNORM_SRGB,
-    astc_4x4_float_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_4x4_FLOAT,
-    astc_5x4_float_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_5x4_FLOAT,
-    astc_5x5_float_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_5x5_FLOAT,
-    astc_6x5_float_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_6x5_FLOAT,
-    astc_6x6_float_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_6x6_FLOAT,
-    astc_8x5_float_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_8x5_FLOAT,
-    astc_8x6_float_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_8x6_FLOAT,
-    astc_8x8_float_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_8x8_FLOAT,
-    astc_10x5_float_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_10x5_FLOAT,
-    astc_10x6_float_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_10x6_FLOAT,
-    astc_10x8_float_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_10x8_FLOAT,
-    astc_10x10_float_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_10x10_FLOAT,
-    astc_12x10_float_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_12x10_FLOAT,
-    astc_12x12_float_compressed = C.SDL_GPU_TEXTUREFORMAT_ASTC_12x12_FLOAT,
+    a8_unorm = c.SDL_GPU_TEXTUREFORMAT_A8_UNORM,
+    r8_unorm = c.SDL_GPU_TEXTUREFORMAT_R8_UNORM,
+    r8g8_unorm = c.SDL_GPU_TEXTUREFORMAT_R8G8_UNORM,
+    r8g8b8a8_unorm = c.SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
+    r16_unorm = c.SDL_GPU_TEXTUREFORMAT_R16_UNORM,
+    r16g16_unorm = c.SDL_GPU_TEXTUREFORMAT_R16G16_UNORM,
+    r16g16b16a16_unorm = c.SDL_GPU_TEXTUREFORMAT_R16G16B16A16_UNORM,
+    r10g10b10a2_unorm = c.SDL_GPU_TEXTUREFORMAT_R10G10B10A2_UNORM,
+    b5g6r5_unorm = c.SDL_GPU_TEXTUREFORMAT_B5G6R5_UNORM,
+    b5g5r5a1_unorm = c.SDL_GPU_TEXTUREFORMAT_B5G5R5A1_UNORM,
+    b4g4r4a4_unorm = c.SDL_GPU_TEXTUREFORMAT_B4G4R4A4_UNORM,
+    b8g8r8a8_unorm = c.SDL_GPU_TEXTUREFORMAT_B8G8R8A8_UNORM,
+    bc1_rgba_unorm_compressed = c.SDL_GPU_TEXTUREFORMAT_BC1_RGBA_UNORM,
+    bc2_rgba_unorm_compressed = c.SDL_GPU_TEXTUREFORMAT_BC2_RGBA_UNORM,
+    bc3_rgba_unorm_compressed = c.SDL_GPU_TEXTUREFORMAT_BC3_RGBA_UNORM,
+    bc4_r_unorm_compressed = c.SDL_GPU_TEXTUREFORMAT_BC4_R_UNORM,
+    bc5_rg_unorm_compressed = c.SDL_GPU_TEXTUREFORMAT_BC5_RG_UNORM,
+    bc7_rgba_unorm_compressed = c.SDL_GPU_TEXTUREFORMAT_BC7_RGBA_UNORM,
+    bc6h_rgb_float_compressed = c.SDL_GPU_TEXTUREFORMAT_BC6H_RGB_FLOAT,
+    bc6h_rgb_ufloat_compressed = c.SDL_GPU_TEXTUREFORMAT_BC6H_RGB_UFLOAT,
+    r8_snorm = c.SDL_GPU_TEXTUREFORMAT_R8_SNORM,
+    r8g8_snorm = c.SDL_GPU_TEXTUREFORMAT_R8G8_SNORM,
+    r8g8b8a8_snorm = c.SDL_GPU_TEXTUREFORMAT_R8G8B8A8_SNORM,
+    r16_snorm = c.SDL_GPU_TEXTUREFORMAT_R16_SNORM,
+    r16g16_snorm = c.SDL_GPU_TEXTUREFORMAT_R16G16_SNORM,
+    r16g16b16a16_snorm = c.SDL_GPU_TEXTUREFORMAT_R16G16B16A16_SNORM,
+    r16_float = c.SDL_GPU_TEXTUREFORMAT_R16_FLOAT,
+    r16g16_float = c.SDL_GPU_TEXTUREFORMAT_R16G16_FLOAT,
+    r16g16b16a16_float = c.SDL_GPU_TEXTUREFORMAT_R16G16B16A16_FLOAT,
+    r32_float = c.SDL_GPU_TEXTUREFORMAT_R32_FLOAT,
+    r32g32_float = c.SDL_GPU_TEXTUREFORMAT_R32G32_FLOAT,
+    r32g32b32a32_float = c.SDL_GPU_TEXTUREFORMAT_R32G32B32A32_FLOAT,
+    r11g11b10_ufloat = c.SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT,
+    r8_uint = c.SDL_GPU_TEXTUREFORMAT_R8_UINT,
+    r8g8_uint = c.SDL_GPU_TEXTUREFORMAT_R8G8_UINT,
+    r8g8b8a8_uint = c.SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UINT,
+    r16_uint = c.SDL_GPU_TEXTUREFORMAT_R16_UINT,
+    r16g16_uint = c.SDL_GPU_TEXTUREFORMAT_R16G16_UINT,
+    r16g16b16a16_uint = c.SDL_GPU_TEXTUREFORMAT_R16G16B16A16_UINT,
+    r32_uint = c.SDL_GPU_TEXTUREFORMAT_R32_UINT,
+    r32g32_uint = c.SDL_GPU_TEXTUREFORMAT_R32G32_UINT,
+    r32g32b32a32_uint = c.SDL_GPU_TEXTUREFORMAT_R32G32B32A32_UINT,
+    r8_int = c.SDL_GPU_TEXTUREFORMAT_R8_INT,
+    r8g8_int = c.SDL_GPU_TEXTUREFORMAT_R8G8_INT,
+    r8g8b8a8_int = c.SDL_GPU_TEXTUREFORMAT_R8G8B8A8_INT,
+    r16_int = c.SDL_GPU_TEXTUREFORMAT_R16_INT,
+    r16g16_int = c.SDL_GPU_TEXTUREFORMAT_R16G16_INT,
+    r16g16b16a16_int = c.SDL_GPU_TEXTUREFORMAT_R16G16B16A16_INT,
+    r32_int = c.SDL_GPU_TEXTUREFORMAT_R32_INT,
+    r32g32_int = c.SDL_GPU_TEXTUREFORMAT_R32G32_INT,
+    r32g32b32a32_int = c.SDL_GPU_TEXTUREFORMAT_R32G32B32A32_INT,
+    r8g8b8a8_unorm_srgb = c.SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM_SRGB,
+    b8g8r8a8_unorm_srgb = c.SDL_GPU_TEXTUREFORMAT_B8G8R8A8_UNORM_SRGB,
+    bc1_rgba_unorm_srgb_compressed = c.SDL_GPU_TEXTUREFORMAT_BC1_RGBA_UNORM_SRGB,
+    bc2_rgba_unorm_srgb_compressed = c.SDL_GPU_TEXTUREFORMAT_BC2_RGBA_UNORM_SRGB,
+    bc3_rgba_unorm_srgb_compressed = c.SDL_GPU_TEXTUREFORMAT_BC3_RGBA_UNORM_SRGB,
+    bc7_rgba_unorm_srgb_compressed = c.SDL_GPU_TEXTUREFORMAT_BC7_RGBA_UNORM_SRGB,
+    depth16_unorm = c.SDL_GPU_TEXTUREFORMAT_D16_UNORM,
+    depth24_unorm = c.SDL_GPU_TEXTUREFORMAT_D24_UNORM,
+    depth32_float = c.SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
+    depth24_unorm_s8_uint = c.SDL_GPU_TEXTUREFORMAT_D24_UNORM_S8_UINT,
+    depth32_float_s8_uint = c.SDL_GPU_TEXTUREFORMAT_D32_FLOAT_S8_UINT,
+    astc_4x4_unorm_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_4x4_UNORM,
+    astc_5x4_unorm_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_5x4_UNORM,
+    astc_5x5_unorm_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_5x5_UNORM,
+    astc_6x5_unorm_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_6x5_UNORM,
+    astc_6x6_unorm_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_6x6_UNORM,
+    astc_8x5_unorm_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_8x5_UNORM,
+    astc_8x6_unorm_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_8x6_UNORM,
+    astc_8x8_unorm_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_8x8_UNORM,
+    astc_10x5_unorm_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_10x5_UNORM,
+    astc_10x6_unorm_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_10x6_UNORM,
+    astc_10x8_unorm_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_10x8_UNORM,
+    astc_10x10_unorm_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_10x10_UNORM,
+    astc_12x10_unorm_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_12x10_UNORM,
+    astc_12x12_unorm_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_12x12_UNORM,
+    astc_4x4_unorm_srgb_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_4x4_UNORM_SRGB,
+    astc_5x4_unorm_srgb_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_5x4_UNORM_SRGB,
+    astc_5x5_unorm_srgb_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_5x5_UNORM_SRGB,
+    astc_6x5_unorm_srgb_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_6x5_UNORM_SRGB,
+    astc_6x6_unorm_srgb_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_6x6_UNORM_SRGB,
+    astc_8x5_unorm_srgb_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_8x5_UNORM_SRGB,
+    astc_8x6_unorm_srgb_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_8x6_UNORM_SRGB,
+    astc_8x8_unorm_srgb_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_8x8_UNORM_SRGB,
+    astc_10x5_unorm_srgb_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_10x5_UNORM_SRGB,
+    astc_10x6_unorm_srgb_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_10x6_UNORM_SRGB,
+    astc_10x8_unorm_srgb_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_10x8_UNORM_SRGB,
+    astc_10x10_unorm_srgb_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_10x10_UNORM_SRGB,
+    astc_12x10_unorm_srgb_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_12x10_UNORM_SRGB,
+    astc_12x12_unorm_srgb_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_12x12_UNORM_SRGB,
+    astc_4x4_float_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_4x4_FLOAT,
+    astc_5x4_float_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_5x4_FLOAT,
+    astc_5x5_float_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_5x5_FLOAT,
+    astc_6x5_float_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_6x5_FLOAT,
+    astc_6x6_float_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_6x6_FLOAT,
+    astc_8x5_float_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_8x5_FLOAT,
+    astc_8x6_float_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_8x6_FLOAT,
+    astc_8x8_float_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_8x8_FLOAT,
+    astc_10x5_float_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_10x5_FLOAT,
+    astc_10x6_float_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_10x6_FLOAT,
+    astc_10x8_float_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_10x8_FLOAT,
+    astc_10x10_float_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_10x10_FLOAT,
+    astc_12x10_float_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_12x10_FLOAT,
+    astc_12x12_float_compressed = c.SDL_GPU_TEXTUREFORMAT_ASTC_12x12_FLOAT,
 
     /// Calculate the size in bytes of a texture format with dimensions.
     ///
@@ -4291,7 +4296,7 @@ pub const TextureFormat = enum(c_uint) {
         height: u32,
         depth_or_layer_count: u32,
     ) u32 {
-        return C.SDL_CalculateGPUTextureFormatSize(
+        return c.SDL_CalculateGPUTextureFormatSize(
             @intFromEnum(self),
             width,
             height,
@@ -4312,7 +4317,7 @@ pub const TextureFormat = enum(c_uint) {
     pub fn texelSize(
         self: TextureFormat,
     ) u32 {
-        return C.SDL_GPUTextureFormatTexelBlockSize(
+        return c.SDL_GPUTextureFormatTexelBlockSize(
             @intFromEnum(self),
         );
     }
@@ -4341,7 +4346,7 @@ pub const TextureLocation = struct {
 
     /// Convert from an SDL value.
     pub fn fromSdl(
-        value: C.SDL_GPUTextureLocation,
+        value: c.SDL_GPUTextureLocation,
     ) TextureLocation {
         return .{
             .texture = .{ .value = value.texture.? },
@@ -4356,7 +4361,7 @@ pub const TextureLocation = struct {
     /// Convert to an SDL value.
     pub fn toSdl(
         self: TextureLocation,
-    ) C.SDL_GPUTextureLocation {
+    ) c.SDL_GPUTextureLocation {
         return .{
             .texture = self.texture.value,
             .mip_level = self.mip_level,
@@ -4396,7 +4401,7 @@ pub const TextureRegion = struct {
     depth: u32,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_GPUTextureRegion) TextureRegion {
+    pub fn fromSdl(value: c.SDL_GPUTextureRegion) TextureRegion {
         return .{
             .texture = .{ .value = value.texture.? },
             .mip_level = value.mip_level,
@@ -4411,7 +4416,7 @@ pub const TextureRegion = struct {
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: TextureRegion) C.SDL_GPUTextureRegion {
+    pub fn toSdl(self: TextureRegion) c.SDL_GPUTextureRegion {
         return .{
             .texture = self.texture.value,
             .mip_level = self.mip_level,
@@ -4439,11 +4444,11 @@ pub const TextureSamplerBinding = extern struct {
 
     // Size tests.
     comptime {
-        std.debug.assert(@sizeOf(C.SDL_GPUTextureSamplerBinding) == @sizeOf(TextureSamplerBinding));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUTextureSamplerBinding, "texture")) == @sizeOf(@FieldType(TextureSamplerBinding, "texture")));
-        std.debug.assert(@offsetOf(C.SDL_GPUTextureSamplerBinding, "texture") == @offsetOf(TextureSamplerBinding, "texture"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUTextureSamplerBinding, "sampler")) == @sizeOf(@FieldType(TextureSamplerBinding, "sampler")));
-        std.debug.assert(@offsetOf(C.SDL_GPUTextureSamplerBinding, "sampler") == @offsetOf(TextureSamplerBinding, "sampler"));
+        std.debug.assert(@sizeOf(c.SDL_GPUTextureSamplerBinding) == @sizeOf(TextureSamplerBinding));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUTextureSamplerBinding, "texture")) == @sizeOf(@FieldType(TextureSamplerBinding, "texture")));
+        std.debug.assert(@offsetOf(c.SDL_GPUTextureSamplerBinding, "texture") == @offsetOf(TextureSamplerBinding, "texture"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUTextureSamplerBinding, "sampler")) == @sizeOf(@FieldType(TextureSamplerBinding, "sampler")));
+        std.debug.assert(@offsetOf(c.SDL_GPUTextureSamplerBinding, "sampler") == @offsetOf(TextureSamplerBinding, "sampler"));
     }
 };
 
@@ -4470,7 +4475,7 @@ pub const TextureTransferInfo = struct {
     rows_per_layer: u32,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_GPUTextureTransferInfo) TextureTransferInfo {
+    pub fn fromSdl(value: c.SDL_GPUTextureTransferInfo) TextureTransferInfo {
         return .{
             .transfer_buffer = .{ .value = value.transfer_buffer.? },
             .offset = value.offset,
@@ -4480,7 +4485,7 @@ pub const TextureTransferInfo = struct {
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: TextureTransferInfo) C.SDL_GPUTextureTransferInfo {
+    pub fn toSdl(self: TextureTransferInfo) c.SDL_GPUTextureTransferInfo {
         return .{
             .transfer_buffer = self.transfer_buffer.value,
             .offset = self.offset,
@@ -4496,15 +4501,15 @@ pub const TextureTransferInfo = struct {
 /// This enum is available since SDL 3.2.0.
 pub const TextureType = enum(c_uint) {
     /// The texture is a 2-dimensional image.
-    two_dimensional = C.SDL_GPU_TEXTURETYPE_2D,
+    two_dimensional = c.SDL_GPU_TEXTURETYPE_2D,
     /// The texture is a 2-dimensional array image.
-    two_dimensional_array = C.SDL_GPU_TEXTURETYPE_2D_ARRAY,
+    two_dimensional_array = c.SDL_GPU_TEXTURETYPE_2D_ARRAY,
     /// The texture is a 3-dimensional image.
-    three_dimensional = C.SDL_GPU_TEXTURETYPE_3D,
+    three_dimensional = c.SDL_GPU_TEXTURETYPE_3D,
     /// The texture is a cube image.
-    cube = C.SDL_GPU_TEXTURETYPE_CUBE,
+    cube = c.SDL_GPU_TEXTURETYPE_CUBE,
     /// The texture is a cube array image.
-    cube_array = C.SDL_GPU_TEXTURETYPE_CUBE_ARRAY,
+    cube_array = c.SDL_GPU_TEXTURETYPE_CUBE_ARRAY,
 };
 
 /// Specifies how a texture is intended to be used by the client.
@@ -4539,35 +4544,35 @@ pub const TextureUsageFlags = struct {
     compute_storage_simultaneous_read_write: bool = false,
 
     /// Convert from SDL.
-    pub fn fromSdl(value: C.SDL_GPUTextureUsageFlags) TextureUsageFlags {
+    pub fn fromSdl(value: c.SDL_GPUTextureUsageFlags) TextureUsageFlags {
         return .{
-            .sampler = value & C.SDL_GPU_TEXTUREUSAGE_SAMPLER > 0,
-            .color_target = value & C.SDL_GPU_TEXTUREUSAGE_COLOR_TARGET > 0,
-            .depth_stencil_target = value & C.SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET > 0,
-            .graphics_storage_read = value & C.SDL_GPU_TEXTUREUSAGE_GRAPHICS_STORAGE_READ > 0,
-            .compute_storage_read = value & C.SDL_GPU_TEXTUREUSAGE_COMPUTE_STORAGE_READ > 0,
-            .compute_storage_write = value & C.SDL_GPU_TEXTUREUSAGE_COMPUTE_STORAGE_WRITE > 0,
-            .compute_storage_simultaneous_read_write = value & C.SDL_GPU_TEXTUREUSAGE_COMPUTE_STORAGE_SIMULTANEOUS_READ_WRITE > 0,
+            .sampler = value & c.SDL_GPU_TEXTUREUSAGE_SAMPLER > 0,
+            .color_target = value & c.SDL_GPU_TEXTUREUSAGE_COLOR_TARGET > 0,
+            .depth_stencil_target = value & c.SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET > 0,
+            .graphics_storage_read = value & c.SDL_GPU_TEXTUREUSAGE_GRAPHICS_STORAGE_READ > 0,
+            .compute_storage_read = value & c.SDL_GPU_TEXTUREUSAGE_COMPUTE_STORAGE_READ > 0,
+            .compute_storage_write = value & c.SDL_GPU_TEXTUREUSAGE_COMPUTE_STORAGE_WRITE > 0,
+            .compute_storage_simultaneous_read_write = value & c.SDL_GPU_TEXTUREUSAGE_COMPUTE_STORAGE_SIMULTANEOUS_READ_WRITE > 0,
         };
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: TextureUsageFlags) C.SDL_GPUTextureUsageFlags {
-        var ret: C.SDL_GPUTextureUsageFlags = 0;
+    pub fn toSdl(self: TextureUsageFlags) c.SDL_GPUTextureUsageFlags {
+        var ret: c.SDL_GPUTextureUsageFlags = 0;
         if (self.sampler)
-            ret |= C.SDL_GPU_TEXTUREUSAGE_SAMPLER;
+            ret |= c.SDL_GPU_TEXTUREUSAGE_SAMPLER;
         if (self.color_target)
-            ret |= C.SDL_GPU_TEXTUREUSAGE_COLOR_TARGET;
+            ret |= c.SDL_GPU_TEXTUREUSAGE_COLOR_TARGET;
         if (self.depth_stencil_target)
-            ret |= C.SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET;
+            ret |= c.SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET;
         if (self.graphics_storage_read)
-            ret |= C.SDL_GPU_TEXTUREUSAGE_GRAPHICS_STORAGE_READ;
+            ret |= c.SDL_GPU_TEXTUREUSAGE_GRAPHICS_STORAGE_READ;
         if (self.compute_storage_read)
-            ret |= C.SDL_GPU_TEXTUREUSAGE_COMPUTE_STORAGE_READ;
+            ret |= c.SDL_GPU_TEXTUREUSAGE_COMPUTE_STORAGE_READ;
         if (self.compute_storage_write)
-            ret |= C.SDL_GPU_TEXTUREUSAGE_COMPUTE_STORAGE_WRITE;
+            ret |= c.SDL_GPU_TEXTUREUSAGE_COMPUTE_STORAGE_WRITE;
         if (self.compute_storage_simultaneous_read_write)
-            ret |= C.SDL_GPU_TEXTUREUSAGE_COMPUTE_STORAGE_SIMULTANEOUS_READ_WRITE;
+            ret |= c.SDL_GPU_TEXTUREUSAGE_COMPUTE_STORAGE_SIMULTANEOUS_READ_WRITE;
         return ret;
     }
 };
@@ -4580,7 +4585,7 @@ pub const TextureUsageFlags = struct {
 /// ## Version
 /// This struct is available since SDL 3.2.0.
 pub const TransferBuffer = struct {
-    value: *C.SDL_GPUTransferBuffer,
+    value: *c.SDL_GPUTransferBuffer,
 };
 
 /// A structure specifying the parameters of a transfer buffer.
@@ -4596,7 +4601,7 @@ pub const TransferBufferCreateInfo = struct {
     props: ?properties.Group = null,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_GPUTransferBufferCreateInfo) TransferBufferCreateInfo {
+    pub fn fromSdl(value: c.SDL_GPUTransferBufferCreateInfo) TransferBufferCreateInfo {
         return .{
             .usage = @enumFromInt(value.usage),
             .size = value.size,
@@ -4605,7 +4610,7 @@ pub const TransferBufferCreateInfo = struct {
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: TransferBufferCreateInfo) C.SDL_GPUTransferBufferCreateInfo {
+    pub fn toSdl(self: TransferBufferCreateInfo) c.SDL_GPUTransferBufferCreateInfo {
         return .{
             .usage = @intFromEnum(self.usage),
             .size = self.size,
@@ -4628,7 +4633,7 @@ pub const TransferBufferLocation = struct {
     offset: u32,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_GPUTransferBufferLocation) TransferBufferLocation {
+    pub fn fromSdl(value: c.SDL_GPUTransferBufferLocation) TransferBufferLocation {
         return .{
             .transfer_buffer = .{ .value = value.transfer_buffer.? },
             .offset = value.offset,
@@ -4636,7 +4641,7 @@ pub const TransferBufferLocation = struct {
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: TransferBufferLocation) C.SDL_GPUTransferBufferLocation {
+    pub fn toSdl(self: TransferBufferLocation) c.SDL_GPUTransferBufferLocation {
         return .{
             .transfer_buffer = self.transfer_buffer.value,
             .offset = self.offset,
@@ -4652,8 +4657,8 @@ pub const TransferBufferLocation = struct {
 /// ## Version
 /// This enum is available since SDL 3.2.0.
 pub const TransferBufferUsage = enum(c_uint) {
-    upload = C.SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-    download = C.SDL_GPU_TRANSFERBUFFERUSAGE_DOWNLOAD,
+    upload = c.SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
+    download = c.SDL_GPU_TRANSFERBUFFERUSAGE_DOWNLOAD,
 };
 
 /// A structure specifying a vertex attribute.
@@ -4675,15 +4680,15 @@ pub const VertexAttribute = extern struct {
 
     // Size tests.
     comptime {
-        std.debug.assert(@sizeOf(C.SDL_GPUVertexAttribute) == @sizeOf(VertexAttribute));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUVertexAttribute, "location")) == @sizeOf(@FieldType(VertexAttribute, "location")));
-        std.debug.assert(@offsetOf(C.SDL_GPUVertexAttribute, "location") == @offsetOf(VertexAttribute, "location"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUVertexAttribute, "buffer_slot")) == @sizeOf(@FieldType(VertexAttribute, "buffer_slot")));
-        std.debug.assert(@offsetOf(C.SDL_GPUVertexAttribute, "buffer_slot") == @offsetOf(VertexAttribute, "buffer_slot"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUVertexAttribute, "format")) == @sizeOf(@FieldType(VertexAttribute, "format")));
-        std.debug.assert(@offsetOf(C.SDL_GPUVertexAttribute, "format") == @offsetOf(VertexAttribute, "format"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUVertexAttribute, "offset")) == @sizeOf(@FieldType(VertexAttribute, "offset")));
-        std.debug.assert(@offsetOf(C.SDL_GPUVertexAttribute, "offset") == @offsetOf(VertexAttribute, "offset"));
+        std.debug.assert(@sizeOf(c.SDL_GPUVertexAttribute) == @sizeOf(VertexAttribute));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUVertexAttribute, "location")) == @sizeOf(@FieldType(VertexAttribute, "location")));
+        std.debug.assert(@offsetOf(c.SDL_GPUVertexAttribute, "location") == @offsetOf(VertexAttribute, "location"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUVertexAttribute, "buffer_slot")) == @sizeOf(@FieldType(VertexAttribute, "buffer_slot")));
+        std.debug.assert(@offsetOf(c.SDL_GPUVertexAttribute, "buffer_slot") == @offsetOf(VertexAttribute, "buffer_slot"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUVertexAttribute, "format")) == @sizeOf(@FieldType(VertexAttribute, "format")));
+        std.debug.assert(@offsetOf(c.SDL_GPUVertexAttribute, "format") == @offsetOf(VertexAttribute, "format"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUVertexAttribute, "offset")) == @sizeOf(@FieldType(VertexAttribute, "offset")));
+        std.debug.assert(@offsetOf(c.SDL_GPUVertexAttribute, "offset") == @offsetOf(VertexAttribute, "offset"));
     }
 };
 
@@ -4711,15 +4716,15 @@ pub const VertexBufferDescription = extern struct {
 
     // Size tests.
     comptime {
-        std.debug.assert(@sizeOf(C.SDL_GPUVertexBufferDescription) == @sizeOf(VertexBufferDescription));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUVertexBufferDescription, "slot")) == @sizeOf(@FieldType(VertexBufferDescription, "slot")));
-        std.debug.assert(@offsetOf(C.SDL_GPUVertexBufferDescription, "slot") == @offsetOf(VertexBufferDescription, "slot"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUVertexBufferDescription, "pitch")) == @sizeOf(@FieldType(VertexBufferDescription, "pitch")));
-        std.debug.assert(@offsetOf(C.SDL_GPUVertexBufferDescription, "pitch") == @offsetOf(VertexBufferDescription, "pitch"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUVertexBufferDescription, "input_rate")) == @sizeOf(@FieldType(VertexBufferDescription, "input_rate")));
-        std.debug.assert(@offsetOf(C.SDL_GPUVertexBufferDescription, "input_rate") == @offsetOf(VertexBufferDescription, "input_rate"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_GPUVertexBufferDescription, "instance_step_rate")) == @sizeOf(@FieldType(VertexBufferDescription, "instance_step_rate")));
-        std.debug.assert(@offsetOf(C.SDL_GPUVertexBufferDescription, "instance_step_rate") == @offsetOf(VertexBufferDescription, "instance_step_rate"));
+        std.debug.assert(@sizeOf(c.SDL_GPUVertexBufferDescription) == @sizeOf(VertexBufferDescription));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUVertexBufferDescription, "slot")) == @sizeOf(@FieldType(VertexBufferDescription, "slot")));
+        std.debug.assert(@offsetOf(c.SDL_GPUVertexBufferDescription, "slot") == @offsetOf(VertexBufferDescription, "slot"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUVertexBufferDescription, "pitch")) == @sizeOf(@FieldType(VertexBufferDescription, "pitch")));
+        std.debug.assert(@offsetOf(c.SDL_GPUVertexBufferDescription, "pitch") == @offsetOf(VertexBufferDescription, "pitch"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUVertexBufferDescription, "input_rate")) == @sizeOf(@FieldType(VertexBufferDescription, "input_rate")));
+        std.debug.assert(@offsetOf(c.SDL_GPUVertexBufferDescription, "input_rate") == @offsetOf(VertexBufferDescription, "input_rate"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_GPUVertexBufferDescription, "instance_step_rate")) == @sizeOf(@FieldType(VertexBufferDescription, "instance_step_rate")));
+        std.debug.assert(@offsetOf(c.SDL_GPUVertexBufferDescription, "instance_step_rate") == @offsetOf(VertexBufferDescription, "instance_step_rate"));
     }
 };
 
@@ -4731,51 +4736,51 @@ pub const VertexBufferDescription = extern struct {
 /// ## Version
 /// This enum is available since SDL 3.2.0.
 pub const VertexElementFormat = enum(c_uint) {
-    i32x1 = C.SDL_GPU_VERTEXELEMENTFORMAT_INT,
-    i32x2 = C.SDL_GPU_VERTEXELEMENTFORMAT_INT2,
-    i32x3 = C.SDL_GPU_VERTEXELEMENTFORMAT_INT3,
-    i32x4 = C.SDL_GPU_VERTEXELEMENTFORMAT_INT4,
-    u32x1 = C.SDL_GPU_VERTEXELEMENTFORMAT_UINT,
-    u32x2 = C.SDL_GPU_VERTEXELEMENTFORMAT_UINT2,
-    u32x3 = C.SDL_GPU_VERTEXELEMENTFORMAT_UINT3,
-    u32x4 = C.SDL_GPU_VERTEXELEMENTFORMAT_UINT4,
-    f32x1 = C.SDL_GPU_VERTEXELEMENTFORMAT_FLOAT,
-    f32x2 = C.SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
-    f32x3 = C.SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-    f32x4 = C.SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4,
-    i8x2 = C.SDL_GPU_VERTEXELEMENTFORMAT_BYTE2,
-    i8x4 = C.SDL_GPU_VERTEXELEMENTFORMAT_BYTE4,
-    u8x2 = C.SDL_GPU_VERTEXELEMENTFORMAT_UBYTE2,
-    u8x4 = C.SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4,
-    i8x2_normalized = C.SDL_GPU_VERTEXELEMENTFORMAT_BYTE2_NORM,
-    i8x4_normalized = C.SDL_GPU_VERTEXELEMENTFORMAT_BYTE4_NORM,
-    u8x2_normalized = C.SDL_GPU_VERTEXELEMENTFORMAT_UBYTE2_NORM,
-    u8x4_normalized = C.SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4_NORM,
-    i16x2 = C.SDL_GPU_VERTEXELEMENTFORMAT_SHORT2,
-    i16x4 = C.SDL_GPU_VERTEXELEMENTFORMAT_SHORT4,
-    u16x2 = C.SDL_GPU_VERTEXELEMENTFORMAT_USHORT2,
-    u16x4 = C.SDL_GPU_VERTEXELEMENTFORMAT_USHORT4,
-    i16x2_normalized = C.SDL_GPU_VERTEXELEMENTFORMAT_SHORT2_NORM,
-    i16x4_normalized = C.SDL_GPU_VERTEXELEMENTFORMAT_SHORT4_NORM,
-    u16x2_normalized = C.SDL_GPU_VERTEXELEMENTFORMAT_USHORT2_NORM,
-    u16x4_normalized = C.SDL_GPU_VERTEXELEMENTFORMAT_USHORT4_NORM,
-    f16x2 = C.SDL_GPU_VERTEXELEMENTFORMAT_HALF2,
-    f16x4 = C.SDL_GPU_VERTEXELEMENTFORMAT_HALF4,
+    i32x1 = c.SDL_GPU_VERTEXELEMENTFORMAT_INT,
+    i32x2 = c.SDL_GPU_VERTEXELEMENTFORMAT_INT2,
+    i32x3 = c.SDL_GPU_VERTEXELEMENTFORMAT_INT3,
+    i32x4 = c.SDL_GPU_VERTEXELEMENTFORMAT_INT4,
+    u32x1 = c.SDL_GPU_VERTEXELEMENTFORMAT_UINT,
+    u32x2 = c.SDL_GPU_VERTEXELEMENTFORMAT_UINT2,
+    u32x3 = c.SDL_GPU_VERTEXELEMENTFORMAT_UINT3,
+    u32x4 = c.SDL_GPU_VERTEXELEMENTFORMAT_UINT4,
+    f32x1 = c.SDL_GPU_VERTEXELEMENTFORMAT_FLOAT,
+    f32x2 = c.SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
+    f32x3 = c.SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+    f32x4 = c.SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4,
+    i8x2 = c.SDL_GPU_VERTEXELEMENTFORMAT_BYTE2,
+    i8x4 = c.SDL_GPU_VERTEXELEMENTFORMAT_BYTE4,
+    u8x2 = c.SDL_GPU_VERTEXELEMENTFORMAT_UBYTE2,
+    u8x4 = c.SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4,
+    i8x2_normalized = c.SDL_GPU_VERTEXELEMENTFORMAT_BYTE2_NORM,
+    i8x4_normalized = c.SDL_GPU_VERTEXELEMENTFORMAT_BYTE4_NORM,
+    u8x2_normalized = c.SDL_GPU_VERTEXELEMENTFORMAT_UBYTE2_NORM,
+    u8x4_normalized = c.SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4_NORM,
+    i16x2 = c.SDL_GPU_VERTEXELEMENTFORMAT_SHORT2,
+    i16x4 = c.SDL_GPU_VERTEXELEMENTFORMAT_SHORT4,
+    u16x2 = c.SDL_GPU_VERTEXELEMENTFORMAT_USHORT2,
+    u16x4 = c.SDL_GPU_VERTEXELEMENTFORMAT_USHORT4,
+    i16x2_normalized = c.SDL_GPU_VERTEXELEMENTFORMAT_SHORT2_NORM,
+    i16x4_normalized = c.SDL_GPU_VERTEXELEMENTFORMAT_SHORT4_NORM,
+    u16x2_normalized = c.SDL_GPU_VERTEXELEMENTFORMAT_USHORT2_NORM,
+    u16x4_normalized = c.SDL_GPU_VERTEXELEMENTFORMAT_USHORT4_NORM,
+    f16x2 = c.SDL_GPU_VERTEXELEMENTFORMAT_HALF2,
+    f16x4 = c.SDL_GPU_VERTEXELEMENTFORMAT_HALF4,
 
     /// Create from SDL.
-    pub fn fromSdl(val: C.SDL_GPUVertexElementFormat) ?VertexElementFormat {
-        if (val == C.SDL_GPU_VERTEXELEMENTFORMAT_INVALID) {
+    pub fn fromSdl(val: c.SDL_GPUVertexElementFormat) ?VertexElementFormat {
+        if (val == c.SDL_GPU_VERTEXELEMENTFORMAT_INVALID) {
             return null;
         }
         return @enumFromInt(val);
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(val: ?VertexElementFormat) C.SDL_GPUVertexElementFormat {
+    pub fn toSdl(val: ?VertexElementFormat) c.SDL_GPUVertexElementFormat {
         if (val) |tmp| {
             return @intFromEnum(tmp);
         }
-        return C.SDL_GPU_VERTEXELEMENTFORMAT_INVALID;
+        return c.SDL_GPU_VERTEXELEMENTFORMAT_INVALID;
     }
 };
 
@@ -4785,9 +4790,9 @@ pub const VertexElementFormat = enum(c_uint) {
 /// This enum is available since SDL 3.2.0.
 pub const VertexInputRate = enum(c_uint) {
     /// Attribute addressing is a function of the vertex index.
-    vertex = C.SDL_GPU_VERTEXINPUTRATE_VERTEX,
+    vertex = c.SDL_GPU_VERTEXINPUTRATE_VERTEX,
     /// Attribute addressing is a function of the instance index.
-    instance = C.SDL_GPU_VERTEXINPUTRATE_INSTANCE,
+    instance = c.SDL_GPU_VERTEXINPUTRATE_INSTANCE,
 };
 
 /// A structure specifying the parameters of a graphics pipeline vertex input state.
@@ -4801,7 +4806,7 @@ pub const VertexInputState = struct {
     vertex_attributes: []const VertexAttribute = &.{},
 
     /// From an SDL value.
-    pub fn fromSdl(value: C.SDL_GPUVertexInputState) VertexInputState {
+    pub fn fromSdl(value: c.SDL_GPUVertexInputState) VertexInputState {
         return .{
             .vertex_buffer_descriptions = @as([*]const VertexBufferDescription, @ptrCast(value.vertex_buffer_descriptions))[0..@intCast(value.num_vertex_buffers)],
             .vertex_attributes = @as([*]const VertexAttribute, @ptrCast(value.vertex_attributes))[0..@intCast(value.num_vertex_attributes)],
@@ -4809,7 +4814,7 @@ pub const VertexInputState = struct {
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: VertexInputState) C.SDL_GPUVertexInputState {
+    pub fn toSdl(self: VertexInputState) c.SDL_GPUVertexInputState {
         return .{
             .vertex_buffer_descriptions = @ptrCast(self.vertex_buffer_descriptions.ptr),
             .num_vertex_buffers = @intCast(self.vertex_buffer_descriptions.len),
@@ -4832,7 +4837,7 @@ pub const Viewport = struct {
     max_depth: f32,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_GPUViewport) Viewport {
+    pub fn fromSdl(value: c.SDL_GPUViewport) Viewport {
         return .{
             .region = .{
                 .x = value.x,
@@ -4846,7 +4851,7 @@ pub const Viewport = struct {
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: Viewport) C.SDL_GPUViewport {
+    pub fn toSdl(self: Viewport) c.SDL_GPUViewport {
         return .{
             .x = self.region.x,
             .y = self.region.y,
@@ -4877,7 +4882,7 @@ pub const Viewport = struct {
 pub fn getDriverName(
     index: usize,
 ) ?[:0]const u8 {
-    const ret = C.SDL_GetGPUDriver(@intCast(index));
+    const ret = c.SDL_GetGPUDriver(@intCast(index));
     return std.mem.span(ret);
 }
 
@@ -4889,7 +4894,7 @@ pub fn getDriverName(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getNumDrivers() usize {
-    return @intCast(C.SDL_GetNumGPUDrivers());
+    return @intCast(c.SDL_GetNumGPUDrivers());
 }
 
 /// Checks for GPU runtime support.
@@ -4905,13 +4910,15 @@ pub fn getNumDrivers() usize {
 pub fn supportsProperties(
     props: properties.Group,
 ) bool {
-    return C.SDL_GPUSupportsProperties(
+    return c.SDL_GPUSupportsProperties(
         props.value,
     );
 }
 
 // Test the GPU.
 test "Gpu" {
+    std.testing.refAllDeclsRecursive(@This());
+
     _ = BufferBinding{
         .buffer = undefined,
         .offset = undefined,

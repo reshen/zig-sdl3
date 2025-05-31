@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const std = @import("std");
 
@@ -11,15 +11,15 @@ const std = @import("std");
 /// This enum is available since SDL 3.2.0.
 pub const PowerState = enum(c_int) {
     /// Can not determine power status.
-    unknown = C.SDL_POWERSTATE_UNKNOWN,
+    unknown = c.SDL_POWERSTATE_UNKNOWN,
     /// Not plugged in, running on battery.
-    on_battery = C.SDL_POWERSTATE_ON_BATTERY,
+    on_battery = c.SDL_POWERSTATE_ON_BATTERY,
     /// Plugged in, no battery available.
-    no_battery = C.SDL_POWERSTATE_NO_BATTERY,
+    no_battery = c.SDL_POWERSTATE_NO_BATTERY,
     /// Plugged in, battery charging.
-    charging = C.SDL_POWERSTATE_CHARGING,
+    charging = c.SDL_POWERSTATE_CHARGING,
     /// Plugged in, battery charged.
-    charged = C.SDL_POWERSTATE_CHARGED,
+    charged = c.SDL_POWERSTATE_CHARGED,
 
     /// Get the current power supply details.
     ///
@@ -43,11 +43,11 @@ pub const PowerState = enum(c_int) {
     pub fn get() !struct { state: PowerState, seconds_left: ?u32, percent: ?u7 } {
         var seconds_left: c_int = undefined;
         var percent: c_int = undefined;
-        const val = C.SDL_GetPowerInfo(
+        const val = c.SDL_GetPowerInfo(
             &seconds_left,
             &percent,
         );
-        const ret = try errors.wrapCall(c_int, val, C.SDL_POWERSTATE_ERROR);
+        const ret = try errors.wrapCall(c_int, val, c.SDL_POWERSTATE_ERROR);
         return .{
             .state = @enumFromInt(ret),
             .seconds_left = if (seconds_left == -1) null else @intCast(seconds_left),

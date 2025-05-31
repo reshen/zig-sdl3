@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const std = @import("std");
 
 /// Pen axis indices.
@@ -16,19 +16,19 @@ const std = @import("std");
 /// This enum is available since SDL 3.2.0.
 pub const Axis = enum(c_uint) {
     /// Pen pressure. Unidirectional 0 to 1.0
-    pressure = C.SDL_PEN_AXIS_PRESSURE,
+    pressure = c.SDL_PEN_AXIS_PRESSURE,
     /// Pen horizontal tilt angle. Bidirectional -90.0 to 90.0 (left-to-right).
-    x_tilt = C.SDL_PEN_AXIS_XTILT,
+    x_tilt = c.SDL_PEN_AXIS_XTILT,
     /// Pen vertical tilt angle. Bidirectional -90.0 to 90.0 (top-to-down).
-    y_tilt = C.SDL_PEN_AXIS_YTILT,
+    y_tilt = c.SDL_PEN_AXIS_YTILT,
     /// Pen distance to drawing surface. Unidirectional 0.0 to 1.0.
-    distance = C.SDL_PEN_AXIS_DISTANCE,
+    distance = c.SDL_PEN_AXIS_DISTANCE,
     /// Pen barrel rotation. Bidirectional -180 to 179.9 (clockwise, 0 is facing up, -180.0 is facing down).
-    rotation = C.SDL_PEN_AXIS_ROTATION,
+    rotation = c.SDL_PEN_AXIS_ROTATION,
     /// Pen finger wheel or slider (e.g., Airbrush Pen). Unidirectional 0 to 1.0.
-    slider = C.SDL_PEN_AXIS_SLIDER,
+    slider = c.SDL_PEN_AXIS_SLIDER,
     /// Pressure from squeezing the pen (barrel pressure).
-    tangential_pressure = C.SDL_PEN_AXIS_TANGENTIAL_PRESSURE,
+    tangential_pressure = c.SDL_PEN_AXIS_TANGENTIAL_PRESSURE,
 };
 
 /// SDL pen instance IDs.
@@ -40,11 +40,11 @@ pub const Axis = enum(c_uint) {
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
 pub const ID = packed struct {
-    value: C.SDL_PenID,
+    value: c.SDL_PenID,
 
     // Size tests.
     comptime {
-        std.debug.assert(@sizeOf(C.SDL_PenID) == @sizeOf(ID));
+        std.debug.assert(@sizeOf(c.SDL_PenID) == @sizeOf(ID));
     }
 };
 
@@ -69,27 +69,27 @@ pub const InputFlags = struct {
     eraser_tip: bool = false,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(flags: C.SDL_PenInputFlags) InputFlags {
+    pub fn fromSdl(flags: c.SDL_PenInputFlags) InputFlags {
         return .{
-            .down = (flags & C.SDL_PEN_INPUT_DOWN) != 0,
-            .button1 = (flags & C.SDL_PEN_INPUT_BUTTON_1) != 0,
-            .button2 = (flags & C.SDL_PEN_INPUT_BUTTON_2) != 0,
-            .button3 = (flags & C.SDL_PEN_INPUT_BUTTON_3) != 0,
-            .button4 = (flags & C.SDL_PEN_INPUT_BUTTON_4) != 0,
-            .button5 = (flags & C.SDL_PEN_INPUT_BUTTON_5) != 0,
-            .eraser_tip = (flags & C.SDL_PEN_INPUT_ERASER_TIP) != 0,
+            .down = (flags & c.SDL_PEN_INPUT_DOWN) != 0,
+            .button1 = (flags & c.SDL_PEN_INPUT_BUTTON_1) != 0,
+            .button2 = (flags & c.SDL_PEN_INPUT_BUTTON_2) != 0,
+            .button3 = (flags & c.SDL_PEN_INPUT_BUTTON_3) != 0,
+            .button4 = (flags & c.SDL_PEN_INPUT_BUTTON_4) != 0,
+            .button5 = (flags & c.SDL_PEN_INPUT_BUTTON_5) != 0,
+            .eraser_tip = (flags & c.SDL_PEN_INPUT_ERASER_TIP) != 0,
         };
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: InputFlags) C.SDL_PenInputFlags {
-        return (if (self.down) @as(C.SDL_PenInputFlags, C.SDL_PEN_INPUT_DOWN) else 0) |
-            (if (self.button1) @as(C.SDL_PenInputFlags, C.SDL_PEN_INPUT_BUTTON_1) else 0) |
-            (if (self.button2) @as(C.SDL_PenInputFlags, C.SDL_PEN_INPUT_BUTTON_2) else 0) |
-            (if (self.button3) @as(C.SDL_PenInputFlags, C.SDL_PEN_INPUT_BUTTON_3) else 0) |
-            (if (self.button4) @as(C.SDL_PenInputFlags, C.SDL_PEN_INPUT_BUTTON_4) else 0) |
-            (if (self.button5) @as(C.SDL_PenInputFlags, C.SDL_PEN_INPUT_BUTTON_5) else 0) |
-            (if (self.eraser_tip) @as(C.SDL_PenInputFlags, C.SDL_PEN_INPUT_ERASER_TIP) else 0) |
+    pub fn toSdl(self: InputFlags) c.SDL_PenInputFlags {
+        return (if (self.down) @as(c.SDL_PenInputFlags, c.SDL_PEN_INPUT_DOWN) else 0) |
+            (if (self.button1) @as(c.SDL_PenInputFlags, c.SDL_PEN_INPUT_BUTTON_1) else 0) |
+            (if (self.button2) @as(c.SDL_PenInputFlags, c.SDL_PEN_INPUT_BUTTON_2) else 0) |
+            (if (self.button3) @as(c.SDL_PenInputFlags, c.SDL_PEN_INPUT_BUTTON_3) else 0) |
+            (if (self.button4) @as(c.SDL_PenInputFlags, c.SDL_PEN_INPUT_BUTTON_4) else 0) |
+            (if (self.button5) @as(c.SDL_PenInputFlags, c.SDL_PEN_INPUT_BUTTON_5) else 0) |
+            (if (self.eraser_tip) @as(c.SDL_PenInputFlags, c.SDL_PEN_INPUT_ERASER_TIP) else 0) |
             0;
     }
 };

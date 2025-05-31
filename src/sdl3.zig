@@ -53,6 +53,27 @@ pub const assert = @import("assert.zig");
 /// However, flushing will take longer and may be unnecessary, depending on the app's needs.
 pub const async_io = @import("async_io.zig");
 
+/// Atomic operations.
+///
+/// IMPORTANT: If you are not an expert in concurrent lockless programming, you should not be using any functions in this file.
+/// You should be protecting your data structures with full mutexes instead.
+///
+/// Seriously, here be dragons!
+///
+/// You can find out a little more about lockless programming and the subtle issues that can arise here:
+/// https://learn.microsoft.com/en-us/windows/win32/dxtecharts/lockless-programming
+///
+/// There's also lots of good information here:
+/// * https://www.1024cores.net/home/lock-free-algorithms
+/// * https://preshing.com/
+///
+/// These operations may or may not actually be implemented using processor specific atomic operations.
+/// When possible they are implemented as true processor specific atomic operations.
+/// When that is not possible the are implemented using locks that do use the available atomic operations.
+///
+/// All of the atomic operations that modify memory are full memory barriers.
+pub const atomic = @import("atomic.zig");
+
 /// Audio functionality for the SDL library.
 ///
 /// All audio in SDL3 revolves around `audio.Stream`.
@@ -136,7 +157,7 @@ pub const blend_mode = @import("blend_mode.zig");
 ///
 /// Under most circumstances, you will never need to use this.
 /// This should only really be used for functions not yet implemented in zig-sdl3.
-pub const c = @import("c.zig").C;
+pub const c = @import("c.zig").c;
 
 /// CPU feature detection for SDL.
 ///
@@ -272,6 +293,24 @@ pub const gpu = @import("gpu.zig");
 ///
 /// SDL provides functions to convert a GUID to/from a stri
 pub const GUID = @import("guid.zig").GUID;
+
+/// The SDL haptic subsystem manages haptic (force feedback) devices.
+///
+/// The basic usage is as follows:
+/// * Initialize the subsystem `init.InitFlags.haptic`.
+/// * Open a haptic device.
+/// * `haptic.Haptic.init()` to open from index.
+/// * `haptic.Haptic.initFromJoystick()` to open from an existing joystick.
+/// * Create an effect (`haptic.Effect`).
+/// * Upload the effect with `haptic.Haptic.createEffect()`.
+/// * Run the effect with `haptic.Haptic.runEffect()`.
+/// * (Optional) Free the effect with `haptic.Haptic.destroyEffect()`.
+/// * Close the haptic device with `haptic.Haptic.deinit()`.
+///
+/// TODO: CODE EXAMPLE!
+///
+/// Note that the SDL haptic subsystem is not thread-safe.
+pub const haptic = @import("haptic.zig");
 
 /// File for SDL HID API functions.
 ///
@@ -487,6 +526,19 @@ pub const MetalView = @import("metal.zig").View;
 /// Apps that care about touch/pen separately from mouse input should filter out events with a which field of `mouse.ID.touch` and `mouse.ID.pen`.
 pub const mouse = @import("mouse.zig");
 
+/// SDL offers several thread synchronization primitives.
+/// This document can't cover the complicated topic of thread safety, but reading up on what each of these primitives are, why they are useful,
+/// and how to correctly use them is vital to writing correct and safe multithreaded programs.
+///
+/// * Mutexes: `mutex.Mutex.init()`.
+/// * Read/Write locks: `mutex.RwLock.init()`.
+/// * Semaphores: `mutex.Semaphore.init()`.
+/// * Condition variables: `mutex.Condition.init()`.
+///
+/// SDL also offers a datatype, `mutex.InitState`, which can be used to make sure only one thread initializes/deinitializes some resource
+/// that several threads might try to use for the first time simultaneously.
+pub const mutex = @import("mutex.zig");
+
 /// SDL API functions that don't fit elsewhere.
 pub const openURL = @import("misc.zig").openURL;
 
@@ -636,6 +688,13 @@ pub const storage = @import("storage.zig");
 /// https://github.com/libsdl-org/SDL_image
 pub const surface = @import("surface.zig");
 
+/// Platform-specific SDL API functions. These are functions that deal with needs of specific operating systems,
+/// that didn't make sense to offer as platform-independent, generic APIs.
+///
+/// Most apps can make do without these functions, but they can be useful for integrating with other parts of a specific system,
+/// adding platform-specific polish to an app, or solving problems that only affect one target.
+pub const system = @import("system.zig");
+
 /// SDL offers cross-platform thread management functions.
 /// These are mostly concerned with starting threads, setting their priority, and dealing with their termination.
 ///
@@ -687,6 +746,18 @@ pub const touch = @import("touch.zig");
 
 /// Functionality to query the current SDL version, both as headers the app was compiled against, and a library the app is linked to.
 pub const Version = @import("version.zig").Version;
+
+/// SDL's video subsystem is largely interested in abstracting window management from the underlying operating system.
+/// You can create windows, manage them in various ways, set them fullscreen, and get events when interesting things happen with them,
+/// such as the mouse or keyboard interacting with a window.
+///
+/// The video subsystem is also interested in abstracting away some platform-specific differences in OpenGL: context creation, swapping buffers, etc.
+/// This may be crucial to your app, but also you are not required to use OpenGL at all.
+/// In fact, SDL can provide rendering to those windows as well, either with an easy-to-use 2D API or with a more-powerful GPU API.
+/// Of course, it can simply get out of your way and give you the window handles you need to use Vulkan, Direct3D, Metal, or whatever else you like directly, too.
+///
+/// The video subsystem covers a lot of functionality, out of necessity, so it is worth perusing the list of functions just to see what's available,
+/// but most apps can get by with simply creating a window and listening for events, so start with `video.Window.init()` and `events.poll()`.
 pub const video = @import("video.zig");
 
 /// Functions for creating Vulkan surfaces on SDL windows.
@@ -743,7 +814,7 @@ pub const AppResult = enum(c_uint) {
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const AppEventCallback = *const fn (app_state: ?*anyopaque, event: [*c]c.SDL_Event) callconv(.C) c_uint;
+pub const AppEventCallback = *const fn (app_state: ?*anyopaque, event: [*c]c.SDL_Event) callconv(.c) c_uint;
 
 /// Function pointer typedef for `SDL_AppInit()`.
 ///
@@ -762,7 +833,7 @@ pub const AppEventCallback = *const fn (app_state: ?*anyopaque, event: [*c]c.SDL
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const AppInitCallback = *const fn (app_state: [*c]?*anyopaque, arg_count: c_int, arg_values: [*c][*c]u8) callconv(.C) c_uint;
+pub const AppInitCallback = *const fn (app_state: [*c]?*anyopaque, arg_count: c_int, arg_values: [*c][*c]u8) callconv(.c) c_uint;
 
 /// Function pointer typedef for `SDL_AppIterate()`.
 ///
@@ -779,7 +850,7 @@ pub const AppInitCallback = *const fn (app_state: [*c]?*anyopaque, arg_count: c_
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const AppIterateCallback = *const fn (app_state: ?*anyopaque) callconv(.C) c_uint;
+pub const AppIterateCallback = *const fn (app_state: ?*anyopaque) callconv(.c) c_uint;
 
 /// Function pointer typedef for `SDL_AppQuit()`.
 ///
@@ -794,7 +865,7 @@ pub const AppIterateCallback = *const fn (app_state: ?*anyopaque) callconv(.C) c
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const AppQuitCallback = *const fn (app_state: ?*anyopaque, result: c_uint) callconv(.C) void;
+pub const AppQuitCallback = *const fn (app_state: ?*anyopaque, result: c_uint) callconv(.c) void;
 
 // Add all tests from subsystems.
 test {

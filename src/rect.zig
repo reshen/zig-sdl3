@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const std = @import("std");
 
@@ -17,17 +17,17 @@ pub fn Point(comptime Type: type) type {
 
         // Size tests.
         comptime {
-            std.debug.assert(@sizeOf(C.SDL_Point) == @sizeOf(IPoint));
-            std.debug.assert(@offsetOf(C.SDL_Point, "x") == @offsetOf(IPoint, "x"));
-            std.debug.assert(@sizeOf(@FieldType(C.SDL_Point, "x")) == @sizeOf(@FieldType(IPoint, "x")));
-            std.debug.assert(@offsetOf(C.SDL_Point, "y") == @offsetOf(IPoint, "y"));
-            std.debug.assert(@sizeOf(@FieldType(C.SDL_Point, "y")) == @sizeOf(@FieldType(IPoint, "y")));
+            std.debug.assert(@sizeOf(c.SDL_Point) == @sizeOf(IPoint));
+            std.debug.assert(@offsetOf(c.SDL_Point, "x") == @offsetOf(IPoint, "x"));
+            std.debug.assert(@sizeOf(@FieldType(c.SDL_Point, "x")) == @sizeOf(@FieldType(IPoint, "x")));
+            std.debug.assert(@offsetOf(c.SDL_Point, "y") == @offsetOf(IPoint, "y"));
+            std.debug.assert(@sizeOf(@FieldType(c.SDL_Point, "y")) == @sizeOf(@FieldType(IPoint, "y")));
 
-            std.debug.assert(@sizeOf(C.SDL_FPoint) == @sizeOf(FPoint));
-            std.debug.assert(@offsetOf(C.SDL_FPoint, "x") == @offsetOf(FPoint, "x"));
-            std.debug.assert(@sizeOf(@FieldType(C.SDL_FPoint, "x")) == @sizeOf(@FieldType(FPoint, "x")));
-            std.debug.assert(@offsetOf(C.SDL_FPoint, "y") == @offsetOf(FPoint, "y"));
-            std.debug.assert(@sizeOf(@FieldType(C.SDL_FPoint, "y")) == @sizeOf(@FieldType(FPoint, "y")));
+            std.debug.assert(@sizeOf(c.SDL_FPoint) == @sizeOf(FPoint));
+            std.debug.assert(@offsetOf(c.SDL_FPoint, "x") == @offsetOf(FPoint, "x"));
+            std.debug.assert(@sizeOf(@FieldType(c.SDL_FPoint, "x")) == @sizeOf(@FieldType(FPoint, "x")));
+            std.debug.assert(@offsetOf(c.SDL_FPoint, "y") == @offsetOf(FPoint, "y"));
+            std.debug.assert(@sizeOf(@FieldType(c.SDL_FPoint, "y")) == @sizeOf(@FieldType(FPoint, "y")));
         }
 
         /// Get this as a different type of point.
@@ -78,7 +78,7 @@ pub fn Point(comptime Type: type) type {
         }
 
         /// From an SDL point.
-        fn fromSdlFPoint(self: C.SDL_FPoint) Self {
+        fn fromSdlFPoint(self: c.SDL_FPoint) Self {
             return .{
                 .x = @floatCast(self.x),
                 .y = @floatCast(self.y),
@@ -86,7 +86,7 @@ pub fn Point(comptime Type: type) type {
         }
 
         /// From an SDL point.
-        fn fromSdlIPoint(self: C.SDL_Point) Self {
+        fn fromSdlIPoint(self: c.SDL_Point) Self {
             return .{
                 .x = @intCast(self.x),
                 .y = @intCast(self.y),
@@ -94,7 +94,7 @@ pub fn Point(comptime Type: type) type {
         }
 
         /// Get the SDL point.
-        fn toSdlFPoint(self: Self) C.SDL_FPoint {
+        fn toSdlFPoint(self: Self) c.SDL_FPoint {
             return .{
                 .x = @floatCast(self.x),
                 .y = @floatCast(self.y),
@@ -102,7 +102,7 @@ pub fn Point(comptime Type: type) type {
         }
 
         /// Get the SDL point.
-        fn toSdlIPoint(self: Self) C.SDL_Point {
+        fn toSdlIPoint(self: Self) c.SDL_Point {
             return .{
                 .x = @intCast(self.x),
                 .y = @intCast(self.y),
@@ -146,25 +146,25 @@ pub fn Rect(comptime Type: type) type {
 
         // Size tests.
         comptime {
-            std.debug.assert(@sizeOf(C.SDL_Rect) == @sizeOf(IRect));
-            std.debug.assert(@offsetOf(C.SDL_Rect, "x") == @offsetOf(IRect, "x"));
-            std.debug.assert(@sizeOf(@FieldType(C.SDL_Rect, "x")) == @sizeOf(@FieldType(IRect, "x")));
-            std.debug.assert(@offsetOf(C.SDL_Rect, "y") == @offsetOf(IRect, "y"));
-            std.debug.assert(@sizeOf(@FieldType(C.SDL_Rect, "y")) == @sizeOf(@FieldType(IRect, "y")));
-            std.debug.assert(@offsetOf(C.SDL_Rect, "w") == @offsetOf(IRect, "w"));
-            std.debug.assert(@sizeOf(@FieldType(C.SDL_Rect, "w")) == @sizeOf(@FieldType(IRect, "w")));
-            std.debug.assert(@offsetOf(C.SDL_Rect, "h") == @offsetOf(IRect, "h"));
-            std.debug.assert(@sizeOf(@FieldType(C.SDL_Rect, "h")) == @sizeOf(@FieldType(IRect, "h")));
+            std.debug.assert(@sizeOf(c.SDL_Rect) == @sizeOf(IRect));
+            std.debug.assert(@offsetOf(c.SDL_Rect, "x") == @offsetOf(IRect, "x"));
+            std.debug.assert(@sizeOf(@FieldType(c.SDL_Rect, "x")) == @sizeOf(@FieldType(IRect, "x")));
+            std.debug.assert(@offsetOf(c.SDL_Rect, "y") == @offsetOf(IRect, "y"));
+            std.debug.assert(@sizeOf(@FieldType(c.SDL_Rect, "y")) == @sizeOf(@FieldType(IRect, "y")));
+            std.debug.assert(@offsetOf(c.SDL_Rect, "w") == @offsetOf(IRect, "w"));
+            std.debug.assert(@sizeOf(@FieldType(c.SDL_Rect, "w")) == @sizeOf(@FieldType(IRect, "w")));
+            std.debug.assert(@offsetOf(c.SDL_Rect, "h") == @offsetOf(IRect, "h"));
+            std.debug.assert(@sizeOf(@FieldType(c.SDL_Rect, "h")) == @sizeOf(@FieldType(IRect, "h")));
 
-            std.debug.assert(@sizeOf(C.SDL_FRect) == @sizeOf(FRect));
-            std.debug.assert(@offsetOf(C.SDL_FRect, "x") == @offsetOf(FRect, "x"));
-            std.debug.assert(@sizeOf(@FieldType(C.SDL_FRect, "x")) == @sizeOf(@FieldType(FRect, "x")));
-            std.debug.assert(@offsetOf(C.SDL_FRect, "y") == @offsetOf(FRect, "y"));
-            std.debug.assert(@sizeOf(@FieldType(C.SDL_FRect, "y")) == @sizeOf(@FieldType(FRect, "y")));
-            std.debug.assert(@offsetOf(C.SDL_FRect, "w") == @offsetOf(FRect, "w"));
-            std.debug.assert(@sizeOf(@FieldType(C.SDL_FRect, "w")) == @sizeOf(@FieldType(FRect, "w")));
-            std.debug.assert(@offsetOf(C.SDL_FRect, "h") == @offsetOf(FRect, "h"));
-            std.debug.assert(@sizeOf(@FieldType(C.SDL_FRect, "h")) == @sizeOf(@FieldType(FRect, "h")));
+            std.debug.assert(@sizeOf(c.SDL_FRect) == @sizeOf(FRect));
+            std.debug.assert(@offsetOf(c.SDL_FRect, "x") == @offsetOf(FRect, "x"));
+            std.debug.assert(@sizeOf(@FieldType(c.SDL_FRect, "x")) == @sizeOf(@FieldType(FRect, "x")));
+            std.debug.assert(@offsetOf(c.SDL_FRect, "y") == @offsetOf(FRect, "y"));
+            std.debug.assert(@sizeOf(@FieldType(c.SDL_FRect, "y")) == @sizeOf(@FieldType(FRect, "y")));
+            std.debug.assert(@offsetOf(c.SDL_FRect, "w") == @offsetOf(FRect, "w"));
+            std.debug.assert(@sizeOf(@FieldType(c.SDL_FRect, "w")) == @sizeOf(@FieldType(FRect, "w")));
+            std.debug.assert(@offsetOf(c.SDL_FRect, "h") == @offsetOf(FRect, "h"));
+            std.debug.assert(@sizeOf(@FieldType(c.SDL_FRect, "h")) == @sizeOf(@FieldType(FRect, "h")));
         }
 
         /// Get this as a different type of rectangle.
@@ -275,11 +275,11 @@ pub fn Rect(comptime Type: type) type {
         ) bool {
             const a = self.toSdl();
             const b = other.toSdl();
-            return C.SDL_RectsEqualEpsilon(&a, &b, epsilon);
+            return c.SDL_RectsEqualEpsilon(&a, &b, epsilon);
         }
 
         /// Create from an SDL rect.c
-        fn fromSdlFRect(rect: C.SDL_FRect) FRect {
+        fn fromSdlFRect(rect: c.SDL_FRect) FRect {
             return .{
                 .x = @floatCast(rect.x),
                 .y = @floatCast(rect.y),
@@ -289,7 +289,7 @@ pub fn Rect(comptime Type: type) type {
         }
 
         /// Create from an SDL rect.
-        fn fromSdlIRect(rect: C.SDL_Rect) IRect {
+        fn fromSdlIRect(rect: c.SDL_Rect) IRect {
             return .{
                 .x = @intCast(rect.x),
                 .y = @intCast(rect.y),
@@ -305,8 +305,8 @@ pub fn Rect(comptime Type: type) type {
         ) ?FRect {
             const a = self.toSdl();
             const b = other.toSdl();
-            var ret: C.SDL_FRect = undefined;
-            if (!C.SDL_GetRectIntersectionFloat(&a, &b, &ret))
+            var ret: c.SDL_FRect = undefined;
+            if (!c.SDL_GetRectIntersectionFloat(&a, &b, &ret))
                 return null;
             return fromSdl(ret);
         }
@@ -318,8 +318,8 @@ pub fn Rect(comptime Type: type) type {
         ) ?IRect {
             const a = self.toSdl();
             const b = other.toSdl();
-            var ret: C.SDL_Rect = undefined;
-            if (!C.SDL_GetRectIntersection(&a, &b, &ret))
+            var ret: c.SDL_Rect = undefined;
+            if (!c.SDL_GetRectIntersection(&a, &b, &ret))
                 return null;
             return fromSdl(ret);
         }
@@ -332,7 +332,7 @@ pub fn Rect(comptime Type: type) type {
             const rect = self.toSdl();
             var p1 = line[0].toSdl();
             var p2 = line[1].toSdl();
-            if (!C.SDL_GetRectAndLineIntersectionFloat(&rect, &p1.x, &p1.y, &p2.x, &p2.y))
+            if (!c.SDL_GetRectAndLineIntersectionFloat(&rect, &p1.x, &p1.y, &p2.x, &p2.y))
                 return null;
             return [_]FPoint{ FPoint.fromSdl(p1), FPoint.fromSdl(p2) };
         }
@@ -345,7 +345,7 @@ pub fn Rect(comptime Type: type) type {
             const rect = self.toSdl();
             var p1 = line[0].toSdl();
             var p2 = line[1].toSdl();
-            if (!C.SDL_GetRectAndLineIntersection(&rect, &p1.x, &p1.y, &p2.x, &p2.y))
+            if (!c.SDL_GetRectAndLineIntersection(&rect, &p1.x, &p1.y, &p2.x, &p2.y))
                 return null;
             return [_]IPoint{ IPoint.fromSdl(p1), IPoint.fromSdl(p2) };
         }
@@ -431,8 +431,8 @@ pub fn Rect(comptime Type: type) type {
         ) !FRect {
             const a = self.toSdl();
             const b = other.toSdl();
-            var ret: C.SDL_FRect = undefined;
-            try errors.wrapCallBool(C.SDL_GetRectUnionFloat(&a, &b, &ret));
+            var ret: c.SDL_FRect = undefined;
+            try errors.wrapCallBool(c.SDL_GetRectUnionFloat(&a, &b, &ret));
             return fromSdl(ret);
         }
 
@@ -443,8 +443,8 @@ pub fn Rect(comptime Type: type) type {
         ) !IRect {
             const a = self.toSdl();
             const b = other.toSdl();
-            var ret: C.SDL_Rect = undefined;
-            try errors.wrapCallBool(C.SDL_GetRectUnion(&a, &b, &ret));
+            var ret: c.SDL_Rect = undefined;
+            try errors.wrapCallBool(c.SDL_GetRectUnion(&a, &b, &ret));
             return fromSdl(ret);
         }
 
@@ -455,7 +455,7 @@ pub fn Rect(comptime Type: type) type {
         ) bool {
             const a = self.toSdl();
             const b = other.toSdl();
-            return C.SDL_HasRectIntersectionFloat(&a, &b);
+            return c.SDL_HasRectIntersectionFloat(&a, &b);
         }
 
         /// If two rectangles are intersecting.
@@ -465,7 +465,7 @@ pub fn Rect(comptime Type: type) type {
         ) bool {
             const a = self.toSdl();
             const b = other.toSdl();
-            return C.SDL_HasRectIntersection(&a, &b);
+            return c.SDL_HasRectIntersection(&a, &b);
         }
 
         /// Determine whether a point resides inside a rectangle.
@@ -496,8 +496,8 @@ pub fn Rect(comptime Type: type) type {
         }
 
         /// Get the SDL rect.
-        fn toSdlFRect(self: FRect) C.SDL_FRect {
-            return C.SDL_FRect{
+        fn toSdlFRect(self: FRect) c.SDL_FRect {
+            return c.SDL_FRect{
                 .x = @floatCast(self.x),
                 .y = @floatCast(self.y),
                 .w = @floatCast(self.w),
@@ -506,8 +506,8 @@ pub fn Rect(comptime Type: type) type {
         }
 
         /// Get the SDL rect.
-        fn toSdlIRect(self: IRect) C.SDL_Rect {
-            return C.SDL_Rect{
+        fn toSdlIRect(self: IRect) c.SDL_Rect {
+            return c.SDL_Rect{
                 .x = @intCast(self.x),
                 .y = @intCast(self.y),
                 .w = @intCast(self.w),

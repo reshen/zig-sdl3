@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const properties = @import("properties.zig");
 const std = @import("std");
@@ -11,7 +11,7 @@ const std = @import("std");
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
 pub const ID = packed struct {
-    value: C.SDL_ThreadID,
+    value: c.SDL_ThreadID,
 };
 
 /// The SDL thread priority.
@@ -24,10 +24,10 @@ pub const ID = packed struct {
 /// ## Version
 /// This enum is available since SDL 3.2.0.
 pub const Priority = enum(c_uint) {
-    low = C.SDL_THREAD_PRIORITY_LOW,
-    normal = C.SDL_THREAD_PRIORITY_NORMAL,
-    high = C.SDL_THREAD_PRIORITY_HIGH,
-    time_critical = C.SDL_THREAD_PRIORITY_TIME_CRITICAL,
+    low = c.SDL_THREAD_PRIORITY_LOW,
+    normal = c.SDL_THREAD_PRIORITY_NORMAL,
+    high = c.SDL_THREAD_PRIORITY_HIGH,
+    time_critical = c.SDL_THREAD_PRIORITY_TIME_CRITICAL,
 };
 
 /// The SDL thread state.
@@ -46,17 +46,17 @@ pub const State = enum(c_uint) {
     complete,
 
     /// From and SDL value.
-    pub fn fromSdl(value: C.SDL_ThreadState) ?State {
-        if (value == C.SDL_THREAD_UNKNOWN)
+    pub fn fromSdl(value: c.SDL_ThreadState) ?State {
+        if (value == c.SDL_THREAD_UNKNOWN)
             return null;
         return @enumFromInt(value);
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: ?State) C.SDL_ThreadState {
+    pub fn toSdl(self: ?State) c.SDL_ThreadState {
         if (self) |val|
             return @intFromEnum(val);
-        return C.SDL_THREAD_UNKNOWN;
+        return c.SDL_THREAD_UNKNOWN;
     }
 };
 
@@ -68,7 +68,7 @@ pub const State = enum(c_uint) {
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
 pub const Thread = packed struct {
-    value: *C.SDL_Thread,
+    value: *c.SDL_Thread,
 
     /// Properties to use for thread creation.
     ///
@@ -87,13 +87,13 @@ pub const Thread = packed struct {
         // Get properties, must free after.
         pub fn toSdl(self: InitProperties) !properties.Group {
             const ret = try properties.Group.init();
-            try ret.set(C.SDL_PROP_THREAD_CREATE_ENTRY_FUNCTION_POINTER, .{ .pointer = @constCast(self.entry_function) });
+            try ret.set(c.SDL_PROP_THREAD_CREATE_ENTRY_FUNCTION_POINTER, .{ .pointer = @constCast(self.entry_function) });
             if (self.name) |val|
-                try ret.set(C.SDL_PROP_THREAD_CREATE_NAME_STRING, .{ .string = val });
+                try ret.set(c.SDL_PROP_THREAD_CREATE_NAME_STRING, .{ .string = val });
             if (self.user_data) |val|
-                try ret.set(C.SDL_PROP_THREAD_CREATE_USERDATA_POINTER, .{ .pointer = val });
+                try ret.set(c.SDL_PROP_THREAD_CREATE_USERDATA_POINTER, .{ .pointer = val });
             if (self.stack_size) |val|
-                try ret.set(C.SDL_PROP_THREAD_CREATE_STACKSIZE_NUMBER, .{ .number = @intCast(val) });
+                try ret.set(c.SDL_PROP_THREAD_CREATE_STACKSIZE_NUMBER, .{ .number = @intCast(val) });
             return ret;
         }
     };
@@ -129,7 +129,7 @@ pub const Thread = packed struct {
     pub fn detach(
         self: Thread,
     ) void {
-        C.SDL_DetachThread(self.value);
+        c.SDL_DetachThread(self.value);
     }
 
     /// Create a new thread with a default stack size.
@@ -161,7 +161,7 @@ pub const Thread = packed struct {
         name: ?[:0]const u8,
         data: ?*anyopaque,
     ) !Thread {
-        return .{ .value = try errors.wrapNull(*C.SDL_Thread, C.SDL_CreateThread(func, if (name) |val| val.ptr else null, data)) };
+        return .{ .value = try errors.wrapNull(*c.SDL_Thread, c.SDL_CreateThread(func, if (name) |val| val.ptr else null, data)) };
     }
 
     /// Create a new thread with with the specified properties.
@@ -206,7 +206,7 @@ pub const Thread = packed struct {
     ) !Thread {
         const init_props = try props.toSdl();
         defer init_props.deinit();
-        return .{ .value = try errors.wrapNull(*C.SDL_Thread, C.SDL_CreateThreadWithProperties(init_props.value)) };
+        return .{ .value = try errors.wrapNull(*c.SDL_Thread, c.SDL_CreateThreadWithProperties(init_props.value)) };
     }
 
     /// Get the thread identifier for the specified thread.
@@ -229,7 +229,7 @@ pub const Thread = packed struct {
     pub fn getId(
         self: Thread,
     ) ID {
-        return .{ .value = C.SDL_GetThreadID(self.value) };
+        return .{ .value = c.SDL_GetThreadID(self.value) };
     }
 
     /// Get the thread name as it was specified in `thread.Thread.init()`.
@@ -245,7 +245,7 @@ pub const Thread = packed struct {
     pub fn getName(
         self: Thread,
     ) ?[:0]const u8 {
-        const ret = C.SDL_GetThreadName(self.value);
+        const ret = c.SDL_GetThreadName(self.value);
         if (ret) |val|
             return std.mem.span(val);
         return null;
@@ -264,7 +264,7 @@ pub const Thread = packed struct {
     pub fn getState(
         self: Thread,
     ) ?State {
-        return State.fromSdl(C.SDL_GetThreadState(self.value));
+        return State.fromSdl(c.SDL_GetThreadState(self.value));
     }
 
     /// Wait for a thread to finish.
@@ -293,7 +293,7 @@ pub const Thread = packed struct {
         self: Thread,
     ) ?c_int {
         var status: c_int = undefined;
-        C.SDL_WaitThread(self.value, &status);
+        c.SDL_WaitThread(self.value, &status);
         if (status == -1)
             return null;
         return status;
@@ -310,7 +310,7 @@ pub const Thread = packed struct {
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const ThreadFunction = *const fn (user_data: ?*anyopaque) callconv(.C) c_int;
+pub const ThreadFunction = *const fn (user_data: ?*anyopaque) callconv(.c) c_int;
 
 /// The callback used to cleanup data passed to `thread.TLSID.set()`.
 ///
@@ -322,7 +322,7 @@ pub const ThreadFunction = *const fn (user_data: ?*anyopaque) callconv(.C) c_int
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const TlsDestructorCallback = *const fn (value: ?*anyopaque) callconv(.C) void;
+pub const TlsDestructorCallback = *const fn (value: ?*anyopaque) callconv(.c) void;
 
 /// Thread local storage ID.
 ///
@@ -332,7 +332,7 @@ pub const TlsDestructorCallback = *const fn (value: ?*anyopaque) callconv(.C) vo
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
 pub const TLSID = struct {
-    value: C.SDL_TLSID,
+    value: c.SDL_TLSID,
 
     /// Initialize thread local storage.
     ///
@@ -364,7 +364,7 @@ pub const TLSID = struct {
     pub fn get(
         self: *TLSID,
     ) !*anyopaque {
-        return errors.wrapNull(*anyopaque, C.SDL_GetTLS(&self.value));
+        return errors.wrapNull(*anyopaque, c.SDL_GetTLS(&self.value));
     }
 
     /// Set the current thread's value associated with a thread local storage ID.
@@ -392,7 +392,7 @@ pub const TLSID = struct {
         value: ?*const anyopaque,
         destructor: ?TlsDestructorCallback,
     ) !void {
-        return errors.wrapCallBool(C.SDL_SetTLS(&self.value, value, destructor));
+        return errors.wrapCallBool(c.SDL_SetTLS(&self.value, value, destructor));
     }
 };
 
@@ -407,7 +407,7 @@ pub const TLSID = struct {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn cleanupTls() void {
-    C.SDL_CleanupTLS();
+    c.SDL_CleanupTLS();
 }
 
 /// Get the thread identifier for the current thread.
@@ -423,7 +423,7 @@ pub fn cleanupTls() void {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getCurrentId() ID {
-    return .{ .value = C.SDL_GetCurrentThreadID() };
+    return .{ .value = c.SDL_GetCurrentThreadID() };
 }
 
 /// Set the priority for the current thread.
@@ -441,15 +441,15 @@ pub fn getCurrentId() ID {
 pub fn setCurrentPriority(
     priority: Priority,
 ) !void {
-    return errors.wrapCallBool(C.SDL_SetCurrentThreadPriority(@intFromEnum(priority)));
+    return errors.wrapCallBool(c.SDL_SetCurrentThreadPriority(@intFromEnum(priority)));
 }
 
-fn threadFunc(user_data: ?*anyopaque) callconv(.C) c_int {
+fn threadFunc(user_data: ?*anyopaque) callconv(.c) c_int {
     _ = user_data;
     return 3;
 }
 
-fn tlsDestructor(value: ?*anyopaque) callconv(.C) void {
+fn tlsDestructor(value: ?*anyopaque) callconv(.c) void {
     _ = value;
 }
 

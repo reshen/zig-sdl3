@@ -51,7 +51,7 @@ pub export fn SDL_AppInit(
     app_state: *?*anyopaque,
     arg_count: c_int,
     arg_values: [*][*:0]u8,
-) callconv(.C) sdl3.AppResult {
+) callconv(.c) sdl3.AppResult {
     return init(@ptrCast(app_state), arg_values[0..@intCast(arg_count)]) catch return .failure;
 }
 
@@ -107,7 +107,7 @@ pub export fn SDL_AppInit(
 /// This function is available since SDL 3.2.0.
 pub export fn SDL_AppIterate(
     app_state: ?*anyopaque,
-) callconv(.C) sdl3.AppResult {
+) callconv(.c) sdl3.AppResult {
     return iterate(@alignCast(@ptrCast(app_state))) catch return .failure;
 }
 
@@ -155,7 +155,7 @@ pub export fn SDL_AppIterate(
 pub export fn SDL_AppEvent(
     app_state: ?*anyopaque,
     event: *sdl3.c.SDL_Event,
-) callconv(.C) sdl3.AppResult {
+) callconv(.c) sdl3.AppResult {
     return eventHandler(@alignCast(@ptrCast(app_state)), sdl3.events.Event.fromSdl(event.*)) catch return .failure;
 }
 
@@ -200,7 +200,7 @@ pub export fn SDL_AppEvent(
 pub export fn SDL_AppQuit(
     app_state: ?*anyopaque,
     result: sdl3.AppResult,
-) callconv(.C) void {
+) callconv(.c) void {
     quit(@alignCast(@ptrCast(app_state)), result);
 }
 
@@ -264,7 +264,7 @@ fn sdlLog(
     category: c_int,
     priority: sdl3.c.SDL_LogPriority,
     message: [*c]const u8,
-) callconv(.C) void {
+) callconv(.c) void {
     _ = user_data;
     const category_managed = sdl3.log.Category.fromSdl(category);
     const category_str: ?[]const u8 = if (category_managed) |val| switch (val.value) {

@@ -1,15 +1,15 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const std = @import("std");
 
 /// A callback that fires when an SDL assertion fails.
 ///
 /// ## Function Parameters
-/// * `assert_data`: A pointer to the `C.SDL_AssertData` structure corresponding to the current assertion.
+/// * `assert_data`: A pointer to the `c.SDL_AssertData` structure corresponding to the current assertion.
 /// * `user_data`: What was passed as userdata to `assert.setHandler()`.
 ///
 /// ## Return Value
-/// Returns a `C.SDL_AssertState` value indicating how to handle the failure.
+/// Returns a `c.SDL_AssertState` value indicating how to handle the failure.
 ///
 /// ## Thread Safety
 /// This callback may be called from any thread that triggers an assert at any time.
@@ -17,9 +17,9 @@ const std = @import("std");
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
 pub const Handler = *const fn (
-    assert_data: [*c]const C.SDL_AssertData,
+    assert_data: [*c]const c.SDL_AssertData,
     user_data: ?*anyopaque,
-) callconv(.C) C.SDL_AssertState;
+) callconv(.c) c.SDL_AssertState;
 
 /// Possible outcomes from a triggered assertion.
 ///
@@ -33,15 +33,15 @@ pub const Handler = *const fn (
 /// This enum is available since SDL 3.2.0.
 pub const State = enum(c_int) {
     /// Retry the assert immediately.
-    retry = C.SDL_ASSERTION_RETRY,
+    retry = c.SDL_ASSERTION_RETRY,
     /// Make the debugger trigger a breakpoint.
-    breakpoint = C.SDL_ASSERTION_BREAK,
+    breakpoint = c.SDL_ASSERTION_BREAK,
     /// Terminate the program.
-    abort = C.SDL_ASSERTION_ABORT,
+    abort = c.SDL_ASSERTION_ABORT,
     /// Ignore the assert.
-    ignore = C.SDL_ASSERTION_IGNORE,
+    ignore = c.SDL_ASSERTION_IGNORE,
     /// Ignore the assert from now on.
-    always_ignore = C.SDL_ASSERTION_ALWAYS_IGNORE,
+    always_ignore = c.SDL_ASSERTION_ALWAYS_IGNORE,
 };
 
 /// Get the default assertion handler.
@@ -59,7 +59,7 @@ pub const State = enum(c_int) {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getDefaultHandler() Handler {
-    return C.SDL_GetDefaultAssertionHandler().?;
+    return c.SDL_GetDefaultAssertionHandler().?;
 }
 
 /// Get the current assertion handler.
@@ -82,7 +82,7 @@ pub fn getDefaultHandler() Handler {
 /// This function is available since SDL 3.2.0.
 pub fn getHandler() struct { handler: Handler, user_data: ?*anyopaque } {
     var user_data: ?*anyopaque = undefined;
-    const handler = C.SDL_GetAssertionHandler(&user_data).?;
+    const handler = c.SDL_GetAssertionHandler(&user_data).?;
     return .{ .handler = handler, .user_data = user_data };
 }
 
@@ -113,8 +113,8 @@ pub fn getHandler() struct { handler: Handler, user_data: ?*anyopaque } {
 ///
 /// ## Version
 /// This function is available since SDL 3.2.0.
-pub fn getReport() ?*const C.SDL_AssertData {
-    return C.SDL_GetAssertionReport();
+pub fn getReport() ?*const c.SDL_AssertData {
+    return c.SDL_GetAssertionReport();
 }
 
 /// Report an assertion.
@@ -132,10 +132,10 @@ pub fn getReport() ?*const C.SDL_AssertData {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn report(
-    data: *C.SDL_AssertData,
+    data: *c.SDL_AssertData,
     location: std.builtin.SourceLocation,
 ) State {
-    return @enumFromInt(C.SDL_ReportAssertion(
+    return @enumFromInt(c.SDL_ReportAssertion(
         data,
         location.fn_name,
         location.file,
@@ -157,7 +157,7 @@ pub fn report(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn resetReport() void {
-    C.SDL_ResetAssertionReport();
+    c.SDL_ResetAssertionReport();
 }
 
 /// Set an application-defined assertion handler.
@@ -183,14 +183,14 @@ pub fn setHandler(
     handler: ?Handler,
     user_data: ?*anyopaque,
 ) void {
-    C.SDL_SetAssertionHandler(handler, user_data);
+    c.SDL_SetAssertionHandler(handler, user_data);
 }
 
 const TestHandlerCallbackData = struct {
-    last_data: ?*const C.SDL_AssertData = null,
+    last_data: ?*const c.SDL_AssertData = null,
 };
 
-fn testAssertCallback(assert_data: [*c]const C.SDL_AssertData, user_data: ?*anyopaque) callconv(.C) C.SDL_AssertState {
+fn testAssertCallback(assert_data: [*c]const c.SDL_AssertData, user_data: ?*anyopaque) callconv(.c) c.SDL_AssertState {
     var data: *TestHandlerCallbackData = @ptrCast(@alignCast(user_data));
     data.last_data = assert_data;
     return @intFromEnum(State.ignore);
@@ -209,13 +209,13 @@ test "Assert" {
 
     try std.testing.expectEqual(null, getReport());
 
-    var assert_data1 = C.SDL_AssertData{};
-    var assert_data2 = C.SDL_AssertData{};
+    var assert_data1 = c.SDL_AssertData{};
+    var assert_data2 = c.SDL_AssertData{};
     _ = report(&assert_data1, @src());
     _ = report(&assert_data2, @src());
 
-    const report2: *const C.SDL_AssertData = getReport().?;
-    const report1: *const C.SDL_AssertData = report2.next.?;
+    const report2: *const c.SDL_AssertData = getReport().?;
+    const report1: *const c.SDL_AssertData = report2.next.?;
     try std.testing.expectEqual(null, report1.next);
     try std.testing.expectEqual(214, report1.linenum);
     try std.testing.expectEqualStrings("test.Assert", std.mem.span(report1.function));

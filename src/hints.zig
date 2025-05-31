@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const std = @import("std");
 
@@ -23,16 +23,16 @@ pub const Callback = *const fn (
     name: [*c]const u8,
     old_value: [*c]const u8,
     new_value: [*c]const u8,
-) callconv(.C) void;
+) callconv(.c) void;
 
 /// An enumeration of hint priorities.
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
 pub const Priority = enum(c_uint) {
-    Default = C.SDL_HINT_DEFAULT,
-    Normal = C.SDL_HINT_NORMAL,
-    Override = C.SDL_HINT_OVERRIDE,
+    Default = c.SDL_HINT_DEFAULT,
+    Normal = c.SDL_HINT_NORMAL,
+    Override = c.SDL_HINT_OVERRIDE,
 };
 
 /// Configuration hints for the library. May or may not be useful depending on the platform.
@@ -165,21 +165,21 @@ pub const Type = enum {
 
     /// Convert from an SDL string.
     pub fn fromSdl(val: [:0]const u8) Type {
-        if (std.mem.eql(u8, C.SDL_HINT_ALLOW_ALT_TAB_WHILE_GRABBED, val))
+        if (std.mem.eql(u8, c.SDL_HINT_ALLOW_ALT_TAB_WHILE_GRABBED, val))
             return .AllowAltTabWhileGrabbed;
-        if (std.mem.eql(u8, C.SDL_HINT_ANDROID_ALLOW_RECREATE_ACTIVITY, val))
+        if (std.mem.eql(u8, c.SDL_HINT_ANDROID_ALLOW_RECREATE_ACTIVITY, val))
             return .AndroidAllowRecreateActivity;
-        if (std.mem.eql(u8, C.SDL_HINT_ANDROID_BLOCK_ON_PAUSE, val))
+        if (std.mem.eql(u8, c.SDL_HINT_ANDROID_BLOCK_ON_PAUSE, val))
             return .AndroidBlockOnPause;
-        if (std.mem.eql(u8, C.SDL_HINT_ANDROID_LOW_LATENCY_AUDIO, val))
+        if (std.mem.eql(u8, c.SDL_HINT_ANDROID_LOW_LATENCY_AUDIO, val))
             return .AndroidLowLatencyAudio;
-        if (std.mem.eql(u8, C.SDL_HINT_ANDROID_TRAP_BACK_BUTTON, val))
+        if (std.mem.eql(u8, c.SDL_HINT_ANDROID_TRAP_BACK_BUTTON, val))
             return .AndroidTrapBackButton;
-        if (std.mem.eql(u8, C.SDL_HINT_APP_ID, val))
+        if (std.mem.eql(u8, c.SDL_HINT_APP_ID, val))
             return .AppID;
-        if (std.mem.eql(u8, C.SDL_HINT_APP_NAME, val))
+        if (std.mem.eql(u8, c.SDL_HINT_APP_NAME, val))
             return .AppName;
-        if (std.mem.eql(u8, C.SDL_HINT_APPLE_TV_CONTROLLER_UI_EVENTS, val))
+        if (std.mem.eql(u8, c.SDL_HINT_APPLE_TV_CONTROLLER_UI_EVENTS, val))
             return .AppleTvControllerUiEvents;
         return .AllowAltTabWhileGrabbed;
     }
@@ -187,14 +187,14 @@ pub const Type = enum {
     /// Convert to an SDL string.
     pub fn toSdl(self: Type) [:0]const u8 {
         return switch (self) {
-            .AllowAltTabWhileGrabbed => C.SDL_HINT_ALLOW_ALT_TAB_WHILE_GRABBED,
-            .AndroidAllowRecreateActivity => C.SDL_HINT_ANDROID_ALLOW_RECREATE_ACTIVITY,
-            .AndroidBlockOnPause => C.SDL_HINT_ANDROID_BLOCK_ON_PAUSE,
-            .AndroidLowLatencyAudio => C.SDL_HINT_ANDROID_LOW_LATENCY_AUDIO,
-            .AndroidTrapBackButton => C.SDL_HINT_ANDROID_TRAP_BACK_BUTTON,
-            .AppID => C.SDL_HINT_APP_ID,
-            .AppName => C.SDL_HINT_APP_NAME,
-            .AppleTvControllerUiEvents => C.SDL_HINT_APPLE_TV_CONTROLLER_UI_EVENTS,
+            .AllowAltTabWhileGrabbed => c.SDL_HINT_ALLOW_ALT_TAB_WHILE_GRABBED,
+            .AndroidAllowRecreateActivity => c.SDL_HINT_ANDROID_ALLOW_RECREATE_ACTIVITY,
+            .AndroidBlockOnPause => c.SDL_HINT_ANDROID_BLOCK_ON_PAUSE,
+            .AndroidLowLatencyAudio => c.SDL_HINT_ANDROID_LOW_LATENCY_AUDIO,
+            .AndroidTrapBackButton => c.SDL_HINT_ANDROID_TRAP_BACK_BUTTON,
+            .AppID => c.SDL_HINT_APP_ID,
+            .AppName => c.SDL_HINT_APP_NAME,
+            .AppleTvControllerUiEvents => c.SDL_HINT_APPLE_TV_CONTROLLER_UI_EVENTS,
         };
     }
 };
@@ -219,7 +219,7 @@ pub fn addCallback(
     callback: Callback,
     user_data: ?*anyopaque,
 ) !void {
-    const ret = C.SDL_AddHintCallback(
+    const ret = c.SDL_AddHintCallback(
         hint.toSdl(),
         callback,
         user_data,
@@ -245,7 +245,7 @@ pub fn addCallback(
 pub fn get(
     hint: Type,
 ) ?[:0]const u8 {
-    const ret = C.SDL_GetHint(
+    const ret = c.SDL_GetHint(
         hint.toSdl(),
     );
     if (ret == null)
@@ -269,7 +269,7 @@ pub fn get(
 pub fn getBoolean(
     hint: Type,
 ) ?bool {
-    const ret = C.SDL_GetHintBoolean(
+    const ret = c.SDL_GetHintBoolean(
         hint.toSdl(),
         false,
     );
@@ -294,7 +294,7 @@ pub fn removeCallback(
     callback: Callback,
     user_data: ?*anyopaque,
 ) void {
-    C.SDL_RemoveHintCallback(
+    c.SDL_RemoveHintCallback(
         hint.toSdl(),
         callback,
         user_data,
@@ -318,7 +318,7 @@ pub fn removeCallback(
 pub fn reset(
     hint: Type,
 ) !void {
-    const ret = C.SDL_ResetHint(
+    const ret = c.SDL_ResetHint(
         hint.toSdl(),
     );
     return errors.wrapCallBool(ret);
@@ -336,7 +336,7 @@ pub fn reset(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn resetAll() void {
-    C.SDL_ResetHints();
+    c.SDL_ResetHints();
 }
 
 /// Set a hint with normal priority.
@@ -352,7 +352,7 @@ pub fn set(
     hint: Type,
     value: [:0]const u8,
 ) !void {
-    const ret = C.SDL_SetHint(
+    const ret = c.SDL_SetHint(
         hint.toSdl(),
         value.ptr,
     );
@@ -381,7 +381,7 @@ pub fn setWithPriority(
     value: [:0]const u8,
     priority: Priority,
 ) !void {
-    const ret = C.SDL_SetHintWithPriority(
+    const ret = c.SDL_SetHintWithPriority(
         hint.toSdl(),
         value.ptr,
         @intFromEnum(priority),
@@ -389,7 +389,7 @@ pub fn setWithPriority(
     return errors.wrapCallBool(ret);
 }
 
-fn testHintCb(user_data: ?*anyopaque, name: [*c]const u8, old_value: [*c]const u8, new_value: [*c]const u8) callconv(.C) void {
+fn testHintCb(user_data: ?*anyopaque, name: [*c]const u8, old_value: [*c]const u8, new_value: [*c]const u8) callconv(.c) void {
     const ctr_ptr: *i32 = @ptrCast(@alignCast(user_data));
     _ = name;
     _ = old_value;

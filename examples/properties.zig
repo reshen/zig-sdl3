@@ -13,13 +13,13 @@ fn printPropertyType(typ: ?sdl3.properties.Type) []const u8 {
     return "[does not exist]";
 }
 
-fn arrayCleanupCallback(user_data: ?*anyopaque, val: ?*anyopaque) callconv(.C) void {
+fn arrayCleanupCallback(user_data: ?*anyopaque, val: ?*anyopaque) callconv(.c) void {
     _ = user_data;
     const data: *std.ArrayList(u32) = @alignCast(@ptrCast(val));
     data.deinit();
 }
 
-fn printItems(user_data: ?*anyopaque, props: sdl3.c.SDL_PropertiesID, name: [*c]const u8) callconv(.C) void {
+fn printItems(user_data: ?*anyopaque, props: sdl3.c.SDL_PropertiesID, name: [*c]const u8) callconv(.c) void {
     const index: *u32 = @alignCast(@ptrCast(user_data));
     const group = sdl3.properties.Group{ .value = props };
     std.io.getStdOut().writer().print("Index: {d}, Name: \"{s}\", Type: {s}\n", .{

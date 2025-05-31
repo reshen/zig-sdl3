@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const guid = @import("guid.zig");
 const power = @import("power.zig");
@@ -10,7 +10,7 @@ const std = @import("std");
 ///
 /// ## Version
 /// This macro is available since SDL 3.2.0.
-pub const axis_max: i16 = @intCast(C.SDL_JOYSTICK_AXIS_MAX);
+pub const axis_max: i16 = @intCast(c.SDL_JOYSTICK_AXIS_MAX);
 
 /// The smallest value a joystick axis can report.
 ///
@@ -19,7 +19,7 @@ pub const axis_max: i16 = @intCast(C.SDL_JOYSTICK_AXIS_MAX);
 ///
 /// ## Version
 /// This macro is available since SDL 3.2.0.
-pub const axis_min: i16 = @intCast(C.SDL_JOYSTICK_AXIS_MIN);
+pub const axis_min: i16 = @intCast(c.SDL_JOYSTICK_AXIS_MIN);
 
 /// The list of axes available on a gamepad.
 ///
@@ -43,12 +43,12 @@ pub const AxisMask = packed struct(c_uint) {
 
     // Struct tests.
     comptime {
-        std.debug.assert(@as(c_int, @bitCast(AxisMask{ .left_x = true })) == 1 << C.SDL_GAMEPAD_AXIS_LEFTX);
-        std.debug.assert(@as(c_int, @bitCast(AxisMask{ .left_y = true })) == 1 << C.SDL_GAMEPAD_AXIS_LEFTY);
-        std.debug.assert(@as(c_int, @bitCast(AxisMask{ .right_x = true })) == 1 << C.SDL_GAMEPAD_AXIS_RIGHTX);
-        std.debug.assert(@as(c_int, @bitCast(AxisMask{ .right_y = true })) == 1 << C.SDL_GAMEPAD_AXIS_RIGHTY);
-        std.debug.assert(@as(c_int, @bitCast(AxisMask{ .left_trigger = true })) == 1 << C.SDL_GAMEPAD_AXIS_LEFT_TRIGGER);
-        std.debug.assert(@as(c_int, @bitCast(AxisMask{ .right_trigger = true })) == 1 << C.SDL_GAMEPAD_AXIS_RIGHT_TRIGGER);
+        std.debug.assert(@as(c_int, @bitCast(AxisMask{ .left_x = true })) == 1 << c.SDL_GAMEPAD_AXIS_LEFTX);
+        std.debug.assert(@as(c_int, @bitCast(AxisMask{ .left_y = true })) == 1 << c.SDL_GAMEPAD_AXIS_LEFTY);
+        std.debug.assert(@as(c_int, @bitCast(AxisMask{ .right_x = true })) == 1 << c.SDL_GAMEPAD_AXIS_RIGHTX);
+        std.debug.assert(@as(c_int, @bitCast(AxisMask{ .right_y = true })) == 1 << c.SDL_GAMEPAD_AXIS_RIGHTY);
+        std.debug.assert(@as(c_int, @bitCast(AxisMask{ .left_trigger = true })) == 1 << c.SDL_GAMEPAD_AXIS_LEFT_TRIGGER);
+        std.debug.assert(@as(c_int, @bitCast(AxisMask{ .right_trigger = true })) == 1 << c.SDL_GAMEPAD_AXIS_RIGHT_TRIGGER);
     }
 };
 
@@ -115,32 +115,32 @@ pub const ButtonMask = packed struct(c_uint) {
 
     // Struct tests.
     comptime {
-        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .south = true })) == 1 << C.SDL_GAMEPAD_BUTTON_SOUTH);
-        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .east = true })) == 1 << C.SDL_GAMEPAD_BUTTON_EAST);
-        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .west = true })) == 1 << C.SDL_GAMEPAD_BUTTON_WEST);
-        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .north = true })) == 1 << C.SDL_GAMEPAD_BUTTON_NORTH);
-        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .back = true })) == 1 << C.SDL_GAMEPAD_BUTTON_BACK);
-        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .guide = true })) == 1 << C.SDL_GAMEPAD_BUTTON_GUIDE);
-        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .start = true })) == 1 << C.SDL_GAMEPAD_BUTTON_START);
-        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .left_stick = true })) == 1 << C.SDL_GAMEPAD_BUTTON_LEFT_STICK);
-        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .right_stick = true })) == 1 << C.SDL_GAMEPAD_BUTTON_RIGHT_STICK);
-        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .left_shoulder = true })) == 1 << C.SDL_GAMEPAD_BUTTON_LEFT_SHOULDER);
-        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .right_shoulder = true })) == 1 << C.SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER);
-        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .dpad_up = true })) == 1 << C.SDL_GAMEPAD_BUTTON_DPAD_UP);
-        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .dpad_down = true })) == 1 << C.SDL_GAMEPAD_BUTTON_DPAD_DOWN);
-        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .dpad_left = true })) == 1 << C.SDL_GAMEPAD_BUTTON_DPAD_LEFT);
-        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .dpad_right = true })) == 1 << C.SDL_GAMEPAD_BUTTON_DPAD_RIGHT);
-        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .misc1 = true })) == 1 << C.SDL_GAMEPAD_BUTTON_MISC1);
-        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .right_paddle1 = true })) == 1 << C.SDL_GAMEPAD_BUTTON_RIGHT_PADDLE1);
-        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .left_paddle1 = true })) == 1 << C.SDL_GAMEPAD_BUTTON_LEFT_PADDLE1);
-        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .right_paddle2 = true })) == 1 << C.SDL_GAMEPAD_BUTTON_RIGHT_PADDLE2);
-        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .left_paddle2 = true })) == 1 << C.SDL_GAMEPAD_BUTTON_LEFT_PADDLE2);
-        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .touchpad = true })) == 1 << C.SDL_GAMEPAD_BUTTON_TOUCHPAD);
-        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .misc2 = true })) == 1 << C.SDL_GAMEPAD_BUTTON_MISC2);
-        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .misc3 = true })) == 1 << C.SDL_GAMEPAD_BUTTON_MISC3);
-        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .misc4 = true })) == 1 << C.SDL_GAMEPAD_BUTTON_MISC4);
-        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .misc5 = true })) == 1 << C.SDL_GAMEPAD_BUTTON_MISC5);
-        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .misc6 = true })) == 1 << C.SDL_GAMEPAD_BUTTON_MISC6);
+        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .south = true })) == 1 << c.SDL_GAMEPAD_BUTTON_SOUTH);
+        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .east = true })) == 1 << c.SDL_GAMEPAD_BUTTON_EAST);
+        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .west = true })) == 1 << c.SDL_GAMEPAD_BUTTON_WEST);
+        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .north = true })) == 1 << c.SDL_GAMEPAD_BUTTON_NORTH);
+        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .back = true })) == 1 << c.SDL_GAMEPAD_BUTTON_BACK);
+        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .guide = true })) == 1 << c.SDL_GAMEPAD_BUTTON_GUIDE);
+        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .start = true })) == 1 << c.SDL_GAMEPAD_BUTTON_START);
+        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .left_stick = true })) == 1 << c.SDL_GAMEPAD_BUTTON_LEFT_STICK);
+        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .right_stick = true })) == 1 << c.SDL_GAMEPAD_BUTTON_RIGHT_STICK);
+        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .left_shoulder = true })) == 1 << c.SDL_GAMEPAD_BUTTON_LEFT_SHOULDER);
+        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .right_shoulder = true })) == 1 << c.SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER);
+        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .dpad_up = true })) == 1 << c.SDL_GAMEPAD_BUTTON_DPAD_UP);
+        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .dpad_down = true })) == 1 << c.SDL_GAMEPAD_BUTTON_DPAD_DOWN);
+        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .dpad_left = true })) == 1 << c.SDL_GAMEPAD_BUTTON_DPAD_LEFT);
+        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .dpad_right = true })) == 1 << c.SDL_GAMEPAD_BUTTON_DPAD_RIGHT);
+        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .misc1 = true })) == 1 << c.SDL_GAMEPAD_BUTTON_MISC1);
+        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .right_paddle1 = true })) == 1 << c.SDL_GAMEPAD_BUTTON_RIGHT_PADDLE1);
+        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .left_paddle1 = true })) == 1 << c.SDL_GAMEPAD_BUTTON_LEFT_PADDLE1);
+        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .right_paddle2 = true })) == 1 << c.SDL_GAMEPAD_BUTTON_RIGHT_PADDLE2);
+        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .left_paddle2 = true })) == 1 << c.SDL_GAMEPAD_BUTTON_LEFT_PADDLE2);
+        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .touchpad = true })) == 1 << c.SDL_GAMEPAD_BUTTON_TOUCHPAD);
+        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .misc2 = true })) == 1 << c.SDL_GAMEPAD_BUTTON_MISC2);
+        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .misc3 = true })) == 1 << c.SDL_GAMEPAD_BUTTON_MISC3);
+        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .misc4 = true })) == 1 << c.SDL_GAMEPAD_BUTTON_MISC4);
+        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .misc5 = true })) == 1 << c.SDL_GAMEPAD_BUTTON_MISC5);
+        std.debug.assert(@as(c_int, @bitCast(ButtonMask{ .misc6 = true })) == 1 << c.SDL_GAMEPAD_BUTTON_MISC6);
     }
 };
 
@@ -152,28 +152,28 @@ pub const ButtonMask = packed struct(c_uint) {
 /// ## Version
 /// This enum is available since SDL 3.2.0.
 pub const ConnectionState = enum(c_int) {
-    wired = C.SDL_JOYSTICK_CONNECTION_WIRED,
-    wireless = C.SDL_JOYSTICK_CONNECTION_WIRELESS,
+    wired = c.SDL_JOYSTICK_CONNECTION_WIRED,
+    wireless = c.SDL_JOYSTICK_CONNECTION_WIRELESS,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_JoystickConnectionState) !?ConnectionState {
-        if (value == C.SDL_JOYSTICK_CONNECTION_INVALID) {
+    pub fn fromSdl(value: c.SDL_JoystickConnectionState) !?ConnectionState {
+        if (value == c.SDL_JOYSTICK_CONNECTION_INVALID) {
             errors.callErrorCallback();
             return error.SdlError;
         }
-        if (value == C.SDL_JOYSTICK_CONNECTION_UNKNOWN)
+        if (value == c.SDL_JOYSTICK_CONNECTION_UNKNOWN)
             return null;
         return @enumFromInt(value);
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: errors.Error!?ConnectionState) C.SDL_JoystickConnectionState {
+    pub fn toSdl(self: errors.Error!?ConnectionState) c.SDL_JoystickConnectionState {
         if (self) |val| {
             if (val) |num| {
                 return @intFromEnum(num);
             }
-            return C.SDL_JOYSTICK_CONNECTION_UNKNOWN;
-        } else |_| return C.SDL_JOYSTICK_CONNECTION_INVALID;
+            return c.SDL_JOYSTICK_CONNECTION_UNKNOWN;
+        } else |_| return c.SDL_JOYSTICK_CONNECTION_INVALID;
     }
 };
 
@@ -185,11 +185,11 @@ pub const ConnectionState = enum(c_int) {
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
 pub const ID = packed struct {
-    value: C.SDL_JoystickID,
+    value: c.SDL_JoystickID,
 
     // Size tests.
     comptime {
-        std.debug.assert(@sizeOf(C.SDL_JoystickID) == @sizeOf(ID));
+        std.debug.assert(@sizeOf(c.SDL_JoystickID) == @sizeOf(ID));
     }
 
     /// Detach a virtual joystick.
@@ -202,7 +202,7 @@ pub const ID = packed struct {
     pub fn deinitVirtual(
         self: ID,
     ) !void {
-        return errors.wrapCallBool(C.SDL_DetachVirtualJoystick(self.value));
+        return errors.wrapCallBool(c.SDL_DetachVirtualJoystick(self.value));
     }
 
     /// Attach a new virtual joystick.
@@ -219,7 +219,7 @@ pub const ID = packed struct {
         virtual: VirtualJoystickDescription,
     ) !ID {
         const virtual_sdl = virtual.toSdl();
-        return .{ .value = try errors.wrapCall(C.SDL_JoystickID, C.SDL_AttachVirtualJoystick(&virtual_sdl), 0) };
+        return .{ .value = try errors.wrapCall(c.SDL_JoystickID, c.SDL_AttachVirtualJoystick(&virtual_sdl), 0) };
     }
 
     /// Get the implementation-dependent GUID of a joystick.
@@ -239,7 +239,7 @@ pub const ID = packed struct {
     pub fn getGuid(
         self: ID,
     ) guid.GUID {
-        const ret = C.SDL_GetJoystickGUIDForID(
+        const ret = c.SDL_GetJoystickGUIDForID(
             self.value,
         );
         return .{
@@ -263,7 +263,7 @@ pub const ID = packed struct {
     pub fn getName(
         self: ID,
     ) ![:0]const u8 {
-        const ret = C.SDL_GetJoystickNameForID(
+        const ret = c.SDL_GetJoystickNameForID(
             self.value,
         );
         return errors.wrapCallCString(ret);
@@ -285,7 +285,7 @@ pub const ID = packed struct {
     pub fn getPath(
         self: ID,
     ) ![:0]const u8 {
-        const ret = C.SDL_GetJoystickPathForID(
+        const ret = c.SDL_GetJoystickPathForID(
             self.value,
         );
         return errors.wrapCallCString(ret);
@@ -307,7 +307,7 @@ pub const ID = packed struct {
     pub fn getPlayerIndex(
         self: ID,
     ) ?usize {
-        const ret = C.SDL_GetJoystickPlayerIndexForID(
+        const ret = c.SDL_GetJoystickPlayerIndexForID(
             self.value,
         );
         if (ret == -1)
@@ -333,7 +333,7 @@ pub const ID = packed struct {
     pub fn getProduct(
         self: ID,
     ) ?u16 {
-        const ret = C.SDL_GetJoystickProductForID(
+        const ret = c.SDL_GetJoystickProductForID(
             self.value,
         );
         if (ret == 0)
@@ -359,7 +359,7 @@ pub const ID = packed struct {
     pub fn getProductVersion(
         self: ID,
     ) ?u16 {
-        const ret = C.SDL_GetJoystickProductVersionForID(
+        const ret = c.SDL_GetJoystickProductVersionForID(
             self.value,
         );
         if (ret == 0)
@@ -384,7 +384,7 @@ pub const ID = packed struct {
     pub fn getType(
         self: ID,
     ) ?Type {
-        const ret = C.SDL_GetJoystickTypeForID(
+        const ret = c.SDL_GetJoystickTypeForID(
             self.value,
         );
         return Type.fromSdl(ret);
@@ -408,7 +408,7 @@ pub const ID = packed struct {
     pub fn getVendor(
         self: ID,
     ) ?u16 {
-        const ret = C.SDL_GetJoystickVendorForID(
+        const ret = c.SDL_GetJoystickVendorForID(
             self.value,
         );
         if (ret == 0)
@@ -429,7 +429,7 @@ pub const ID = packed struct {
     pub fn isVirtual(
         self: ID,
     ) bool {
-        const ret = C.SDL_IsJoystickVirtual(
+        const ret = c.SDL_IsJoystickVirtual(
             self.value,
         );
         return ret;
@@ -441,15 +441,15 @@ pub const ID = packed struct {
 /// ## Version
 /// This enum is provided by zig-sdl3.
 pub const Hat = enum(u8) {
-    centered = C.SDL_HAT_CENTERED,
-    up = C.SDL_HAT_UP,
-    right = C.SDL_HAT_RIGHT,
-    down = C.SDL_HAT_DOWN,
-    left = C.SDL_HAT_LEFT,
-    right_up = C.SDL_HAT_RIGHTUP,
-    right_down = C.SDL_HAT_RIGHTDOWN,
-    left_up = C.SDL_HAT_LEFTUP,
-    left_down = C.SDL_HAT_LEFTDOWN,
+    centered = c.SDL_HAT_CENTERED,
+    up = c.SDL_HAT_UP,
+    right = c.SDL_HAT_RIGHT,
+    down = c.SDL_HAT_DOWN,
+    left = c.SDL_HAT_LEFT,
+    right_up = c.SDL_HAT_RIGHTUP,
+    right_down = c.SDL_HAT_RIGHTDOWN,
+    left_up = c.SDL_HAT_LEFTUP,
+    left_down = c.SDL_HAT_LEFTDOWN,
 };
 
 /// The joystick structure used to identify an SDL joystick.
@@ -460,7 +460,7 @@ pub const Hat = enum(u8) {
 /// ## Version
 /// This struct is available since SDL 3.2.0.
 pub const Joystick = struct {
-    value: *C.SDL_Joystick,
+    value: *c.SDL_Joystick,
 
     /// Read only properties provided by SDL.
     ///
@@ -481,11 +481,11 @@ pub const Joystick = struct {
         /// Get properties from SDL.
         pub fn fromSdl(value: properties.Group) Properties {
             return .{
-                .mono_led = if (value.get(C.SDL_PROP_JOYSTICK_CAP_MONO_LED_BOOLEAN)) |val| val.boolean else null,
-                .rgb_led = if (value.get(C.SDL_PROP_JOYSTICK_CAP_RGB_LED_BOOLEAN)) |val| val.boolean else null,
-                .player_led = if (value.get(C.SDL_PROP_JOYSTICK_CAP_PLAYER_LED_BOOLEAN)) |val| val.boolean else null,
-                .rumble = if (value.get(C.SDL_PROP_JOYSTICK_CAP_RUMBLE_BOOLEAN)) |val| val.boolean else null,
-                .trigger_rumble = if (value.get(C.SDL_PROP_JOYSTICK_CAP_TRIGGER_RUMBLE_BOOLEAN)) |val| val.boolean else null,
+                .mono_led = if (value.get(c.SDL_PROP_JOYSTICK_CAP_MONO_LED_BOOLEAN)) |val| val.boolean else null,
+                .rgb_led = if (value.get(c.SDL_PROP_JOYSTICK_CAP_RGB_LED_BOOLEAN)) |val| val.boolean else null,
+                .player_led = if (value.get(c.SDL_PROP_JOYSTICK_CAP_PLAYER_LED_BOOLEAN)) |val| val.boolean else null,
+                .rumble = if (value.get(c.SDL_PROP_JOYSTICK_CAP_RUMBLE_BOOLEAN)) |val| val.boolean else null,
+                .trigger_rumble = if (value.get(c.SDL_PROP_JOYSTICK_CAP_TRIGGER_RUMBLE_BOOLEAN)) |val| val.boolean else null,
             };
         }
     };
@@ -500,7 +500,7 @@ pub const Joystick = struct {
     pub fn connected(
         self: Joystick,
     ) !void {
-        const ret = C.SDL_JoystickConnected(
+        const ret = c.SDL_JoystickConnected(
             self.value,
         );
         return errors.wrapCallBool(ret);
@@ -516,7 +516,7 @@ pub const Joystick = struct {
     pub fn deinit(
         self: Joystick,
     ) void {
-        C.SDL_CloseJoystick(
+        c.SDL_CloseJoystick(
             self.value,
         );
     }
@@ -545,7 +545,7 @@ pub const Joystick = struct {
         self: Joystick,
         index: usize,
     ) !i16 {
-        return errors.wrapCall(i16, C.SDL_GetJoystickAxis(self.value, @intCast(index)), 0);
+        return errors.wrapCall(i16, c.SDL_GetJoystickAxis(self.value, @intCast(index)), 0);
     }
 
     /// Get the initial state of an axis control on a joystick.
@@ -568,7 +568,7 @@ pub const Joystick = struct {
         index: usize,
     ) ?i16 {
         var state: i16 = undefined;
-        const ret = C.SDL_GetJoystickAxisInitialState(self.value, @intCast(index), &state);
+        const ret = c.SDL_GetJoystickAxisInitialState(self.value, @intCast(index), &state);
         if (ret)
             return state;
         return null;
@@ -596,7 +596,7 @@ pub const Joystick = struct {
     ) !struct { dx: isize, dy: isize } {
         var dx: c_int = undefined;
         var dy: c_int = undefined;
-        const ret = C.SDL_GetJoystickBall(self.value, @intCast(index), &dx, &dy);
+        const ret = c.SDL_GetJoystickBall(self.value, @intCast(index), &dx, &dy);
         try errors.wrapCallBool(ret);
         return .{ .dx = @intCast(dx), .dy = @intCast(dy) };
     }
@@ -616,7 +616,7 @@ pub const Joystick = struct {
         self: Joystick,
         index: usize,
     ) bool {
-        return C.SDL_GetJoystickButton(self.value, @intCast(index));
+        return c.SDL_GetJoystickButton(self.value, @intCast(index));
     }
 
     /// Get the connection state of a joystick.
@@ -632,7 +632,7 @@ pub const Joystick = struct {
     pub fn getConnectionState(
         self: Joystick,
     ) !?ConnectionState {
-        return ConnectionState.fromSdl(C.SDL_GetJoystickConnectionState(self.value));
+        return ConnectionState.fromSdl(c.SDL_GetJoystickConnectionState(self.value));
     }
 
     /// Get the firmware version of an opened joystick, if available.
@@ -651,7 +651,7 @@ pub const Joystick = struct {
     pub fn getFirmwareVersion(
         self: Joystick,
     ) ?u16 {
-        const ret = C.SDL_GetJoystickFirmwareVersion(
+        const ret = c.SDL_GetJoystickFirmwareVersion(
             self.value,
         );
         if (ret == 0)
@@ -676,7 +676,7 @@ pub const Joystick = struct {
     pub fn getGuid(
         self: Joystick,
     ) guid.GUID {
-        const ret = C.SDL_GetJoystickGUID(
+        const ret = c.SDL_GetJoystickGUID(
             self.value,
         );
         return .{
@@ -699,7 +699,7 @@ pub const Joystick = struct {
         self: Joystick,
         hat_index: usize,
     ) Hat {
-        const ret = C.SDL_GetJoystickHat(
+        const ret = c.SDL_GetJoystickHat(
             self.value,
             @intCast(hat_index),
         );
@@ -719,10 +719,10 @@ pub const Joystick = struct {
     pub fn getId(
         self: Joystick,
     ) !ID {
-        const ret = C.SDL_GetJoystickID(
+        const ret = c.SDL_GetJoystickID(
             self.value,
         );
-        return ID{ .value = try errors.wrapCall(C.SDL_JoystickID, ret, 0) };
+        return ID{ .value = try errors.wrapCall(c.SDL_JoystickID, ret, 0) };
     }
 
     /// Get the implementation dependent name of a joystick.
@@ -738,7 +738,7 @@ pub const Joystick = struct {
     pub fn getName(
         self: Joystick,
     ) ![:0]const u8 {
-        const ret = C.SDL_GetJoystickName(
+        const ret = c.SDL_GetJoystickName(
             self.value,
         );
         return errors.wrapCallCString(ret);
@@ -760,7 +760,7 @@ pub const Joystick = struct {
     pub fn getNumAxes(
         self: Joystick,
     ) !usize {
-        const ret = C.SDL_GetNumJoystickAxes(
+        const ret = c.SDL_GetNumJoystickAxes(
             self.value,
         );
         return @intCast(try errors.wrapCall(c_int, ret, -1));
@@ -784,7 +784,7 @@ pub const Joystick = struct {
     pub fn getNumBalls(
         self: Joystick,
     ) !usize {
-        const ret = C.SDL_GetNumJoystickBalls(
+        const ret = c.SDL_GetNumJoystickBalls(
             self.value,
         );
         return @intCast(try errors.wrapCall(c_int, ret, -1));
@@ -803,7 +803,7 @@ pub const Joystick = struct {
     pub fn getNumButtons(
         self: Joystick,
     ) !usize {
-        const ret = C.SDL_GetNumJoystickButtons(
+        const ret = c.SDL_GetNumJoystickButtons(
             self.value,
         );
         return @intCast(try errors.wrapCall(c_int, ret, -1));
@@ -822,7 +822,7 @@ pub const Joystick = struct {
     pub fn getNumHats(
         self: Joystick,
     ) !usize {
-        const ret = C.SDL_GetNumJoystickHats(
+        const ret = c.SDL_GetNumJoystickHats(
             self.value,
         );
         return @intCast(try errors.wrapCall(c_int, ret, -1));
@@ -841,7 +841,7 @@ pub const Joystick = struct {
     pub fn getPath(
         self: Joystick,
     ) ![:0]const u8 {
-        const ret = C.SDL_GetJoystickPath(
+        const ret = c.SDL_GetJoystickPath(
             self.value,
         );
         return errors.wrapCallCString(ret);
@@ -864,7 +864,7 @@ pub const Joystick = struct {
     pub fn getPlayerIndex(
         self: Joystick,
     ) ?usize {
-        const ret = C.SDL_GetJoystickPlayerIndex(
+        const ret = c.SDL_GetJoystickPlayerIndex(
             self.value,
         );
         if (ret == -1)
@@ -891,11 +891,11 @@ pub const Joystick = struct {
         self: Joystick,
     ) !struct { state: power.PowerState, percent: ?u7 } {
         var percent: c_int = undefined;
-        const ret = C.SDL_GetJoystickPowerInfo(
+        const ret = c.SDL_GetJoystickPowerInfo(
             self.value,
             &percent,
         );
-        return .{ .state = @enumFromInt(try errors.wrapCall(c_int, ret, C.SDL_POWERSTATE_ERROR)), .percent = if (percent == -1) null else @intCast(percent) };
+        return .{ .state = @enumFromInt(try errors.wrapCall(c_int, ret, c.SDL_POWERSTATE_ERROR)), .percent = if (percent == -1) null else @intCast(percent) };
     }
 
     /// Get the USB product ID of an opened joystick, if available.
@@ -914,7 +914,7 @@ pub const Joystick = struct {
     pub fn getProduct(
         self: Joystick,
     ) ?u16 {
-        const ret = C.SDL_GetJoystickProduct(
+        const ret = c.SDL_GetJoystickProduct(
             self.value,
         );
         if (ret == 0)
@@ -938,7 +938,7 @@ pub const Joystick = struct {
     pub fn getProductVersion(
         self: Joystick,
     ) ?u16 {
-        const ret = C.SDL_GetJoystickProductVersion(
+        const ret = c.SDL_GetJoystickProductVersion(
             self.value,
         );
         if (ret == 0)
@@ -959,8 +959,8 @@ pub const Joystick = struct {
     pub fn getProperties(
         self: Joystick,
     ) !Properties {
-        const ret = C.SDL_GetJoystickProperties(self.value);
-        return Properties.fromSdl(.{ .value = try errors.wrapCall(C.SDL_PropertiesID, ret, 0) });
+        const ret = c.SDL_GetJoystickProperties(self.value);
+        return Properties.fromSdl(.{ .value = try errors.wrapCall(c.SDL_PropertiesID, ret, 0) });
     }
 
     /// Get the serial number of an opened joystick, if available.
@@ -976,7 +976,7 @@ pub const Joystick = struct {
     pub fn getSerial(
         self: Joystick,
     ) ?[:0]const u8 {
-        const ret = C.SDL_GetJoystickSerial(
+        const ret = c.SDL_GetJoystickSerial(
             self.value,
         );
         if (ret == null)
@@ -997,7 +997,7 @@ pub const Joystick = struct {
     pub fn getType(
         self: Joystick,
     ) ?Type {
-        const ret = C.SDL_GetJoystickType(
+        const ret = c.SDL_GetJoystickType(
             self.value,
         );
         return Type.fromSdl(ret);
@@ -1019,7 +1019,7 @@ pub const Joystick = struct {
     pub fn getVendor(
         self: Joystick,
     ) ?u16 {
-        const ret = C.SDL_GetJoystickVendor(
+        const ret = c.SDL_GetJoystickVendor(
             self.value,
         );
         if (ret == 0)
@@ -1043,10 +1043,10 @@ pub const Joystick = struct {
     pub fn init(
         id: ID,
     ) !Joystick {
-        const ret = C.SDL_OpenJoystick(
+        const ret = c.SDL_OpenJoystick(
             id.value,
         );
-        return Joystick{ .value = try errors.wrapNull(*C.SDL_Joystick, ret) };
+        return Joystick{ .value = try errors.wrapNull(*c.SDL_Joystick, ret) };
     }
 
     /// Start a rumble effect.
@@ -1077,7 +1077,7 @@ pub const Joystick = struct {
         high_frequency_rumble: u16,
         duration_milliseconds: u32,
     ) bool {
-        const ret = C.SDL_RumbleJoystick(
+        const ret = c.SDL_RumbleJoystick(
             self.value,
             low_frequency_rumble,
             high_frequency_rumble,
@@ -1111,7 +1111,7 @@ pub const Joystick = struct {
         right_rumble: u16,
         duration_milliseconds: u32,
     ) !void {
-        const ret = C.SDL_RumbleJoystickTriggers(
+        const ret = c.SDL_RumbleJoystickTriggers(
             self.value,
             left_rumble,
             right_rumble,
@@ -1141,7 +1141,7 @@ pub const Joystick = struct {
         sensor_timestamp_nanoseconds: u64,
         data: []const f32,
     ) !void {
-        const ret = C.SDL_SendJoystickVirtualSensorData(
+        const ret = c.SDL_SendJoystickVirtualSensorData(
             self.value,
             @intFromEnum(sensor_type),
             @intCast(sensor_timestamp_nanoseconds),
@@ -1172,7 +1172,7 @@ pub const Joystick = struct {
         g: u8,
         b: u8,
     ) !void {
-        const ret = C.SDL_SetJoystickLED(
+        const ret = c.SDL_SetJoystickLED(
             self.value,
             @intCast(r),
             @intCast(g),
@@ -1193,7 +1193,7 @@ pub const Joystick = struct {
         self: Joystick,
         player_index: ?usize,
     ) !void {
-        const ret = C.SDL_SetJoystickPlayerIndex(
+        const ret = c.SDL_SetJoystickPlayerIndex(
             self.value,
             if (player_index) |val| @intCast(val) else -1,
         );
@@ -1222,7 +1222,7 @@ pub const Joystick = struct {
         axis_index: usize,
         value: i16,
     ) !void {
-        const ret = C.SDL_SetJoystickVirtualAxis(
+        const ret = c.SDL_SetJoystickVirtualAxis(
             self.value,
             @intCast(axis_index),
             @intCast(value),
@@ -1251,7 +1251,7 @@ pub const Joystick = struct {
         x_rel: i16,
         y_rel: i16,
     ) !void {
-        const ret = C.SDL_SetJoystickVirtualBall(
+        const ret = c.SDL_SetJoystickVirtualBall(
             self.value,
             @intCast(ball_index),
             @intCast(x_rel),
@@ -1279,7 +1279,7 @@ pub const Joystick = struct {
         button_index: usize,
         down: bool,
     ) !void {
-        const ret = C.SDL_SetJoystickVirtualButton(
+        const ret = c.SDL_SetJoystickVirtualButton(
             self.value,
             @intCast(button_index),
             down,
@@ -1306,7 +1306,7 @@ pub const Joystick = struct {
         hat_index: usize,
         value: Hat,
     ) !void {
-        const ret = C.SDL_SetJoystickVirtualHat(
+        const ret = c.SDL_SetJoystickVirtualHat(
             self.value,
             @intCast(hat_index),
             @intFromEnum(value),
@@ -1341,7 +1341,7 @@ pub const Joystick = struct {
         y: f32,
         pressure: f32,
     ) !void {
-        const ret = C.SDL_SetJoystickVirtualTouchpad(
+        const ret = c.SDL_SetJoystickVirtualTouchpad(
             self.value,
             @intCast(touchpad_index),
             @intCast(finger_index),
@@ -1367,28 +1367,28 @@ pub const Joystick = struct {
 /// ## Version
 /// This enum is available since SDL 3.2.0.
 pub const Type = enum(c_uint) {
-    gamepad = C.SDL_JOYSTICK_TYPE_GAMEPAD,
-    wheel = C.SDL_JOYSTICK_TYPE_WHEEL,
-    arcade_stick = C.SDL_JOYSTICK_TYPE_ARCADE_STICK,
-    flight_stick = C.SDL_JOYSTICK_TYPE_FLIGHT_STICK,
-    dance_pad = C.SDL_JOYSTICK_TYPE_DANCE_PAD,
-    guitar = C.SDL_JOYSTICK_TYPE_GUITAR,
-    drum_kit = C.SDL_JOYSTICK_TYPE_DRUM_KIT,
-    arcade_pad = C.SDL_JOYSTICK_TYPE_ARCADE_PAD,
-    throttle = C.SDL_JOYSTICK_TYPE_THROTTLE,
+    gamepad = c.SDL_JOYSTICK_TYPE_GAMEPAD,
+    wheel = c.SDL_JOYSTICK_TYPE_WHEEL,
+    arcade_stick = c.SDL_JOYSTICK_TYPE_ARCADE_STICK,
+    flight_stick = c.SDL_JOYSTICK_TYPE_FLIGHT_STICK,
+    dance_pad = c.SDL_JOYSTICK_TYPE_DANCE_PAD,
+    guitar = c.SDL_JOYSTICK_TYPE_GUITAR,
+    drum_kit = c.SDL_JOYSTICK_TYPE_DRUM_KIT,
+    arcade_pad = c.SDL_JOYSTICK_TYPE_ARCADE_PAD,
+    throttle = c.SDL_JOYSTICK_TYPE_THROTTLE,
 
     /// Convert from SDL value.
-    pub fn fromSdl(value: C.SDL_JoystickType) ?Type {
-        if (value == C.SDL_JOYSTICK_TYPE_UNKNOWN)
+    pub fn fromSdl(value: c.SDL_JoystickType) ?Type {
+        if (value == c.SDL_JOYSTICK_TYPE_UNKNOWN)
             return null;
         return @enumFromInt(value);
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: ?Type) C.SDL_JoystickType {
+    pub fn toSdl(self: ?Type) c.SDL_JoystickType {
         if (self) |val|
             return @intFromEnum(val);
-        return C.SDL_JOYSTICK_TYPE_UNKNOWN;
+        return c.SDL_JOYSTICK_TYPE_UNKNOWN;
     }
 };
 
@@ -1428,17 +1428,17 @@ pub const VirtualJoystickDescription = struct {
     user_data: ?*anyopaque = null,
 
     // TODO!!!
-    update: ?*const fn (user_data: ?*anyopaque) callconv(.C) void = null,
-    set_player_index: ?*const fn (user_data: ?*anyopaque, player_index: c_int) callconv(.C) void = null,
-    rumble: ?*const fn (user_data: ?*anyopaque, low_frequency_rumble: u16, high_frequency_rumble: u16) callconv(.C) bool = null,
-    rumble_triggers: ?*const fn (user_data: ?*anyopaque, left_rumble: u16, right_rumble: u16) callconv(.C) bool = null,
-    set_led: ?*const fn (user_data: ?*anyopaque, red: u8, green: u8, blue: u8) callconv(.C) bool = null,
-    send_effect: ?*const fn (user_data: ?*anyopaque, data: ?*const anyopaque, size: c_int) callconv(.C) bool = null,
-    set_sensors_enabled: ?*const fn (user_data: ?*anyopaque, enabled: bool) callconv(.C) bool = null,
-    cleanup: ?*const fn (user_data: ?*anyopaque) callconv(.C) void = null,
+    update: ?*const fn (user_data: ?*anyopaque) callconv(.c) void = null,
+    set_player_index: ?*const fn (user_data: ?*anyopaque, player_index: c_int) callconv(.c) void = null,
+    rumble: ?*const fn (user_data: ?*anyopaque, low_frequency_rumble: u16, high_frequency_rumble: u16) callconv(.c) bool = null,
+    rumble_triggers: ?*const fn (user_data: ?*anyopaque, left_rumble: u16, right_rumble: u16) callconv(.c) bool = null,
+    set_led: ?*const fn (user_data: ?*anyopaque, red: u8, green: u8, blue: u8) callconv(.c) bool = null,
+    send_effect: ?*const fn (user_data: ?*anyopaque, data: ?*const anyopaque, size: c_int) callconv(.c) bool = null,
+    set_sensors_enabled: ?*const fn (user_data: ?*anyopaque, enabled: bool) callconv(.c) bool = null,
+    cleanup: ?*const fn (user_data: ?*anyopaque) callconv(.c) void = null,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_VirtualJoystickDesc) VirtualJoystickDescription {
+    pub fn fromSdl(value: c.SDL_VirtualJoystickDesc) VirtualJoystickDescription {
         return .{
             .joystick_type = Type.fromSdl(value.type),
             .vendor_id = value.vendor_id,
@@ -1465,7 +1465,7 @@ pub const VirtualJoystickDescription = struct {
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: VirtualJoystickDescription) C.SDL_VirtualJoystickDesc {
+    pub fn toSdl(self: VirtualJoystickDescription) c.SDL_VirtualJoystickDesc {
         return .{
             .type = @intCast(Type.toSdl(self.joystick_type)),
             .vendor_id = self.vendor_id,
@@ -1477,9 +1477,9 @@ pub const VirtualJoystickDescription = struct {
             .button_mask = @bitCast(self.buttons),
             .axis_mask = @bitCast(self.axes),
             .name = if (self.name) |val| val.ptr else null,
-            .touchpads = @as([*c]const C.SDL_VirtualJoystickTouchpadDesc, @ptrCast(self.touchpads.ptr)),
+            .touchpads = @as([*c]const c.SDL_VirtualJoystickTouchpadDesc, @ptrCast(self.touchpads.ptr)),
             .ntouchpads = @intCast(self.touchpads.len),
-            .sensors = @as([*c]const C.SDL_VirtualJoystickSensorDesc, @ptrCast(self.sensors.ptr)),
+            .sensors = @as([*c]const c.SDL_VirtualJoystickSensorDesc, @ptrCast(self.sensors.ptr)),
             .nsensors = @intCast(self.sensors.len),
             .userdata = self.user_data,
             .Update = self.update,
@@ -1490,7 +1490,7 @@ pub const VirtualJoystickDescription = struct {
             .SendEffect = self.send_effect,
             .SetSensorsEnabled = self.set_sensors_enabled,
             .Cleanup = self.cleanup,
-            .version = @sizeOf(C.SDL_VirtualJoystickDesc),
+            .version = @sizeOf(c.SDL_VirtualJoystickDesc),
         };
     }
 };
@@ -1507,7 +1507,7 @@ pub const VirtualJoystickSensorDescription = extern struct {
 
     // Size tests.
     comptime {
-        errors.assertStructsEqual(C.SDL_VirtualJoystickSensorDesc, VirtualJoystickSensorDescription);
+        errors.assertStructsEqual(c.SDL_VirtualJoystickSensorDesc, VirtualJoystickSensorDescription);
     }
 };
 
@@ -1522,7 +1522,7 @@ pub const VirtualJoystickTouchpadDescription = extern struct {
 
     // Size tests.
     comptime {
-        errors.assertStructsEqual(C.SDL_VirtualJoystickTouchpadDesc, VirtualJoystickTouchpadDescription);
+        errors.assertStructsEqual(c.SDL_VirtualJoystickTouchpadDesc, VirtualJoystickTouchpadDescription);
     }
 };
 
@@ -1537,7 +1537,7 @@ pub const VirtualJoystickTouchpadDescription = extern struct {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn eventsEnabled() bool {
-    return C.SDL_JoystickEventsEnabled();
+    return c.SDL_JoystickEventsEnabled();
 }
 
 /// Get a list of currently connected joysticks.
@@ -1550,8 +1550,8 @@ pub fn eventsEnabled() bool {
 /// This function is available since SDL 3.2.0.
 pub fn get() ![]ID {
     var count: c_int = undefined;
-    const ret = C.SDL_GetJoysticks(&count);
-    return @as([*]ID, @ptrCast(try errors.wrapNull([*]C.SDL_JoystickID, ret)))[0..@intCast(count)];
+    const ret = c.SDL_GetJoysticks(&count);
+    return @as([*]ID, @ptrCast(try errors.wrapNull([*]c.SDL_JoystickID, ret)))[0..@intCast(count)];
 }
 
 /// Get the joystick associated with an instance ID, if it has been opened.
@@ -1567,10 +1567,10 @@ pub fn get() ![]ID {
 pub fn getFromId(
     id: ID,
 ) !Joystick {
-    const ret = C.SDL_GetJoystickFromID(
+    const ret = c.SDL_GetJoystickFromID(
         id.value,
     );
-    return Joystick{ .value = try errors.wrapNull(*C.SDL_Joystick, ret) };
+    return Joystick{ .value = try errors.wrapNull(*c.SDL_Joystick, ret) };
 }
 
 /// Get the joystick with a player index.
@@ -1586,10 +1586,10 @@ pub fn getFromId(
 pub fn getFromIndex(
     index: usize,
 ) !Joystick {
-    const ret = C.SDL_GetJoystickFromPlayerIndex(
+    const ret = c.SDL_GetJoystickFromPlayerIndex(
         @intCast(index),
     );
-    return Joystick{ .value = try errors.wrapNull(*C.SDL_Joystick, ret) };
+    return Joystick{ .value = try errors.wrapNull(*c.SDL_Joystick, ret) };
 }
 
 /// Get the device information encoded in a GUID structure.
@@ -1610,7 +1610,7 @@ pub fn getGuidInfo(
     var product: u16 = undefined;
     var version: u16 = undefined;
     var crc16: u16 = undefined;
-    C.SDL_GetJoystickGUIDInfo(
+    c.SDL_GetJoystickGUIDInfo(
         guid_val.value,
         &vendor,
         &product,
@@ -1633,7 +1633,7 @@ pub fn getGuidInfo(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn has() bool {
-    return C.SDL_HasJoystick();
+    return c.SDL_HasJoystick();
 }
 
 /// Locking for atomic access to the joystick API.
@@ -1645,7 +1645,7 @@ pub fn has() bool {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn lock() void {
-    C.SDL_LockJoysticks();
+    c.SDL_LockJoysticks();
 }
 
 /// Send a joystick specific effect packet.
@@ -1660,7 +1660,7 @@ pub fn sendEffect(
     self: Joystick,
     data: []const u8,
 ) !void {
-    const ret = C.SDL_SendJoystickEffect(
+    const ret = c.SDL_SendJoystickEffect(
         self.value,
         data.ptr,
         @intCast(data.len),
@@ -1681,7 +1681,7 @@ pub fn sendEffect(
 pub fn setEventsEnabled(
     events_enabled: bool,
 ) void {
-    C.SDL_SetJoystickEventsEnabled(
+    c.SDL_SetJoystickEventsEnabled(
         events_enabled,
     );
 }
@@ -1691,7 +1691,7 @@ pub fn setEventsEnabled(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn unlock() void {
-    C.SDL_UnlockJoysticks();
+    c.SDL_UnlockJoysticks();
 }
 
 /// Update the current state of the open joysticks.
@@ -1702,7 +1702,7 @@ pub fn unlock() void {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn update() void {
-    C.SDL_UpdateJoysticks();
+    c.SDL_UpdateJoysticks();
 }
 
 // Joystick tests.

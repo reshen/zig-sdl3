@@ -1,5 +1,5 @@
 const blend_mode = @import("blend_mode.zig");
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const io_stream = @import("io_stream.zig");
 const pixels = @import("pixels.zig");
@@ -25,21 +25,21 @@ pub const Flags = struct {
     simd_aligned: bool,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(flags: C.SDL_SurfaceFlags) Flags {
+    pub fn fromSdl(flags: c.SDL_SurfaceFlags) Flags {
         return .{
-            .preallocated = (flags & C.SDL_SURFACE_PREALLOCATED) != 0,
-            .lock_needed = (flags & C.SDL_SURFACE_LOCK_NEEDED) != 0,
-            .locked = (flags & C.SDL_SURFACE_LOCKED) != 0,
-            .simd_aligned = (flags & C.SDL_SURFACE_SIMD_ALIGNED) != 0,
+            .preallocated = (flags & c.SDL_SURFACE_PREALLOCATED) != 0,
+            .lock_needed = (flags & c.SDL_SURFACE_LOCK_NEEDED) != 0,
+            .locked = (flags & c.SDL_SURFACE_LOCKED) != 0,
+            .simd_aligned = (flags & c.SDL_SURFACE_SIMD_ALIGNED) != 0,
         };
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: Flags) C.SDL_SurfaceFlags {
-        return (if (self.preallocated) @as(C.SDL_SurfaceFlags, C.SDL_SURFACE_PREALLOCATED) else 0) |
-            (if (self.lock_needed) @as(C.SDL_SurfaceFlags, C.SDL_SURFACE_LOCK_NEEDED) else 0) |
-            (if (self.locked) @as(C.SDL_SurfaceFlags, C.SDL_SURFACE_LOCKED) else 0) |
-            (if (self.simd_aligned) @as(C.SDL_SurfaceFlags, C.SDL_SURFACE_SIMD_ALIGNED) else 0) |
+    pub fn toSdl(self: Flags) c.SDL_SurfaceFlags {
+        return (if (self.preallocated) @as(c.SDL_SurfaceFlags, c.SDL_SURFACE_PREALLOCATED) else 0) |
+            (if (self.lock_needed) @as(c.SDL_SurfaceFlags, c.SDL_SURFACE_LOCK_NEEDED) else 0) |
+            (if (self.locked) @as(c.SDL_SurfaceFlags, c.SDL_SURFACE_LOCKED) else 0) |
+            (if (self.simd_aligned) @as(c.SDL_SurfaceFlags, c.SDL_SURFACE_SIMD_ALIGNED) else 0) |
             0;
     }
 };
@@ -50,22 +50,22 @@ pub const Flags = struct {
 /// This enum is available since SDL 3.2.0.
 pub const FlipMode = enum(c_uint) {
     /// Flip horizontally.
-    horizontal = C.SDL_FLIP_HORIZONTAL,
+    horizontal = c.SDL_FLIP_HORIZONTAL,
     /// Flip vertically.
-    vertical = C.SDL_FLIP_VERTICAL,
+    vertical = c.SDL_FLIP_VERTICAL,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_FlipMode) ?FlipMode {
-        if (value == C.SDL_FLIP_NONE)
+    pub fn fromSdl(value: c.SDL_FlipMode) ?FlipMode {
+        if (value == c.SDL_FLIP_NONE)
             return null;
         return @enumFromInt(value);
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: ?FlipMode) C.SDL_FlipMode {
+    pub fn toSdl(self: ?FlipMode) c.SDL_FlipMode {
         if (self) |val|
             return @intFromEnum(val);
-        return C.SDL_FLIP_NONE;
+        return c.SDL_FLIP_NONE;
     }
 };
 
@@ -75,9 +75,9 @@ pub const FlipMode = enum(c_uint) {
 /// This enum is available since SDL 3.2.0.
 pub const ScaleMode = enum(c_uint) {
     /// Nearest pixel sampling.
-    nearest = C.SDL_SCALEMODE_NEAREST,
+    nearest = c.SDL_SCALEMODE_NEAREST,
     /// Linear pixel sampling.
-    linear = C.SDL_SCALEMODE_LINEAR,
+    linear = c.SDL_SCALEMODE_LINEAR,
     // Pixel art and invalid from SDL 3.4.0?
 
 };
@@ -104,11 +104,11 @@ pub const ScaleMode = enum(c_uint) {
 /// ## Version
 /// This struct is available since SDL 3.2.0.
 pub const Surface = packed struct {
-    value: *C.SDL_Surface,
+    value: *c.SDL_Surface,
 
     // Size tests.
     comptime {
-        std.debug.assert(@sizeOf(Surface) == @sizeOf(*C.SDL_Surface));
+        std.debug.assert(@sizeOf(Surface) == @sizeOf(*c.SDL_Surface));
     }
 
     /// Surface properties.
@@ -135,20 +135,20 @@ pub const Surface = packed struct {
         /// Convert from an SDL group.
         pub fn fromSdl(value: properties.Group) Properties {
             return .{
-                .sdr_white_point = if (value.get(C.SDL_PROP_SURFACE_SDR_WHITE_POINT_FLOAT)) |val| val.float else null,
-                .hdr_headroom = if (value.get(C.SDL_PROP_SURFACE_HDR_HEADROOM_FLOAT)) |val| val.float else null,
-                .tonemap_operator = if (value.get(C.SDL_PROP_SURFACE_TONEMAP_OPERATOR_STRING)) |val| val.string else null,
+                .sdr_white_point = if (value.get(c.SDL_PROP_SURFACE_SDR_WHITE_POINT_FLOAT)) |val| val.float else null,
+                .hdr_headroom = if (value.get(c.SDL_PROP_SURFACE_HDR_HEADROOM_FLOAT)) |val| val.float else null,
+                .tonemap_operator = if (value.get(c.SDL_PROP_SURFACE_TONEMAP_OPERATOR_STRING)) |val| val.string else null,
             };
         }
 
         /// Convert to an SDL group.
         pub fn toSdl(self: Properties, value: properties.Group) !void {
             if (self.sdr_white_point) |val|
-                try value.set(C.SDL_PROP_SURFACE_SDR_WHITE_POINT_FLOAT, .{ .float = val });
+                try value.set(c.SDL_PROP_SURFACE_SDR_WHITE_POINT_FLOAT, .{ .float = val });
             if (self.hdr_headroom) |val|
-                try value.set(C.SDL_PROP_SURFACE_HDR_HEADROOM_FLOAT, .{ .float = val });
+                try value.set(c.SDL_PROP_SURFACE_HDR_HEADROOM_FLOAT, .{ .float = val });
             if (self.tonemap_operator) |val|
-                try value.set(C.SDL_PROP_SURFACE_TONEMAP_OPERATOR_STRING, .{ .string = val });
+                try value.set(c.SDL_PROP_SURFACE_TONEMAP_OPERATOR_STRING, .{ .string = val });
         }
     };
 
@@ -173,7 +173,7 @@ pub const Surface = packed struct {
         self: Surface,
         image: Surface,
     ) !void {
-        const ret = C.SDL_AddSurfaceAlternateImage(
+        const ret = c.SDL_AddSurfaceAlternateImage(
             self.value,
             image.value,
         );
@@ -245,14 +245,14 @@ pub const Surface = packed struct {
         dest: Surface,
         point_to_copy_to: ?rect.IPoint,
     ) !void {
-        const area_to_copy_sdl: C.SDL_Rect = if (area_to_copy) |val| val.toSdl() else undefined;
-        const point_to_copy_to_sdl: C.SDL_Rect = if (point_to_copy_to) |val| .{
+        const area_to_copy_sdl: c.SDL_Rect = if (area_to_copy) |val| val.toSdl() else undefined;
+        const point_to_copy_to_sdl: c.SDL_Rect = if (point_to_copy_to) |val| .{
             .x = @intCast(val.x),
             .y = @intCast(val.y),
             .w = undefined,
             .h = undefined,
         } else undefined;
-        const ret = C.SDL_BlitSurface(
+        const ret = c.SDL_BlitSurface(
             self.value,
             if (area_to_copy != null) &area_to_copy_sdl else null,
             dest.value,
@@ -297,9 +297,9 @@ pub const Surface = packed struct {
         dest: Surface,
         area_to_copy_to: ?rect.IRect,
     ) !void {
-        const area_to_copy_from_sdl: C.SDL_Rect = if (area_to_copy_from) |val| val.toSdl() else undefined;
-        const area_to_copy_to_sdl: C.SDL_Rect = if (area_to_copy_to) |val| val.toSdl() else undefined;
-        const ret = C.SDL_BlitSurface9Grid(
+        const area_to_copy_from_sdl: c.SDL_Rect = if (area_to_copy_from) |val| val.toSdl() else undefined;
+        const area_to_copy_to_sdl: c.SDL_Rect = if (area_to_copy_to) |val| val.toSdl() else undefined;
+        const ret = c.SDL_BlitSurface9Grid(
             self.value,
             if (area_to_copy_from != null) &area_to_copy_from_sdl else null,
             @intCast(left_width),
@@ -335,9 +335,9 @@ pub const Surface = packed struct {
         area_to_copy_to: ?rect.IRect,
         scale_mode: ScaleMode,
     ) !void {
-        const area_to_copy_from_sdl: C.SDL_Rect = if (area_to_copy_from) |val| val.toSdl() else undefined;
-        const area_to_copy_to_sdl: C.SDL_Rect = if (area_to_copy_to) |val| val.toSdl() else undefined;
-        const ret = C.SDL_BlitSurfaceScaled(
+        const area_to_copy_from_sdl: c.SDL_Rect = if (area_to_copy_from) |val| val.toSdl() else undefined;
+        const area_to_copy_to_sdl: c.SDL_Rect = if (area_to_copy_to) |val| val.toSdl() else undefined;
+        const ret = c.SDL_BlitSurfaceScaled(
             self.value,
             if (area_to_copy_from != null) &area_to_copy_from_sdl else null,
             dest.value,
@@ -369,9 +369,9 @@ pub const Surface = packed struct {
         dest: Surface,
         area_to_copy_to: ?rect.IRect,
     ) !void {
-        const area_to_copy_from_sdl: C.SDL_Rect = if (area_to_copy_from) |val| val.toSdl() else undefined;
-        const area_to_copy_to_sdl: C.SDL_Rect = if (area_to_copy_to) |val| val.toSdl() else undefined;
-        const ret = C.SDL_BlitSurfaceTiled(
+        const area_to_copy_from_sdl: c.SDL_Rect = if (area_to_copy_from) |val| val.toSdl() else undefined;
+        const area_to_copy_to_sdl: c.SDL_Rect = if (area_to_copy_to) |val| val.toSdl() else undefined;
+        const ret = c.SDL_BlitSurfaceTiled(
             self.value,
             if (area_to_copy_from != null) &area_to_copy_from_sdl else null,
             dest.value,
@@ -404,9 +404,9 @@ pub const Surface = packed struct {
         dest: Surface,
         area_to_copy_to: ?rect.IRect,
     ) !void {
-        const area_to_copy_from_sdl: C.SDL_Rect = if (area_to_copy_from) |val| val.toSdl() else undefined;
-        const area_to_copy_to_sdl: C.SDL_Rect = if (area_to_copy_to) |val| val.toSdl() else undefined;
-        const ret = C.SDL_BlitSurfaceTiledWithScale(
+        const area_to_copy_from_sdl: c.SDL_Rect = if (area_to_copy_from) |val| val.toSdl() else undefined;
+        const area_to_copy_to_sdl: c.SDL_Rect = if (area_to_copy_to) |val| val.toSdl() else undefined;
+        const ret = c.SDL_BlitSurfaceTiledWithScale(
             self.value,
             if (area_to_copy_from != null) &area_to_copy_from_sdl else null,
             scale_amount,
@@ -438,9 +438,9 @@ pub const Surface = packed struct {
         dest: Surface,
         area_to_copy_to: ?rect.IRect,
     ) !void {
-        const area_to_copy_from_sdl: C.SDL_Rect = if (area_to_copy_from) |val| val.toSdl() else undefined;
-        const area_to_copy_to_sdl: C.SDL_Rect = if (area_to_copy_to) |val| val.toSdl() else undefined;
-        const ret = C.SDL_BlitSurfaceUnchecked(
+        const area_to_copy_from_sdl: c.SDL_Rect = if (area_to_copy_from) |val| val.toSdl() else undefined;
+        const area_to_copy_to_sdl: c.SDL_Rect = if (area_to_copy_to) |val| val.toSdl() else undefined;
+        const ret = c.SDL_BlitSurfaceUnchecked(
             self.value,
             if (area_to_copy_from != null) &area_to_copy_from_sdl else null,
             dest.value,
@@ -473,9 +473,9 @@ pub const Surface = packed struct {
         area_to_copy_to: ?rect.IRect,
         scale_mode: ScaleMode,
     ) !void {
-        const area_to_copy_from_sdl: C.SDL_Rect = if (area_to_copy_from) |val| val.toSdl() else undefined;
-        const area_to_copy_to_sdl: C.SDL_Rect = if (area_to_copy_to) |val| val.toSdl() else undefined;
-        const ret = C.SDL_BlitSurfaceUncheckedScaled(
+        const area_to_copy_from_sdl: c.SDL_Rect = if (area_to_copy_from) |val| val.toSdl() else undefined;
+        const area_to_copy_to_sdl: c.SDL_Rect = if (area_to_copy_to) |val| val.toSdl() else undefined;
+        const ret = c.SDL_BlitSurfaceUncheckedScaled(
             self.value,
             if (area_to_copy_from != null) &area_to_copy_from_sdl else null,
             dest.value,
@@ -505,7 +505,7 @@ pub const Surface = packed struct {
         self: Surface,
         color: pixels.FColor,
     ) !void {
-        const ret = C.SDL_ClearSurface(
+        const ret = c.SDL_ClearSurface(
             self.value,
             color.r,
             color.g,
@@ -542,11 +542,11 @@ pub const Surface = packed struct {
         self: Surface,
         format: pixels.Format,
     ) !Surface {
-        const ret = C.SDL_ConvertSurface(
+        const ret = c.SDL_ConvertSurface(
             self.value,
             format.value,
         );
-        return Surface{ .value = try errors.wrapNull(*C.SDL_Surface, ret) };
+        return Surface{ .value = try errors.wrapNull(*c.SDL_Surface, ret) };
     }
 
     /// Copy an existing surface to a new surface of the specified format and colorspace.
@@ -579,14 +579,14 @@ pub const Surface = packed struct {
         colorspace: pixels.Colorspace,
         color_properties: ?properties.Group,
     ) !Surface {
-        const ret = C.SDL_ConvertSurfaceAndColorspace(
+        const ret = c.SDL_ConvertSurfaceAndColorspace(
             self.value,
             format.value,
             if (palette) |palette_val| palette_val.value else null,
             colorspace.value,
             if (color_properties) |val| val.value else 0,
         );
-        return Surface{ .value = try errors.wrapNull(*C.SDL_Surface, ret) };
+        return Surface{ .value = try errors.wrapNull(*c.SDL_Surface, ret) };
     }
 
     /// Create a palette and associate it with a surface.
@@ -616,10 +616,10 @@ pub const Surface = packed struct {
     pub fn createPalette(
         self: Surface,
     ) !pixels.Palette {
-        const ret = C.SDL_CreateSurfacePalette(
+        const ret = c.SDL_CreateSurfacePalette(
             self.value,
         );
-        return pixels.Palette{ .value = try errors.wrapNull(*C.SDL_Palette, ret) };
+        return pixels.Palette{ .value = try errors.wrapNull(*c.SDL_Palette, ret) };
     }
 
     /// Free a surface.
@@ -635,7 +635,7 @@ pub const Surface = packed struct {
     pub fn deinit(
         self: Surface,
     ) void {
-        C.SDL_DestroySurface(
+        c.SDL_DestroySurface(
             self.value,
         );
     }
@@ -661,10 +661,10 @@ pub const Surface = packed struct {
     pub fn duplicate(
         self: Surface,
     ) !Surface {
-        const ret = C.SDL_DuplicateSurface(
+        const ret = c.SDL_DuplicateSurface(
             self.value,
         );
-        return Surface{ .value = try errors.wrapNull(*C.SDL_Surface, ret) };
+        return Surface{ .value = try errors.wrapNull(*c.SDL_Surface, ret) };
     }
 
     /// Perform a fast fill of a rectangle with a specific color.
@@ -691,8 +691,8 @@ pub const Surface = packed struct {
         area: ?rect.IRect,
         color: pixels.Pixel,
     ) !void {
-        const area_sdl: C.SDL_Rect = if (area) |val| val.toSdl() else undefined;
-        const ret = C.SDL_FillSurfaceRect(
+        const area_sdl: c.SDL_Rect = if (area) |val| val.toSdl() else undefined;
+        const ret = c.SDL_FillSurfaceRect(
             self.value,
             if (area != null) &area_sdl else null,
             color.value,
@@ -724,7 +724,7 @@ pub const Surface = packed struct {
         rects: []const rect.IRect,
         color: pixels.Pixel,
     ) !void {
-        const ret = C.SDL_FillSurfaceRects(
+        const ret = c.SDL_FillSurfaceRects(
             self.value,
             @ptrCast(rects.ptr),
             @intCast(rects.len),
@@ -748,7 +748,7 @@ pub const Surface = packed struct {
         self: Surface,
         flip_mode: FlipMode,
     ) !void {
-        const ret = C.SDL_FlipSurface(
+        const ret = c.SDL_FlipSurface(
             self.value,
             @intFromEnum(flip_mode),
         );
@@ -772,7 +772,7 @@ pub const Surface = packed struct {
         self: Surface,
     ) !u8 {
         var alpha: u8 = undefined;
-        const ret = C.SDL_GetSurfaceAlphaMod(
+        const ret = c.SDL_GetSurfaceAlphaMod(
             self.value,
             &alpha,
         );
@@ -796,8 +796,8 @@ pub const Surface = packed struct {
     pub fn getBlendMode(
         self: Surface,
     ) !blend_mode.Mode {
-        var mode: C.SDL_BlendMode = undefined;
-        const ret = C.SDL_GetSurfaceBlendMode(
+        var mode: c.SDL_BlendMode = undefined;
+        const ret = c.SDL_GetSurfaceBlendMode(
             self.value,
             &mode,
         );
@@ -824,8 +824,8 @@ pub const Surface = packed struct {
     pub fn getClipRect(
         self: Surface,
     ) !rect.IRect {
-        var val: C.SDL_Rect = undefined;
-        const ret = C.SDL_GetSurfaceClipRect(
+        var val: c.SDL_Rect = undefined;
+        const ret = c.SDL_GetSurfaceClipRect(
             self.value,
             &val,
         );
@@ -855,7 +855,7 @@ pub const Surface = packed struct {
         self: Surface,
     ) !pixels.Pixel {
         var key: u32 = undefined;
-        const ret = C.SDL_GetSurfaceColorKey(
+        const ret = c.SDL_GetSurfaceColorKey(
             self.value,
             &key,
         );
@@ -882,7 +882,7 @@ pub const Surface = packed struct {
         var r: u8 = undefined;
         var g: u8 = undefined;
         var b: u8 = undefined;
-        const ret = C.SDL_GetSurfaceColorMod(
+        const ret = c.SDL_GetSurfaceColorMod(
             self.value,
             &r,
             &g,
@@ -912,7 +912,7 @@ pub const Surface = packed struct {
     pub fn getColorspace(
         self: Surface,
     ) pixels.Colorspace {
-        const ret = C.SDL_GetSurfaceColorspace(
+        const ret = c.SDL_GetSurfaceColorspace(
             self.value,
         );
         return pixels.Colorspace{ .value = ret };
@@ -990,8 +990,8 @@ pub const Surface = packed struct {
         self: Surface,
     ) ![]Surface {
         var count: c_int = undefined;
-        const ret = C.SDL_GetSurfaceImages(self.value, &count);
-        return @as([*]Surface, @ptrCast(try errors.wrapNull(*[*c]C.SDL_Surface, ret)))[0..@intCast(count)];
+        const ret = c.SDL_GetSurfaceImages(self.value, &count);
+        return @as([*]Surface, @ptrCast(try errors.wrapNull(*[*c]c.SDL_Surface, ret)))[0..@intCast(count)];
     }
 
     /// Get the palette used by a surface.
@@ -1010,7 +1010,7 @@ pub const Surface = packed struct {
     pub fn getPalette(
         self: Surface,
     ) ?pixels.Palette {
-        const ret = C.SDL_GetSurfacePalette(
+        const ret = c.SDL_GetSurfacePalette(
             self.value,
         );
         if (ret == null)
@@ -1069,10 +1069,10 @@ pub const Surface = packed struct {
     pub fn getProperties(
         self: Surface,
     ) !Properties {
-        const ret = C.SDL_GetSurfaceProperties(
+        const ret = c.SDL_GetSurfaceProperties(
             self.value,
         );
-        const group = properties.Group{ .value = try errors.wrapCall(C.SDL_PropertiesID, ret, 0) };
+        const group = properties.Group{ .value = try errors.wrapCall(c.SDL_PropertiesID, ret, 0) };
         return Properties.fromSdl(group);
     }
 
@@ -1124,7 +1124,7 @@ pub const Surface = packed struct {
     pub fn hasAlternateImage(
         self: Surface,
     ) bool {
-        const ret = C.SDL_SurfaceHasAlternateImages(
+        const ret = c.SDL_SurfaceHasAlternateImages(
             self.value,
         );
         return ret;
@@ -1146,7 +1146,7 @@ pub const Surface = packed struct {
     pub fn hasColorKey(
         self: Surface,
     ) bool {
-        const ret = C.SDL_SurfaceHasColorKey(
+        const ret = c.SDL_SurfaceHasColorKey(
             self.value,
         );
         return ret;
@@ -1168,7 +1168,7 @@ pub const Surface = packed struct {
     pub fn hasRle(
         self: Surface,
     ) bool {
-        const ret = C.SDL_SurfaceHasRLE(
+        const ret = c.SDL_SurfaceHasRLE(
             self.value,
         );
         return ret;
@@ -1216,12 +1216,12 @@ pub const Surface = packed struct {
         height: usize,
         format: pixels.Format,
     ) !Surface {
-        const ret = C.SDL_CreateSurface(
+        const ret = c.SDL_CreateSurface(
             @intCast(width),
             @intCast(height),
             format.value,
         );
-        return Surface{ .value = try errors.wrapNull(*C.SDL_Surface, ret) };
+        return Surface{ .value = try errors.wrapNull(*c.SDL_Surface, ret) };
     }
 
     /// Allocate a new surface with a specific pixel format and data in the format.
@@ -1254,14 +1254,14 @@ pub const Surface = packed struct {
         format: pixels.Format,
         pixel_data: ?[]const u8,
     ) !Surface {
-        const ret = C.SDL_CreateSurfaceFrom(
+        const ret = c.SDL_CreateSurfaceFrom(
             @intCast(width),
             @intCast(height),
             format.value,
             if (pixel_data) |val| @constCast(val.ptr) else null,
             if (pixel_data) |val| @intCast(val.len / height) else 0,
         );
-        return Surface{ .value = try errors.wrapNull(*C.SDL_Surface, ret) };
+        return Surface{ .value = try errors.wrapNull(*c.SDL_Surface, ret) };
     }
 
     /// Load a BMP image from a file.
@@ -1284,10 +1284,10 @@ pub const Surface = packed struct {
     pub fn initFromBmpFile(
         path: [:0]const u8,
     ) !Surface {
-        const ret = C.SDL_LoadBMP(
+        const ret = c.SDL_LoadBMP(
             path.ptr,
         );
-        return Surface{ .value = try errors.wrapNull(*C.SDL_Surface, ret) };
+        return Surface{ .value = try errors.wrapNull(*c.SDL_Surface, ret) };
     }
 
     /// Create a surface from a BMP image from a seekable stream.
@@ -1312,11 +1312,11 @@ pub const Surface = packed struct {
         stream: io_stream.Stream,
         close_stream_after: bool,
     ) !Surface {
-        const ret = C.SDL_LoadBMP_IO(
+        const ret = c.SDL_LoadBMP_IO(
             stream.value,
             close_stream_after,
         );
-        return Surface{ .value = try errors.wrapNull(*C.SDL_Surface, ret) };
+        return Surface{ .value = try errors.wrapNull(*c.SDL_Surface, ret) };
     }
 
     /// Set up a surface for directly accessing the pixels.
@@ -1341,7 +1341,7 @@ pub const Surface = packed struct {
     pub fn lock(
         self: Surface,
     ) !void {
-        const ret = C.SDL_LockSurface(
+        const ret = c.SDL_LockSurface(
             self.value,
         );
         return errors.wrapCallBool(ret);
@@ -1379,7 +1379,7 @@ pub const Surface = packed struct {
         g: u8,
         b: u8,
     ) pixels.Pixel {
-        const ret = C.SDL_MapSurfaceRGB(
+        const ret = c.SDL_MapSurfaceRGB(
             self.value,
             r,
             g,
@@ -1422,7 +1422,7 @@ pub const Surface = packed struct {
         b: u8,
         a: u8,
     ) pixels.Pixel {
-        const ret = C.SDL_MapSurfaceRGBA(
+        const ret = c.SDL_MapSurfaceRGBA(
             self.value,
             r,
             g,
@@ -1445,7 +1445,7 @@ pub const Surface = packed struct {
     pub fn mustLock(
         self: Surface,
     ) bool {
-        return C.SDL_MUSTLOCK(self.value);
+        return c.SDL_MUSTLOCK(self.value);
     }
 
     /// Premultiply the alpha in a surface.
@@ -1466,7 +1466,7 @@ pub const Surface = packed struct {
         self: Surface,
         linear: bool,
     ) !void {
-        const ret = C.SDL_PremultiplySurfaceAlpha(
+        const ret = c.SDL_PremultiplySurfaceAlpha(
             self.value,
             linear,
         );
@@ -1502,7 +1502,7 @@ pub const Surface = packed struct {
         var g: u8 = undefined;
         var b: u8 = undefined;
         var a: u8 = undefined;
-        const ret = C.SDL_ReadSurfacePixel(
+        const ret = c.SDL_ReadSurfacePixel(
             self.value,
             @intCast(x),
             @intCast(y),
@@ -1542,7 +1542,7 @@ pub const Surface = packed struct {
         var g: f32 = undefined;
         var b: f32 = undefined;
         var a: f32 = undefined;
-        const ret = C.SDL_ReadSurfacePixelFloat(
+        const ret = c.SDL_ReadSurfacePixelFloat(
             self.value,
             @intCast(x),
             @intCast(y),
@@ -1571,7 +1571,7 @@ pub const Surface = packed struct {
     pub fn removeAlternateImages(
         self: Surface,
     ) void {
-        C.SDL_RemoveSurfaceAlternateImages(
+        c.SDL_RemoveSurfaceAlternateImages(
             self.value,
         );
     }
@@ -1596,7 +1596,7 @@ pub const Surface = packed struct {
         self: Surface,
         path: [:0]const u8,
     ) !void {
-        const ret = C.SDL_SaveBMP(
+        const ret = c.SDL_SaveBMP(
             self.value,
             path.ptr,
         );
@@ -1625,7 +1625,7 @@ pub const Surface = packed struct {
         stream: io_stream.Stream,
         close_stream_after: bool,
     ) !void {
-        const ret = C.SDL_SaveBMP_IO(
+        const ret = c.SDL_SaveBMP_IO(
             self.value,
             stream.value,
             close_stream_after,
@@ -1658,13 +1658,13 @@ pub const Surface = packed struct {
         height: usize,
         scale_mode: ScaleMode,
     ) !Surface {
-        const ret = C.SDL_ScaleSurface(
+        const ret = c.SDL_ScaleSurface(
             self.value,
             @intCast(width),
             @intCast(height),
             @bitCast(@intFromEnum(scale_mode)),
         );
-        return Surface{ .value = try errors.wrapNull(*C.SDL_Surface, ret) };
+        return Surface{ .value = try errors.wrapNull(*c.SDL_Surface, ret) };
     }
 
     /// Set an additional alpha value used in blit operations.
@@ -1686,7 +1686,7 @@ pub const Surface = packed struct {
         self: Surface,
         alpha: u8,
     ) !void {
-        const ret = C.SDL_SetSurfaceAlphaMod(
+        const ret = c.SDL_SetSurfaceAlphaMod(
             self.value,
             @intCast(alpha),
         );
@@ -1711,7 +1711,7 @@ pub const Surface = packed struct {
         self: Surface,
         mode: blend_mode.Mode,
     ) !void {
-        const ret = C.SDL_SetSurfaceBlendMode(
+        const ret = c.SDL_SetSurfaceBlendMode(
             self.value,
             mode.value,
         );
@@ -1741,8 +1741,8 @@ pub const Surface = packed struct {
         self: Surface,
         val: ?rect.IRect,
     ) bool {
-        const val_sdl: C.SDL_Rect = if (val) |v| v.toSdl() else undefined;
-        const ret = C.SDL_SetSurfaceClipRect(
+        const val_sdl: c.SDL_Rect = if (val) |v| v.toSdl() else undefined;
+        const ret = c.SDL_SetSurfaceClipRect(
             self.value,
             if (val != null) &val_sdl else null,
         );
@@ -1770,7 +1770,7 @@ pub const Surface = packed struct {
         self: Surface,
         pixel: ?pixels.Pixel,
     ) !void {
-        const ret = C.SDL_SetSurfaceColorKey(
+        const ret = c.SDL_SetSurfaceColorKey(
             self.value,
             pixel != null,
             if (pixel) |val| val.value else 0,
@@ -1801,7 +1801,7 @@ pub const Surface = packed struct {
         g: u8,
         b: u8,
     ) !void {
-        const ret = C.SDL_SetSurfaceColorMod(
+        const ret = c.SDL_SetSurfaceColorMod(
             self.value,
             r,
             g,
@@ -1828,7 +1828,7 @@ pub const Surface = packed struct {
         self: Surface,
         colorspace: pixels.Colorspace,
     ) !void {
-        const ret = C.SDL_SetSurfaceColorspace(
+        const ret = c.SDL_SetSurfaceColorspace(
             self.value,
             colorspace.value,
         );
@@ -1853,7 +1853,7 @@ pub const Surface = packed struct {
         self: Surface,
         palette: pixels.Palette,
     ) !void {
-        const ret = C.SDL_SetSurfacePalette(
+        const ret = c.SDL_SetSurfacePalette(
             self.value,
             palette.value,
         );
@@ -1875,10 +1875,10 @@ pub const Surface = packed struct {
         self: Surface,
         props: Properties,
     ) !void {
-        const ret = C.SDL_GetSurfaceProperties(
+        const ret = c.SDL_GetSurfaceProperties(
             self.value,
         );
-        const group = properties.Group{ .value = try errors.wrapCall(C.SDL_PropertiesID, ret, 0) };
+        const group = properties.Group{ .value = try errors.wrapCall(c.SDL_PropertiesID, ret, 0) };
         try props.toSdl(group);
     }
 
@@ -1900,7 +1900,7 @@ pub const Surface = packed struct {
         self: Surface,
         enabled: bool,
     ) !void {
-        const ret = C.SDL_SetSurfaceRLE(
+        const ret = c.SDL_SetSurfaceRLE(
             self.value,
             enabled,
         );
@@ -1930,7 +1930,7 @@ pub const Surface = packed struct {
     ) !void {
         const area_to_copy_from_sdl = area_to_copy_from.toSdl();
         const area_to_copy_to_sdl = area_to_copy_to.toSdl();
-        return errors.wrapCallBool(C.SDL_StretchSurface(
+        return errors.wrapCallBool(c.SDL_StretchSurface(
             self.value,
             &area_to_copy_from_sdl,
             dst.value,
@@ -1953,7 +1953,7 @@ pub const Surface = packed struct {
     pub fn unlock(
         self: Surface,
     ) void {
-        C.SDL_UnlockSurface(
+        c.SDL_UnlockSurface(
             self.value,
         );
     }
@@ -1982,7 +1982,7 @@ pub const Surface = packed struct {
         y: usize,
         color: pixels.Color,
     ) !void {
-        const ret = C.SDL_WriteSurfacePixel(
+        const ret = c.SDL_WriteSurfacePixel(
             self.value,
             @intCast(x),
             @intCast(y),
@@ -2016,7 +2016,7 @@ pub const Surface = packed struct {
         y: usize,
         color: pixels.FColor,
     ) !void {
-        const ret = C.SDL_WriteSurfacePixelFloat(
+        const ret = c.SDL_WriteSurfacePixelFloat(
             self.value,
             @intCast(x),
             @intCast(y),
@@ -2053,7 +2053,7 @@ pub fn convertPixels(
     dst_format: pixels.Format,
     dst: []u8,
 ) !void {
-    const ret = C.SDL_ConvertPixels(
+    const ret = c.SDL_ConvertPixels(
         @intCast(width),
         @intCast(height),
         src_format.value,
@@ -2098,7 +2098,7 @@ pub fn convertPixelsAndColorspace(
     dst_properties: ?properties.Group,
     dst: []u8,
 ) !void {
-    const ret = C.SDL_ConvertPixelsAndColorspace(
+    const ret = c.SDL_ConvertPixelsAndColorspace(
         @intCast(width),
         @intCast(height),
         src_format.value,
@@ -2144,7 +2144,7 @@ pub fn premultiplyAlpha(
     dst: []u8,
     linear: bool,
 ) !void {
-    const ret = C.SDL_PremultiplyAlpha(
+    const ret = c.SDL_PremultiplyAlpha(
         @intCast(width),
         @intCast(height),
         src_format.value,

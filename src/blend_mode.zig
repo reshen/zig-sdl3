@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const std = @import("std");
 
 /// The normalized factor used to multiply pixel components.
@@ -12,25 +12,25 @@ const std = @import("std");
 /// This enum is available since SDL 3.2.0.
 pub const Factor = enum(c_uint) {
     /// (0, 0, 0, 0)
-    zero = C.SDL_BLENDFACTOR_ZERO,
+    zero = c.SDL_BLENDFACTOR_ZERO,
     /// (1, 1, 1, 1)
-    one = C.SDL_BLENDFACTOR_ONE,
+    one = c.SDL_BLENDFACTOR_ONE,
     /// (r, g, b, a)
-    source_color = C.SDL_BLENDFACTOR_SRC_COLOR,
+    source_color = c.SDL_BLENDFACTOR_SRC_COLOR,
     /// (1-r, 1-g, 1-b, 1-a)
-    one_minus_source_color = C.SDL_BLENDFACTOR_ONE_MINUS_SRC_COLOR,
+    one_minus_source_color = c.SDL_BLENDFACTOR_ONE_MINUS_SRC_COLOR,
     /// (a, a, a, a)
-    soure_alpha = C.SDL_BLENDFACTOR_SRC_ALPHA,
+    soure_alpha = c.SDL_BLENDFACTOR_SRC_ALPHA,
     /// (1-a, 1-a, 1-a, 1-a)
-    one_minus_source_alpha = C.SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+    one_minus_source_alpha = c.SDL_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
     /// (r, g, b, a)
-    destination_color = C.SDL_BLENDFACTOR_DST_COLOR,
+    destination_color = c.SDL_BLENDFACTOR_DST_COLOR,
     /// (1-r, 1-g, 1-b, 1-a)
-    one_minus_destination_color = C.SDL_BLENDFACTOR_ONE_MINUS_DST_COLOR,
+    one_minus_destination_color = c.SDL_BLENDFACTOR_ONE_MINUS_DST_COLOR,
     /// (a, a, a, a)
-    destination_alpha = C.SDL_BLENDFACTOR_DST_ALPHA,
+    destination_alpha = c.SDL_BLENDFACTOR_DST_ALPHA,
     /// (1-a, 1-a, 1-a, 1-a)
-    one_minus_destination_alpha = C.SDL_BLENDFACTOR_ONE_MINUS_DST_ALPHA,
+    one_minus_destination_alpha = c.SDL_BLENDFACTOR_ONE_MINUS_DST_ALPHA,
 };
 
 /// The blend operation used when combining source and destination pixel components.
@@ -39,15 +39,15 @@ pub const Factor = enum(c_uint) {
 /// This enum is available since SDL 3.2.0.
 pub const Operation = enum(c_uint) {
     /// Destination + Source. Supported by all renderers.
-    add = C.SDL_BLENDOPERATION_ADD,
+    add = c.SDL_BLENDOPERATION_ADD,
     /// Source - Destination. Supported by D3D, OpenGL, OpenGLES, and Vulkan.
-    sub = C.SDL_BLENDOPERATION_SUBTRACT,
+    sub = c.SDL_BLENDOPERATION_SUBTRACT,
     /// Destination - Source. Supported by D3D, OpenGL, OpenGLES, and Vulkan.
-    rev_sub = C.SDL_BLENDOPERATION_REV_SUBTRACT,
+    rev_sub = c.SDL_BLENDOPERATION_REV_SUBTRACT,
     /// Min(Destination, Source). Supported by D3D, OpenGL, OpenGLES, and Vulkan.
-    min = C.SDL_BLENDOPERATION_MINIMUM,
+    min = c.SDL_BLENDOPERATION_MINIMUM,
     /// Max(Destination, Source). Supported by D3D, OpenGL, OpenGLES, and Vulkan.
-    max = C.SDL_BLENDOPERATION_MAXIMUM,
+    max = c.SDL_BLENDOPERATION_MAXIMUM,
 };
 
 /// A set of blend modes used in drawing operations.
@@ -60,35 +60,35 @@ pub const Operation = enum(c_uint) {
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
 pub const Mode = struct {
-    value: C.SDL_BlendMode,
+    value: c.SDL_BlendMode,
     /// Destination = Source.
-    pub const none = Mode{ .value = C.SDL_BLENDMODE_NONE };
+    pub const none = Mode{ .value = c.SDL_BLENDMODE_NONE };
     /// DestinationRGB = (SourceRGB * SourceA) + (DestinationRGB * (1-SourceA)), DestinationA = SourceA + (DestinationA * (1-SourceA)).
-    pub const blend = Mode{ .value = C.SDL_BLENDMODE_BLEND };
+    pub const blend = Mode{ .value = c.SDL_BLENDMODE_BLEND };
     /// DestinationRGBA = SourceRGBA + (DestinationRGBA * (1-SourceA)).
-    pub const blend_premultiplied = Mode{ .value = C.SDL_BLENDMODE_BLEND_PREMULTIPLIED };
+    pub const blend_premultiplied = Mode{ .value = c.SDL_BLENDMODE_BLEND_PREMULTIPLIED };
     /// DestinationRGB = (SourceRGB * SourceA) + DestinationRGB, DestinationA = DestinationA.
-    pub const add = Mode{ .value = C.SDL_BLENDMODE_ADD };
+    pub const add = Mode{ .value = c.SDL_BLENDMODE_ADD };
     /// DestinationRGB = SourceRGB + DestinationRGB, DestinationA = DestinationA.
-    pub const add_premultiplied = Mode{ .value = C.SDL_BLENDMODE_ADD_PREMULTIPLIED };
+    pub const add_premultiplied = Mode{ .value = c.SDL_BLENDMODE_ADD_PREMULTIPLIED };
     /// DestinationRGB = SourceRGB * DestinationRGB, DestinationA = DestinationA.
-    pub const mod = Mode{ .value = C.SDL_BLENDMODE_MOD };
+    pub const mod = Mode{ .value = c.SDL_BLENDMODE_MOD };
     /// DestinationRGB = (SourceRGB * DestinationRGB) + (DestinationRGB * (1-SourceA)), DestinationA = DestinationA.
-    pub const mul = Mode{ .value = C.SDL_BLENDMODE_MUL };
+    pub const mul = Mode{ .value = c.SDL_BLENDMODE_MUL };
 
     /// Convert from SDL. Returns null if invalid.
-    pub fn fromSdl(val: C.SDL_BlendMode) ?Mode {
-        if (val == C.SDL_BLENDMODE_INVALID)
+    pub fn fromSdl(val: c.SDL_BlendMode) ?Mode {
+        if (val == c.SDL_BLENDMODE_INVALID)
             return null;
         return .{ .value = val };
     }
 
     /// Convert to SDL.
-    pub fn toSdl(val: ?Mode) C.SDL_BlendMode {
+    pub fn toSdl(val: ?Mode) c.SDL_BlendMode {
         if (val) |id| {
             return id.value;
         }
-        return C.SDL_BLENDMODE_INVALID;
+        return c.SDL_BLENDMODE_INVALID;
     }
 
     /// Compose a custom blend mode for renderers.
@@ -159,7 +159,7 @@ pub const Mode = struct {
         dstAlpha: Factor,
         alphaOp: Operation,
     ) ?Mode {
-        const ret = C.SDL_ComposeCustomBlendMode(
+        const ret = c.SDL_ComposeCustomBlendMode(
             @intFromEnum(srcRgb),
             @intFromEnum(dstRgb),
             @intFromEnum(rgbOp),

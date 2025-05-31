@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const std = @import("std");
 
@@ -24,7 +24,7 @@ const std = @import("std");
 pub const CleanupCallback = *const fn (
     user_data: ?*anyopaque,
     value: ?*anyopaque,
-) callconv(.C) void;
+) callconv(.c) void;
 
 /// A callback used to enumerate all the properties in a group of properties.
 ///
@@ -43,20 +43,20 @@ pub const CleanupCallback = *const fn (
 /// This datatype is available since SDL 3.2.0.
 pub const EnumerateCallback = *const fn (
     user_data: ?*anyopaque,
-    props: C.SDL_PropertiesID,
+    props: c.SDL_PropertiesID,
     name: [*c]const u8,
-) callconv(.C) void;
+) callconv(.c) void;
 
 /// SDL properties type.
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
 pub const Type = enum(c_uint) {
-    pointer = C.SDL_PROPERTY_TYPE_POINTER,
-    string = C.SDL_PROPERTY_TYPE_STRING,
-    number = C.SDL_PROPERTY_TYPE_NUMBER,
-    float = C.SDL_PROPERTY_TYPE_FLOAT,
-    boolean = C.SDL_PROPERTY_TYPE_BOOLEAN,
+    pointer = c.SDL_PROPERTY_TYPE_POINTER,
+    string = c.SDL_PROPERTY_TYPE_STRING,
+    number = c.SDL_PROPERTY_TYPE_NUMBER,
+    float = c.SDL_PROPERTY_TYPE_FLOAT,
+    boolean = c.SDL_PROPERTY_TYPE_BOOLEAN,
 };
 
 /// SDL properties group.
@@ -65,7 +65,7 @@ pub const Type = enum(c_uint) {
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
 pub const Group = packed struct {
-    value: C.SDL_PropertiesID,
+    value: c.SDL_PropertiesID,
 
     /// Clear a property from a group of properties.
     ///
@@ -82,7 +82,7 @@ pub const Group = packed struct {
         self: Group,
         name: [:0]const u8,
     ) !void {
-        const ret = C.SDL_ClearProperty(
+        const ret = c.SDL_ClearProperty(
             self.value,
             name.ptr,
         );
@@ -109,7 +109,7 @@ pub const Group = packed struct {
         self: Group,
         dest: Group,
     ) !void {
-        const ret = C.SDL_CopyProperties(
+        const ret = c.SDL_CopyProperties(
             self.value,
             dest.value,
         );
@@ -132,7 +132,7 @@ pub const Group = packed struct {
     pub fn deinit(
         self: Group,
     ) void {
-        C.SDL_DestroyProperties(
+        c.SDL_DestroyProperties(
             self.value,
         );
     }
@@ -157,7 +157,7 @@ pub const Group = packed struct {
         callback: EnumerateCallback,
         user_data: ?*anyopaque,
     ) !void {
-        const ret = C.SDL_EnumerateProperties(self.value, callback, user_data);
+        const ret = c.SDL_EnumerateProperties(self.value, callback, user_data);
         return errors.wrapCallBool(ret);
     }
 
@@ -185,18 +185,18 @@ pub const Group = packed struct {
         self: Group,
         name: [:0]const u8,
     ) ?Property {
-        return switch (C.SDL_GetPropertyType(self.value, name.ptr)) {
-            C.SDL_PROPERTY_TYPE_POINTER => Property{ .pointer = C.SDL_GetPointerProperty(self.value, name.ptr, null) },
-            C.SDL_PROPERTY_TYPE_STRING => Property{ .string = std.mem.span(C.SDL_GetStringProperty(self.value, name.ptr, "")) },
-            C.SDL_PROPERTY_TYPE_NUMBER => Property{ .number = C.SDL_GetNumberProperty(self.value, name.ptr, 0) },
-            C.SDL_PROPERTY_TYPE_FLOAT => Property{ .float = C.SDL_GetFloatProperty(self.value, name.ptr, 0) },
-            C.SDL_PROPERTY_TYPE_BOOLEAN => Property{ .boolean = C.SDL_GetBooleanProperty(self.value, name.ptr, false) },
+        return switch (c.SDL_GetPropertyType(self.value, name.ptr)) {
+            c.SDL_PROPERTY_TYPE_POINTER => Property{ .pointer = c.SDL_GetPointerProperty(self.value, name.ptr, null) },
+            c.SDL_PROPERTY_TYPE_STRING => Property{ .string = std.mem.span(c.SDL_GetStringProperty(self.value, name.ptr, "")) },
+            c.SDL_PROPERTY_TYPE_NUMBER => Property{ .number = c.SDL_GetNumberProperty(self.value, name.ptr, 0) },
+            c.SDL_PROPERTY_TYPE_FLOAT => Property{ .float = c.SDL_GetFloatProperty(self.value, name.ptr, 0) },
+            c.SDL_PROPERTY_TYPE_BOOLEAN => Property{ .boolean = c.SDL_GetBooleanProperty(self.value, name.ptr, false) },
             else => null,
         };
     }
 
     /// Used for adding properties to a list.
-    fn getAllEnumerateCallback(user_data: ?*anyopaque, id: C.SDL_PropertiesID, name: [*c]const u8) callconv(.C) void {
+    fn getAllEnumerateCallback(user_data: ?*anyopaque, id: c.SDL_PropertiesID, name: [*c]const u8) callconv(.c) void {
         const group = Group{ .value = id };
         const data_ptr: *GetAllData = @ptrCast(@alignCast(user_data));
         const spanned_name = std.mem.span(name);
@@ -253,10 +253,10 @@ pub const Group = packed struct {
         self: Group,
         name: [:0]const u8,
     ) ?Type {
-        const ret = errors.wrapCall(C.SDL_PropertyType, C.SDL_GetPropertyType(
+        const ret = errors.wrapCall(c.SDL_PropertyType, c.SDL_GetPropertyType(
             self.value,
             name.ptr,
-        ), C.SDL_PROPERTY_TYPE_INVALID) catch return null;
+        ), c.SDL_PROPERTY_TYPE_INVALID) catch return null;
         return @enumFromInt(ret);
     }
 
@@ -275,7 +275,7 @@ pub const Group = packed struct {
         self: Group,
         name: [:0]const u8,
     ) bool {
-        const ret = C.SDL_HasProperty(
+        const ret = c.SDL_HasProperty(
             self.value,
             name.ptr,
         );
@@ -296,8 +296,8 @@ pub const Group = packed struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn init() !Group {
-        const ret = C.SDL_CreateProperties();
-        return Group{ .value = try errors.wrapCall(C.SDL_PropertiesID, ret, 0) };
+        const ret = c.SDL_CreateProperties();
+        return Group{ .value = try errors.wrapCall(c.SDL_PropertiesID, ret, 0) };
     }
 
     /// Lock a group of properties.
@@ -321,7 +321,7 @@ pub const Group = packed struct {
     pub fn lock(
         self: Group,
     ) !void {
-        const ret = C.SDL_LockProperties(
+        const ret = c.SDL_LockProperties(
             self.value,
         );
         return errors.wrapCallBool(ret);
@@ -345,11 +345,11 @@ pub const Group = packed struct {
         value: Property,
     ) !void {
         const ret = switch (value) {
-            .pointer => |pt| C.SDL_SetPointerProperty(self.value, name, pt),
-            .string => |str| C.SDL_SetStringProperty(self.value, name, str),
-            .number => |num| C.SDL_SetNumberProperty(self.value, name, num),
-            .float => |num| C.SDL_SetFloatProperty(self.value, name, num),
-            .boolean => |val| C.SDL_SetBooleanProperty(self.value, name, val),
+            .pointer => |pt| c.SDL_SetPointerProperty(self.value, name, pt),
+            .string => |str| c.SDL_SetStringProperty(self.value, name, str),
+            .number => |num| c.SDL_SetNumberProperty(self.value, name, num),
+            .float => |num| c.SDL_SetFloatProperty(self.value, name, num),
+            .boolean => |val| c.SDL_SetBooleanProperty(self.value, name, val),
         };
         return errors.wrapCallBool(ret);
     }
@@ -381,7 +381,7 @@ pub const Group = packed struct {
         cleanup: CleanupCallback,
         user_data: ?*anyopaque,
     ) !void {
-        const ret = C.SDL_SetPointerPropertyWithCleanup(
+        const ret = c.SDL_SetPointerPropertyWithCleanup(
             self.value,
             name.ptr,
             value,
@@ -404,7 +404,7 @@ pub const Group = packed struct {
     pub fn unlock(
         self: Group,
     ) void {
-        C.SDL_UnlockProperties(
+        c.SDL_UnlockProperties(
             self.value,
         );
     }
@@ -427,17 +427,17 @@ pub const Property = union(Type) {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getGlobal() !Group {
-    const ret = try errors.wrapCall(C.SDL_PropertiesID, C.SDL_GetGlobalProperties(), 0);
+    const ret = try errors.wrapCall(c.SDL_PropertiesID, c.SDL_GetGlobalProperties(), 0);
     return Group{ .value = ret };
 }
 
-fn testPropertiesCleanupCb(user_data: ?*anyopaque, value: ?*anyopaque) callconv(.C) void {
+fn testPropertiesCleanupCb(user_data: ?*anyopaque, value: ?*anyopaque) callconv(.c) void {
     _ = user_data;
     const ptr: *std.ArrayList(u32) = @ptrCast(@alignCast(value));
     ptr.deinit();
 }
 
-fn testEnumeratePropertiesCb(user_data: ?*anyopaque, id: C.SDL_PropertiesID, name: [*c]const u8) callconv(.C) void {
+fn testEnumeratePropertiesCb(user_data: ?*anyopaque, id: c.SDL_PropertiesID, name: [*c]const u8) callconv(.c) void {
     _ = user_data;
     _ = id;
     _ = name;

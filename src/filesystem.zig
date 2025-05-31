@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const std = @import("std");
 const time = @import("time.zig");
@@ -163,7 +163,7 @@ pub const Path = struct {
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const EnumerateDirectoryCallback = *const fn (user_data: ?*anyopaque, dir_name: [*c]const u8, name: [*c]const u8) callconv(.C) C.SDL_EnumerationResult;
+pub const EnumerateDirectoryCallback = *const fn (user_data: ?*anyopaque, dir_name: [*c]const u8, name: [*c]const u8) callconv(.c) c.SDL_EnumerationResult;
 
 /// Possible results from an enumeration callback.
 ///
@@ -171,11 +171,11 @@ pub const EnumerateDirectoryCallback = *const fn (user_data: ?*anyopaque, dir_na
 /// This enum is available since SDL 3.2.0.
 pub const EnumerationResult = enum(c_uint) {
     /// Value that requests that enumeration continue.
-    run = C.SDL_ENUM_CONTINUE,
+    run = c.SDL_ENUM_CONTINUE,
     /// Value that requests that enumeration stop, successfully.
-    success = C.SDL_ENUM_SUCCESS,
+    success = c.SDL_ENUM_SUCCESS,
     /// Value that requests that enumeration stop, as a failure.
-    failure = C.SDL_ENUM_FAILURE,
+    failure = c.SDL_ENUM_FAILURE,
 };
 
 /// The type of the OS-provided default folder for a specific purpose.
@@ -207,31 +207,31 @@ pub const Folder = enum(c_uint) {
     /// The folder which contains all of the current user's data, preferences, and documents.
     /// It usually contains most of the other folders.
     /// If a requested folder does not exist, the home folder can be considered a safe fallback to store a user's documents.
-    home = C.SDL_FOLDER_HOME,
+    home = c.SDL_FOLDER_HOME,
     /// The folder of files that are displayed on the desktop.
     /// Note that the existence of a desktop folder does not guarantee that the system does show icons on its desktop;
     /// certain GNU/Linux distros with a graphical environment may not have desktop icons.
-    desktop = C.SDL_FOLDER_DESKTOP,
+    desktop = c.SDL_FOLDER_DESKTOP,
     /// User document files, possibly application-specific.
     /// This is a good place to save a user's projects.
-    documents = C.SDL_FOLDER_DOCUMENTS,
+    documents = c.SDL_FOLDER_DOCUMENTS,
     /// Standard folder for user files downloaded from the internet.
-    downloads = C.SDL_FOLDER_DOWNLOADS,
+    downloads = c.SDL_FOLDER_DOWNLOADS,
     /// Music files that can be played using a standard music player (mp3, ogg...)./
-    music = C.SDL_FOLDER_MUSIC,
+    music = c.SDL_FOLDER_MUSIC,
     /// Image files that can be displayed using a standard viewer (png, jpg...).
-    pictures = C.SDL_FOLDER_PICTURES,
+    pictures = c.SDL_FOLDER_PICTURES,
     /// Files that are meant to be shared with other users on the same computer.
-    public_share = C.SDL_FOLDER_PUBLICSHARE,
+    public_share = c.SDL_FOLDER_PUBLICSHARE,
     /// Save files for games.
-    saved_games = C.SDL_FOLDER_SAVEDGAMES,
+    saved_games = c.SDL_FOLDER_SAVEDGAMES,
     /// Application screenshots.
-    screenshots = C.SDL_FOLDER_SCREENSHOTS,
+    screenshots = c.SDL_FOLDER_SCREENSHOTS,
     /// Template files to be used when the user requests the desktop environment to create a new file in a certain folder, such as "New Text File.txt".
     /// Any file in the Templates folder can be used as a starting point for a new file.
-    templates = C.SDL_FOLDER_TEMPLATES,
+    templates = c.SDL_FOLDER_TEMPLATES,
     /// Video files that can be played using a standard video player (mp4, webm...).
-    videos = C.SDL_FOLDER_VIDEOS,
+    videos = c.SDL_FOLDER_VIDEOS,
 };
 
 /// Flags for path matching.
@@ -242,17 +242,17 @@ pub const GlobFlags = struct {
     case_insensitive: bool = false,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_GlobFlags) GlobFlags {
+    pub fn fromSdl(value: c.SDL_GlobFlags) GlobFlags {
         return .{
-            .case_insensitive = value & C.SDL_GLOB_CASEINSENSITIVE > 0,
+            .case_insensitive = value & c.SDL_GLOB_CASEINSENSITIVE > 0,
         };
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: GlobFlags) C.SDL_GlobFlags {
-        var ret: C.SDL_GlobFlags = 0;
+    pub fn toSdl(self: GlobFlags) c.SDL_GlobFlags {
+        var ret: c.SDL_GlobFlags = 0;
         if (self.case_insensitive)
-            ret |= C.SDL_GLOB_CASEINSENSITIVE;
+            ret |= c.SDL_GLOB_CASEINSENSITIVE;
         return ret;
     }
 };
@@ -274,7 +274,7 @@ pub const PathInfo = struct {
     access_time: time.Time,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_PathInfo) PathInfo {
+    pub fn fromSdl(value: c.SDL_PathInfo) PathInfo {
         return .{
             .path_type = PathType.fromSdl(value.type).?,
             .file_size = value.size,
@@ -285,7 +285,7 @@ pub const PathInfo = struct {
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: PathInfo) C.SDL_PathInfo {
+    pub fn toSdl(self: PathInfo) c.SDL_PathInfo {
         return .{
             .type = PathType.toSdl(self.path_type),
             .size = self.file_size,
@@ -306,24 +306,24 @@ pub const PathInfo = struct {
 /// This enum is available since SDL 3.2.0.
 pub const PathType = enum(c_uint) {
     /// A normal file.
-    file = C.SDL_PATHTYPE_FILE,
+    file = c.SDL_PATHTYPE_FILE,
     /// A directory.
-    directory = C.SDL_PATHTYPE_DIRECTORY,
+    directory = c.SDL_PATHTYPE_DIRECTORY,
     /// Something completely different like a device node (not a symlink, those are always followed).
-    other = C.SDL_PATHTYPE_OTHER,
+    other = c.SDL_PATHTYPE_OTHER,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_PathType) ?PathType {
-        if (value == C.SDL_PATHTYPE_NONE)
+    pub fn fromSdl(value: c.SDL_PathType) ?PathType {
+        if (value == c.SDL_PATHTYPE_NONE)
             return null;
         return @enumFromInt(value);
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: ?PathType) C.SDL_PathType {
+    pub fn toSdl(self: ?PathType) c.SDL_PathType {
         if (self) |val|
             return @intFromEnum(val);
-        return C.SDL_PATHTYPE_NONE;
+        return c.SDL_PATHTYPE_NONE;
     }
 };
 
@@ -359,7 +359,7 @@ pub fn copyFile(
     old_path: [:0]const u8,
     new_path: [:0]const u8,
 ) !void {
-    return errors.wrapCallBool(C.SDL_CopyFile(old_path.ptr, new_path.ptr));
+    return errors.wrapCallBool(c.SDL_CopyFile(old_path.ptr, new_path.ptr));
 }
 
 /// Create a directory, and any missing parent directories.
@@ -378,7 +378,7 @@ pub fn copyFile(
 pub fn createDirectory(
     path: [:0]const u8,
 ) !void {
-    return errors.wrapCallBool(C.SDL_CreateDirectory(path.ptr));
+    return errors.wrapCallBool(c.SDL_CreateDirectory(path.ptr));
 }
 
 /// Enumerate a directory through a callback function.
@@ -402,7 +402,7 @@ pub fn enumerateDirectory(
     callback: EnumerateDirectoryCallback,
     user_data: ?*anyopaque,
 ) !void {
-    return errors.wrapCallBool(C.SDL_EnumerateDirectory(path.ptr, callback, user_data));
+    return errors.wrapCallBool(c.SDL_EnumerateDirectory(path.ptr, callback, user_data));
 }
 
 /// Data for getting all properties.
@@ -413,20 +413,20 @@ const GetAllData = struct {
 };
 
 /// Callback for getting all directory items.
-fn getAllDirectoryItemsCb(user_data: ?*anyopaque, dir_name: [*c]const u8, name: [*c]const u8) callconv(.C) C.SDL_EnumerationResult {
+fn getAllDirectoryItemsCb(user_data: ?*anyopaque, dir_name: [*c]const u8, name: [*c]const u8) callconv(.c) c.SDL_EnumerationResult {
     _ = dir_name;
     const data_ptr: *GetAllData = @ptrCast(@alignCast(user_data));
     const name_str = std.mem.span(name);
     const copy = data_ptr.allocator.allocSentinel(u8, name_str.len, 0) catch |err| {
         data_ptr.err = err;
-        return C.SDL_ENUM_FAILURE;
+        return c.SDL_ENUM_FAILURE;
     };
     @memcpy(copy, name_str);
     data_ptr.arr.append(copy) catch |err| {
         data_ptr.err = err;
-        return C.SDL_ENUM_FAILURE;
+        return c.SDL_ENUM_FAILURE;
     };
-    return C.SDL_ENUM_CONTINUE;
+    return c.SDL_ENUM_CONTINUE;
 }
 
 /// Free all directory items obtained through `filesystem.getAllDirectoryItems()`.
@@ -501,7 +501,7 @@ pub fn getAllDirectoryItems(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getBasePath() ![:0]const u8 {
-    return errors.wrapCallCString(C.SDL_GetBasePath());
+    return errors.wrapCallCString(c.SDL_GetBasePath());
 }
 
 /// Get what the system believes is the "current working directory."
@@ -520,7 +520,7 @@ pub fn getBasePath() ![:0]const u8 {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getCurrentDirectory() ![:0]u8 {
-    const ret: [*:0]u8 = @ptrCast(try errors.wrapCallCPtr(u8, C.SDL_GetCurrentDirectory()));
+    const ret: [*:0]u8 = @ptrCast(try errors.wrapCallCPtr(u8, c.SDL_GetCurrentDirectory()));
     return std.mem.span(ret);
 }
 
@@ -537,7 +537,7 @@ pub fn getCurrentDirectory() ![:0]u8 {
 pub fn getPathExists(
     path: [:0]const u8,
 ) bool {
-    return C.SDL_GetPathInfo(path.ptr, null);
+    return c.SDL_GetPathInfo(path.ptr, null);
 }
 
 /// Get information about a filesystem path.
@@ -553,8 +553,8 @@ pub fn getPathExists(
 pub fn getPathInfo(
     path: [:0]const u8,
 ) !PathInfo {
-    var info: C.SDL_PathInfo = undefined;
-    try errors.wrapCallBool(C.SDL_GetPathInfo(path.ptr, &info));
+    var info: c.SDL_PathInfo = undefined;
+    try errors.wrapCallBool(c.SDL_GetPathInfo(path.ptr, &info));
     return PathInfo.fromSdl(info);
 }
 
@@ -601,7 +601,7 @@ pub fn getPrefPath(
     org: [:0]const u8,
     app: [:0]const u8,
 ) ![:0]u8 {
-    return errors.wrapCallCStringMut(C.SDL_GetPrefPath(org.ptr, app.ptr));
+    return errors.wrapCallCStringMut(c.SDL_GetPrefPath(org.ptr, app.ptr));
 }
 
 /// Finds the most suitable user folder for a specific purpose.
@@ -626,7 +626,7 @@ pub fn getPrefPath(
 pub fn getUserFolder(
     folder: Folder,
 ) ![:0]const u8 {
-    return errors.wrapCallCString(C.SDL_GetUserFolder(@intFromEnum(folder)));
+    return errors.wrapCallCString(c.SDL_GetUserFolder(@intFromEnum(folder)));
 }
 
 /// Enumerate a directory tree, filtered by pattern, and return a list.
@@ -659,7 +659,7 @@ pub fn globDirectory(
     flags: GlobFlags,
 ) ![][*:0]u8 {
     var count: c_int = undefined;
-    const ret: [*][*:0]u8 = @ptrCast(try errors.wrapCallCPtr([*c]u8, C.SDL_GlobDirectory(path.ptr, if (pattern) |val| val.ptr else null, flags.toSdl(), &count)));
+    const ret: [*][*:0]u8 = @ptrCast(try errors.wrapCallCPtr([*c]u8, c.SDL_GlobDirectory(path.ptr, if (pattern) |val| val.ptr else null, flags.toSdl(), &count)));
     return ret[0..@intCast(count)];
 }
 
@@ -676,7 +676,7 @@ pub fn globDirectory(
 pub fn removePath(
     path: [:0]const u8,
 ) !void {
-    return errors.wrapCallBool(C.SDL_RemovePath(path.ptr));
+    return errors.wrapCallBool(c.SDL_RemovePath(path.ptr));
 }
 
 /// Rename a file or directory.
@@ -700,7 +700,7 @@ pub fn renamePath(
     old_path: [:0]const u8,
     new_path: [:0]const u8,
 ) !void {
-    return errors.wrapCallBool(C.SDL_RenamePath(old_path, new_path));
+    return errors.wrapCallBool(c.SDL_RenamePath(old_path, new_path));
 }
 
 // Filesystem related tests.

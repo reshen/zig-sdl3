@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const std = @import("std");
 
 /// Functionality to query the current SDL version, both as headers the app was compiled against, and a library the app is linked to.
@@ -8,7 +8,7 @@ pub const Version = packed struct {
     ///
     /// ## Version
     /// This field is available since SDL 3.2.0.
-    pub const compiled_against = Version{ .value = C.SDL_VERSION };
+    pub const compiled_against = Version{ .value = c.SDL_VERSION };
 
     /// A string describing the source at a particular point in development.
     ///
@@ -21,7 +21,7 @@ pub const Version = packed struct {
     ///
     /// ## Version
     /// This field is available since SDL 3.2.0.
-    // pub const revision = C.SDL_REVISION; // This should exist but does not?
+    // pub const revision = c.SDL_REVISION; // This should exist but does not?
 
     /// Check if the SDL version is at least greater than the given one.
     ///
@@ -40,7 +40,7 @@ pub const Version = packed struct {
         minor: u32,
         micro: u32,
     ) bool {
-        const ret = C.SDL_VERSION_ATLEAST(
+        const ret = c.SDL_VERSION_ATLEAST(
             @as(c_int, @intCast(major)),
             @as(c_int, @intCast(minor)),
             @as(c_int, @intCast(micro)),
@@ -63,7 +63,7 @@ pub const Version = packed struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn get() Version {
-        const ret = C.SDL_GetVersion();
+        const ret = c.SDL_GetVersion();
         return Version{ .value = ret };
     }
 
@@ -77,7 +77,7 @@ pub const Version = packed struct {
     pub fn getMajor(
         self: Version,
     ) u32 {
-        const ret = C.SDL_VERSIONNUM_MAJOR(
+        const ret = c.SDL_VERSIONNUM_MAJOR(
             self.value,
         );
         return @intCast(ret);
@@ -93,7 +93,7 @@ pub const Version = packed struct {
     pub fn getMinor(
         self: Version,
     ) u32 {
-        const ret = C.SDL_VERSIONNUM_MINOR(
+        const ret = c.SDL_VERSIONNUM_MINOR(
             self.value,
         );
         return @intCast(ret);
@@ -109,7 +109,7 @@ pub const Version = packed struct {
     pub fn getMicro(
         self: Version,
     ) u32 {
-        const ret = C.SDL_VERSIONNUM_MICRO(
+        const ret = c.SDL_VERSIONNUM_MICRO(
             self.value,
         );
         return @intCast(ret);
@@ -134,7 +134,7 @@ pub const Version = packed struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn getRevision() ?[:0]const u8 {
-        const ret = C.SDL_GetRevision();
+        const ret = c.SDL_GetRevision();
         const converted_ret = std.mem.span(ret);
         if (std.mem.eql(u8, converted_ret, ""))
             return null;
@@ -158,7 +158,7 @@ pub const Version = packed struct {
         minor: u32,
         micro: u32,
     ) Version {
-        const ret = C.SDL_VERSIONNUM(
+        const ret = c.SDL_VERSIONNUM(
             @as(c_int, @intCast(major)),
             @as(c_int, @intCast(minor)),
             @as(c_int, @intCast(micro)),

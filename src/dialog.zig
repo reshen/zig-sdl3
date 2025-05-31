@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const properties = @import("properties.zig");
 const std = @import("std");
@@ -33,7 +33,7 @@ const video = @import("video.zig");
 ///
 /// ## Code Examples
 /// TODO!!!
-pub const FileCallback = *const fn (user_data: ?*anyopaque, file_list: [*c]const [*c]const u8, filter: c_int) callconv(.C) void;
+pub const FileCallback = *const fn (user_data: ?*anyopaque, file_list: [*c]const [*c]const u8, filter: c_int) callconv(.c) void;
 
 /// Data for a file callback.
 ///
@@ -76,11 +76,11 @@ pub const FileFilter = extern struct {
 
     // Size tests.
     comptime {
-        std.debug.assert(@sizeOf(C.SDL_DialogFileFilter) == @sizeOf(FileFilter));
-        std.debug.assert(@offsetOf(C.SDL_DialogFileFilter, "name") == @offsetOf(FileFilter, "name"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_DialogFileFilter, "name")) == @sizeOf(@FieldType(FileFilter, "name")));
-        std.debug.assert(@offsetOf(C.SDL_DialogFileFilter, "pattern") == @offsetOf(FileFilter, "pattern"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_DialogFileFilter, "pattern")) == @sizeOf(@FieldType(FileFilter, "pattern")));
+        std.debug.assert(@sizeOf(c.SDL_DialogFileFilter) == @sizeOf(FileFilter));
+        std.debug.assert(@offsetOf(c.SDL_DialogFileFilter, "name") == @offsetOf(FileFilter, "name"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_DialogFileFilter, "name")) == @sizeOf(@FieldType(FileFilter, "name")));
+        std.debug.assert(@offsetOf(c.SDL_DialogFileFilter, "pattern") == @offsetOf(FileFilter, "pattern"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_DialogFileFilter, "pattern")) == @sizeOf(@FieldType(FileFilter, "pattern")));
     }
 };
 
@@ -114,21 +114,21 @@ pub const Properties = struct {
         const ret = try properties.Group.init();
         errdefer ret.deinit();
         if (self.filters) |val| {
-            try ret.set(C.SDL_PROP_FILE_DIALOG_FILTERS_POINTER, .{ .pointer = @constCast(@as([*]const C.SDL_DialogFileFilter, @ptrCast(val.ptr))) });
-            try ret.set(C.SDL_PROP_FILE_DIALOG_NFILTERS_NUMBER, .{ .number = @intCast(val.len) });
+            try ret.set(c.SDL_PROP_FILE_DIALOG_FILTERS_POINTER, .{ .pointer = @constCast(@as([*]const c.SDL_DialogFileFilter, @ptrCast(val.ptr))) });
+            try ret.set(c.SDL_PROP_FILE_DIALOG_NFILTERS_NUMBER, .{ .number = @intCast(val.len) });
         }
         if (self.window) |val|
-            try ret.set(C.SDL_PROP_FILE_DIALOG_WINDOW_POINTER, .{ .pointer = val.value });
+            try ret.set(c.SDL_PROP_FILE_DIALOG_WINDOW_POINTER, .{ .pointer = val.value });
         if (self.location) |val|
-            try ret.set(C.SDL_PROP_FILE_DIALOG_LOCATION_STRING, .{ .string = val });
+            try ret.set(c.SDL_PROP_FILE_DIALOG_LOCATION_STRING, .{ .string = val });
         if (self.many) |val|
-            try ret.set(C.SDL_PROP_FILE_DIALOG_MANY_BOOLEAN, .{ .boolean = val });
+            try ret.set(c.SDL_PROP_FILE_DIALOG_MANY_BOOLEAN, .{ .boolean = val });
         if (self.title) |val|
-            try ret.set(C.SDL_PROP_FILE_DIALOG_TITLE_STRING, .{ .string = val });
+            try ret.set(c.SDL_PROP_FILE_DIALOG_TITLE_STRING, .{ .string = val });
         if (self.accept) |val|
-            try ret.set(C.SDL_PROP_FILE_DIALOG_ACCEPT_STRING, .{ .string = val });
+            try ret.set(c.SDL_PROP_FILE_DIALOG_ACCEPT_STRING, .{ .string = val });
         if (self.cancel) |val|
-            try ret.set(C.SDL_PROP_FILE_DIALOG_CANCEL_STRING, .{ .string = val });
+            try ret.set(c.SDL_PROP_FILE_DIALOG_CANCEL_STRING, .{ .string = val });
         return ret;
     }
 };
@@ -141,9 +141,9 @@ pub const Properties = struct {
 /// ## Version
 /// This enum is available since SDL 3.2.0.
 pub const Type = enum(c_uint) {
-    open_file = C.SDL_FILEDIALOG_OPENFILE,
-    save_file = C.SDL_FILEDIALOG_SAVEFILE,
-    open_folder = C.SDL_FILEDIALOG_OPENFOLDER,
+    open_file = c.SDL_FILEDIALOG_OPENFILE,
+    save_file = c.SDL_FILEDIALOG_SAVEFILE,
+    open_folder = c.SDL_FILEDIALOG_OPENFOLDER,
 };
 
 /// Sanatize data from a dialog callback.
@@ -219,7 +219,7 @@ pub fn showOpenFile(
     default_location: ?[:0]const u8,
     allow_many: bool,
 ) void {
-    C.SDL_ShowOpenFileDialog(
+    c.SDL_ShowOpenFileDialog(
         callback,
         user_data,
         if (window) |val| val.value else null,
@@ -265,7 +265,7 @@ pub fn showOpenFolder(
     default_location: ?[:0]const u8,
     allow_many: bool,
 ) void {
-    C.SDL_ShowOpenFolderDialog(
+    c.SDL_ShowOpenFolderDialog(
         callback,
         user_data,
         if (window) |val| val.value else null,
@@ -309,7 +309,7 @@ pub fn showSaveFile(
     filters: ?[]const FileFilter,
     default_location: ?[:0]const u8,
 ) void {
-    C.SDL_ShowSaveFileDialog(
+    c.SDL_ShowSaveFileDialog(
         callback,
         user_data,
         if (window) |val| val.value else null,
@@ -343,7 +343,7 @@ pub fn showWithProperties(
     props: Properties,
 ) !properties.Group {
     const ret = try props.toProperties();
-    C.SDL_ShowFileDialogWithProperties(
+    c.SDL_ShowFileDialogWithProperties(
         @intFromEnum(dialog_type),
         callback,
         user_data,

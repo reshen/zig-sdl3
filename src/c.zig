@@ -1,6 +1,6 @@
 const extension_options = @import("extension_options");
 
-pub const C = @cImport({
+pub const c = @cImport({
     @cInclude("SDL3/SDL.h");
     if (extension_options.main) {
         @cInclude("SDL3/SDL_main.h");

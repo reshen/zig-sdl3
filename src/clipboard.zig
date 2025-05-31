@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const init = @import("init.zig");
 const errors = @import("errors.zig");
 const std = @import("std");
@@ -11,7 +11,7 @@ const stdinc = @import("stdinc.zig");
 ///
 /// ## Version
 /// This function is available since SDL 3.2.0.
-pub const CleanupCallback = *const fn (user_data: ?*anyopaque) callconv(.C) void;
+pub const CleanupCallback = *const fn (user_data: ?*anyopaque) callconv(.c) void;
 
 /// Callback function that will be called when data for the specified mime-type is requested by the OS.
 ///
@@ -33,7 +33,7 @@ pub const CleanupCallback = *const fn (user_data: ?*anyopaque) callconv(.C) void
 ///
 /// ## Version
 /// This function is available since SDL 3.2.0.
-pub const DataCallback = *const fn (user_data: ?*anyopaque, mime_type: [*c]const u8, size: [*c]usize) callconv(.C) ?*anyopaque;
+pub const DataCallback = *const fn (user_data: ?*anyopaque, mime_type: [*c]const u8, size: [*c]usize) callconv(.c) ?*anyopaque;
 
 /// Clear the clipboard data.
 ///
@@ -43,7 +43,7 @@ pub const DataCallback = *const fn (user_data: ?*anyopaque, mime_type: [*c]const
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn clearData() !void {
-    const ret = C.SDL_ClearClipboardData();
+    const ret = c.SDL_ClearClipboardData();
     return errors.wrapCallBool(ret);
 }
 
@@ -67,7 +67,7 @@ pub fn getData(
     mime_type: [:0]const u8,
 ) ![:0]const u8 {
     var size: usize = undefined;
-    const val = C.SDL_GetClipboardData(
+    const val = c.SDL_GetClipboardData(
         mime_type,
         &size,
     );
@@ -88,7 +88,7 @@ pub fn getData(
 /// This function is available since SDL 3.2.0.
 pub fn getMimeTypes() ![][*:0]u8 {
     var num_mime_types: usize = undefined;
-    const val = C.SDL_GetClipboardMimeTypes(
+    const val = c.SDL_GetClipboardMimeTypes(
         &num_mime_types,
     );
     const ret = try errors.wrapCallCPtr([*c]u8, val);
@@ -110,7 +110,7 @@ pub fn getMimeTypes() ![][*:0]u8 {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getPrimarySelectionText() ![:0]const u8 {
-    const ret = C.SDL_GetPrimarySelectionText();
+    const ret = c.SDL_GetPrimarySelectionText();
     const converted_ret = std.mem.span(ret);
     if (std.mem.eql(u8, converted_ret, "")) {
         if (errors.error_callback) |val|
@@ -135,7 +135,7 @@ pub fn getPrimarySelectionText() ![:0]const u8 {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getText() ![:0]u8 {
-    const ret = C.SDL_GetClipboardText();
+    const ret = c.SDL_GetClipboardText();
     const converted_ret: [:0]u8 = std.mem.span(ret);
     if (std.mem.eql(u8, converted_ret, "")) {
         if (errors.error_callback) |val|
@@ -161,7 +161,7 @@ pub fn getText() ![:0]u8 {
 pub fn hasData(
     mime_type: [:0]const u8,
 ) bool {
-    const ret = C.SDL_HasClipboardData(
+    const ret = c.SDL_HasClipboardData(
         mime_type.ptr,
     );
     return ret;
@@ -178,7 +178,7 @@ pub fn hasData(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn hasPrimarySelectionText() bool {
-    const ret = C.SDL_HasPrimarySelectionText();
+    const ret = c.SDL_HasPrimarySelectionText();
     return ret;
 }
 
@@ -193,7 +193,7 @@ pub fn hasPrimarySelectionText() bool {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn hasText() bool {
-    const ret = C.SDL_HasClipboardText();
+    const ret = c.SDL_HasClipboardText();
     return ret;
 }
 
@@ -222,7 +222,7 @@ pub fn setData(
     user_data: ?*anyopaque,
     mime_types: [][*:0]const u8,
 ) !void {
-    const ret = C.SDL_SetClipboardData(
+    const ret = c.SDL_SetClipboardData(
         callback,
         cleanup,
         user_data,
@@ -245,7 +245,7 @@ pub fn setData(
 pub fn setPrimarySelectionText(
     text: [:0]const u8,
 ) !void {
-    const ret = C.SDL_SetPrimarySelectionText(
+    const ret = c.SDL_SetPrimarySelectionText(
         text,
     );
     return errors.wrapCallBool(ret);
@@ -264,7 +264,7 @@ pub fn setPrimarySelectionText(
 pub fn setText(
     text: [:0]const u8,
 ) !void {
-    const ret = C.SDL_SetClipboardText(
+    const ret = c.SDL_SetClipboardText(
         text.ptr,
     );
     return errors.wrapCallBool(ret);
@@ -272,7 +272,7 @@ pub fn setText(
 
 fn cleanup_cb(
     user_data: ?*anyopaque,
-) callconv(.C) void {
+) callconv(.c) void {
     _ = user_data;
 }
 
@@ -280,7 +280,7 @@ fn data_cb(
     user_data: ?*anyopaque,
     mime_type: [*c]const u8,
     size: [*c]usize,
-) callconv(.C) ?*anyopaque {
+) callconv(.c) ?*anyopaque {
     _ = user_data;
     _ = mime_type;
     size.* = 1;

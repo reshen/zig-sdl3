@@ -1,7 +1,7 @@
 # Checklist
 For monitoring how close various subsystems are to completion.
 
-## Done (46/57)
+## Done (51/57)
 
 ### Basics
 * Main
@@ -13,6 +13,7 @@ For monitoring how close various subsystems are to completion.
 * Version
 
 ### Video
+* Video
 * Pixels
 * Blend Mode
 * Rect
@@ -33,11 +34,16 @@ For monitoring how close various subsystems are to completion.
 * Sensor
 * HIDAPI
 
+### Haptic
+* Haptic
+
 ### Audio
 * Audio
 
 ### Threads
 * Thread
+* Mutex
+* Atomic
 
 ### Time
 * Timer
@@ -64,16 +70,16 @@ For monitoring how close various subsystems are to completion.
 * File Dialogs
 * System Tray
 * Locale
+* System
 * GUID
 * Misc
 
-## In Progress (7/57)
+## In Progress (6/57)
 
 ### Basics
 * Hints
 
 ### Video
-* Video
 * Render
 
 ### Input
@@ -85,15 +91,3 @@ For monitoring how close various subsystems are to completion.
 
 ### Additional Functionality
 * Standard Lib
-
-## Not Started (4/57)
-
-### Haptic
-* Haptic
-
-### Threads
-* Mutex
-* Atomic
-
-### Additional Functionality
-* System

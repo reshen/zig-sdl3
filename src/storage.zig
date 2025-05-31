@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const filesystem = @import("filesystem.zig");
 const properties = @import("properties.zig");
@@ -140,27 +140,27 @@ pub const Path = struct {
 /// This struct is available since SDL 3.2.0.
 pub const Interface = struct {
     /// Called when storage is closed.
-    deinit: *const fn (user_data: ?*anyopaque) callconv(.C) bool,
+    deinit: *const fn (user_data: ?*anyopaque) callconv(.c) bool,
     /// Returns whether the storage is currently ready for access.
-    ready: ?*const fn (user_data: ?*anyopaque) callconv(.C) bool,
+    ready: ?*const fn (user_data: ?*anyopaque) callconv(.c) bool,
     /// Enumerate a directory, optional for write-only storage.
-    enumerate: ?*const fn (user_data: ?*anyopaque, path: [*c]const u8, callback: ?filesystem.EnumerateDirectoryCallback, callback_user_data: ?*anyopaque) callconv(.C) bool,
+    enumerate: ?*const fn (user_data: ?*anyopaque, path: [*c]const u8, callback: ?filesystem.EnumerateDirectoryCallback, callback_user_data: ?*anyopaque) callconv(.c) bool,
     /// Get path information, optional for write-only storage.
-    info: ?*const fn (user_data: ?*anyopaque, path: [*c]const u8, info: [*c]C.SDL_PathInfo) callconv(.C) bool,
+    info: ?*const fn (user_data: ?*anyopaque, path: [*c]const u8, info: [*c]c.SDL_PathInfo) callconv(.c) bool,
     /// Read a file from storage, optional for write-only storage.
-    read_file: ?*const fn (user_data: ?*anyopaque, path: [*c]const u8, destination: ?*anyopaque, length: u64) callconv(.C) bool,
+    read_file: ?*const fn (user_data: ?*anyopaque, path: [*c]const u8, destination: ?*anyopaque, length: u64) callconv(.c) bool,
     /// Write a file to storage, optional for read-only storage.
-    write_file: ?*const fn (user_data: ?*anyopaque, path: [*c]const u8, source: ?*const anyopaque, length: u64) callconv(.C) bool,
+    write_file: ?*const fn (user_data: ?*anyopaque, path: [*c]const u8, source: ?*const anyopaque, length: u64) callconv(.c) bool,
     /// Create a directory, optional for read-only storage.
-    mkdir: ?*const fn (user_data: ?*anyopaque, path: [*c]const u8) callconv(.C) bool,
+    mkdir: ?*const fn (user_data: ?*anyopaque, path: [*c]const u8) callconv(.c) bool,
     /// Remove a file or empty directory, optional for read-only storage.
-    remove: ?*const fn (user_data: ?*anyopaque, path: [*c]const u8) callconv(.C) bool,
+    remove: ?*const fn (user_data: ?*anyopaque, path: [*c]const u8) callconv(.c) bool,
     /// Rename a path, optional for read-only storage.
-    rename: ?*const fn (user_data: ?*anyopaque, old_path: [*c]const u8, new_path: [*c]const u8) callconv(.C) bool,
+    rename: ?*const fn (user_data: ?*anyopaque, old_path: [*c]const u8, new_path: [*c]const u8) callconv(.c) bool,
     /// Copy a file, optional for read-only storage.
-    copy: ?*const fn (user_data: ?*anyopaque, old_path: [*c]const u8, new_path: [*c]const u8) callconv(.C) bool,
+    copy: ?*const fn (user_data: ?*anyopaque, old_path: [*c]const u8, new_path: [*c]const u8) callconv(.c) bool,
     /// Get the space remaining, optional for read-only storage.
-    space_remaining: ?*const fn (user_data: ?*anyopaque) callconv(.C) u64,
+    space_remaining: ?*const fn (user_data: ?*anyopaque) callconv(.c) u64,
 };
 
 /// An abstract interface for filesystem access.
@@ -173,7 +173,7 @@ pub const Interface = struct {
 /// ## Version
 /// This struct is available since SDL 3.2.0.
 pub const Storage = packed struct {
-    value: *C.SDL_Storage,
+    value: *c.SDL_Storage,
 
     /// Copy a file in a writable storage container.
     ///
@@ -189,7 +189,7 @@ pub const Storage = packed struct {
         old_path: [:0]const u8,
         new_path: [:0]const u8,
     ) !void {
-        return errors.wrapCallBool(C.SDL_CopyStorageFile(self.value, old_path.ptr, new_path.ptr));
+        return errors.wrapCallBool(c.SDL_CopyStorageFile(self.value, old_path.ptr, new_path.ptr));
     }
 
     /// Create a directory in a writable storage container.
@@ -204,7 +204,7 @@ pub const Storage = packed struct {
         self: Storage,
         path: [:0]const u8,
     ) !void {
-        return errors.wrapCallBool(C.SDL_CreateStorageDirectory(self.value, path.ptr));
+        return errors.wrapCallBool(c.SDL_CreateStorageDirectory(self.value, path.ptr));
     }
 
     /// Closes and frees a storage container.
@@ -217,7 +217,7 @@ pub const Storage = packed struct {
     pub fn deinit(
         self: Storage,
     ) !void {
-        return errors.wrapCallBool(C.SDL_CloseStorage(self.value));
+        return errors.wrapCallBool(c.SDL_CloseStorage(self.value));
     }
 
     /// Opens up a container using a client-provided storage interface.
@@ -236,7 +236,7 @@ pub const Storage = packed struct {
         interface: Interface,
         user_data: ?*anyopaque,
     ) !Storage {
-        const iface = C.SDL_StorageInterface{
+        const iface = c.SDL_StorageInterface{
             .close = interface.deinit,
             .ready = interface.ready,
             .enumerate = interface.enumerate,
@@ -250,7 +250,7 @@ pub const Storage = packed struct {
             .space_remaining = interface.space_remaining,
         };
         return .{
-            .value = try errors.wrapNull(*C.SDL_Storage, C.SDL_OpenStorage(&iface, user_data)),
+            .value = try errors.wrapNull(*c.SDL_Storage, c.SDL_OpenStorage(&iface, user_data)),
         };
     }
 
@@ -272,7 +272,7 @@ pub const Storage = packed struct {
         path: ?[:0]const u8,
     ) !Storage {
         return .{
-            .value = try errors.wrapNull(*C.SDL_Storage, C.SDL_OpenFileStorage(if (path) |val| val.ptr else null)),
+            .value = try errors.wrapNull(*c.SDL_Storage, c.SDL_OpenFileStorage(if (path) |val| val.ptr else null)),
         };
     }
 
@@ -292,7 +292,7 @@ pub const Storage = packed struct {
         props: ?properties.Group,
     ) !Storage {
         return .{
-            .value = try errors.wrapNull(*C.SDL_Storage, C.SDL_OpenTitleStorage(if (override) |val| val.ptr else null, if (props) |val| val.value else 0)),
+            .value = try errors.wrapNull(*c.SDL_Storage, c.SDL_OpenTitleStorage(if (override) |val| val.ptr else null, if (props) |val| val.value else 0)),
         };
     }
 
@@ -318,7 +318,7 @@ pub const Storage = packed struct {
         props: ?properties.Group,
     ) !Storage {
         return .{
-            .value = try errors.wrapNull(*C.SDL_Storage, C.SDL_OpenUserStorage(org.ptr, app.ptr, if (props) |val| val.value else 0)),
+            .value = try errors.wrapNull(*c.SDL_Storage, c.SDL_OpenUserStorage(org.ptr, app.ptr, if (props) |val| val.value else 0)),
         };
     }
 
@@ -348,7 +348,7 @@ pub const Storage = packed struct {
         callback: filesystem.EnumerateDirectoryCallback,
         user_data: ?*anyopaque,
     ) !void {
-        return errors.wrapCallBool(C.SDL_EnumerateStorageDirectory(storage.value, if (path) |val| val.ptr else null, callback, user_data));
+        return errors.wrapCallBool(c.SDL_EnumerateStorageDirectory(storage.value, if (path) |val| val.ptr else null, callback, user_data));
     }
 
     /// Data for getting all properties.
@@ -359,20 +359,20 @@ pub const Storage = packed struct {
     };
 
     /// Callback for getting all directory items.
-    fn getAllDirectoryItemsCb(user_data: ?*anyopaque, dir_name: [*c]const u8, name: [*c]const u8) callconv(.C) C.SDL_EnumerationResult {
+    fn getAllDirectoryItemsCb(user_data: ?*anyopaque, dir_name: [*c]const u8, name: [*c]const u8) callconv(.c) c.SDL_EnumerationResult {
         _ = dir_name;
         const data_ptr: *GetAllData = @ptrCast(@alignCast(user_data));
         const name_str = std.mem.span(name);
         const copy = data_ptr.allocator.allocSentinel(u8, name_str.len, 0) catch |err| {
             data_ptr.err = err;
-            return C.SDL_ENUM_FAILURE;
+            return c.SDL_ENUM_FAILURE;
         };
         @memcpy(copy, name_str);
         data_ptr.arr.append(copy) catch |err| {
             data_ptr.err = err;
-            return C.SDL_ENUM_FAILURE;
+            return c.SDL_ENUM_FAILURE;
         };
-        return C.SDL_ENUM_CONTINUE;
+        return c.SDL_ENUM_CONTINUE;
     }
 
     /// Free all directory items obtained through `filesystem.getAllDirectoryItems()`.
@@ -437,7 +437,7 @@ pub const Storage = packed struct {
         path: [:0]const u8,
     ) !u64 {
         var size: u64 = undefined;
-        try errors.wrapCallBool(C.SDL_GetStorageFileSize(self.value, path.ptr, &size));
+        try errors.wrapCallBool(c.SDL_GetStorageFileSize(self.value, path.ptr, &size));
         return size;
     }
 
@@ -456,7 +456,7 @@ pub const Storage = packed struct {
         self: Storage,
         path: [:0]const u8,
     ) bool {
-        return C.SDL_GetStoragePathInfo(self.value, path.ptr, null);
+        return c.SDL_GetStoragePathInfo(self.value, path.ptr, null);
     }
 
     /// Get information about a filesystem path in a storage container.
@@ -474,8 +474,8 @@ pub const Storage = packed struct {
         self: Storage,
         path: [:0]const u8,
     ) !filesystem.PathInfo {
-        var info: C.SDL_PathInfo = undefined;
-        try errors.wrapCallBool(C.SDL_GetStoragePathInfo(self.value, path.ptr, &info));
+        var info: c.SDL_PathInfo = undefined;
+        try errors.wrapCallBool(c.SDL_GetStoragePathInfo(self.value, path.ptr, &info));
         return filesystem.PathInfo.fromSdl(info);
     }
 
@@ -492,7 +492,7 @@ pub const Storage = packed struct {
     pub fn getSpaceRemaining(
         self: Storage,
     ) u64 {
-        return C.SDL_GetStorageSpaceRemaining(self.value);
+        return c.SDL_GetStorageSpaceRemaining(self.value);
     }
 
     /// Enumerate a directory tree, filtered by pattern, and return a list.
@@ -530,7 +530,7 @@ pub const Storage = packed struct {
         flags: filesystem.GlobFlags,
     ) ![][*:0]u8 {
         var count: c_int = undefined;
-        const ret: [*][*:0]u8 = @ptrCast(try errors.wrapCallCPtr([*c]u8, C.SDL_GlobStorageDirectory(
+        const ret: [*][*:0]u8 = @ptrCast(try errors.wrapCallCPtr([*c]u8, c.SDL_GlobStorageDirectory(
             self.value,
             if (path) |val| val.ptr else null,
             if (pattern) |val| val.ptr else null,
@@ -558,7 +558,7 @@ pub const Storage = packed struct {
         path: [:0]const u8,
         destination: []u8,
     ) !void {
-        return errors.wrapCallBool(C.SDL_ReadStorageFile(self.value, path.ptr, destination.ptr, @intCast(destination.len)));
+        return errors.wrapCallBool(c.SDL_ReadStorageFile(self.value, path.ptr, destination.ptr, @intCast(destination.len)));
     }
 
     /// Remove a file or an empty directory in a writable storage container.
@@ -573,7 +573,7 @@ pub const Storage = packed struct {
         self: Storage,
         path: [:0]const u8,
     ) !void {
-        return errors.wrapCallBool(C.SDL_RemoveStoragePath(self.value, path.ptr));
+        return errors.wrapCallBool(c.SDL_RemoveStoragePath(self.value, path.ptr));
     }
 
     /// Rename a file or directory in a writable storage container.
@@ -590,7 +590,7 @@ pub const Storage = packed struct {
         old_path: [:0]const u8,
         new_path: [:0]const u8,
     ) !void {
-        return errors.wrapCallBool(C.SDL_RenameStoragePath(self.value, old_path, new_path));
+        return errors.wrapCallBool(c.SDL_RenameStoragePath(self.value, old_path, new_path));
     }
 
     /// Checks if the storage container is ready to use.
@@ -611,7 +611,7 @@ pub const Storage = packed struct {
     pub fn ready(
         self: Storage,
     ) bool {
-        return C.SDL_StorageReady(self.value);
+        return c.SDL_StorageReady(self.value);
     }
 
     /// Synchronously write a file from client memory into a storage container.
@@ -628,7 +628,7 @@ pub const Storage = packed struct {
         path: [:0]const u8,
         source: []const u8,
     ) !void {
-        return errors.wrapCallBool(C.SDL_WriteStorageFile(self.value, path.ptr, source.ptr, @intCast(source.len)));
+        return errors.wrapCallBool(c.SDL_WriteStorageFile(self.value, path.ptr, source.ptr, @intCast(source.len)));
     }
 };
 

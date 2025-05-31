@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const std = @import("std");
 const surface = @import("surface.zig");
 
@@ -10,18 +10,18 @@ const surface = @import("surface.zig");
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const Callback = *const fn (user_data: ?*anyopaque, entry: ?*C.SDL_TrayEntry) callconv(.C) void;
+pub const Callback = *const fn (user_data: ?*anyopaque, entry: ?*c.SDL_TrayEntry) callconv(.c) void;
 
 /// An opaque handle representing an entry on a system tray object.
 ///
 /// ## Version
 /// This struct is available since SDL 3.2.0.
 pub const Entry = struct {
-    value: *C.SDL_TrayEntry,
+    value: *c.SDL_TrayEntry,
 
     // Size tests.
     comptime {
-        std.debug.assert(@sizeOf(*C.SDL_TrayEntry) == @sizeOf(Entry));
+        std.debug.assert(@sizeOf(*c.SDL_TrayEntry) == @sizeOf(Entry));
     }
 
     /// Simulate a click on a tray entry.
@@ -37,7 +37,7 @@ pub const Entry = struct {
     pub fn click(
         self: Entry,
     ) void {
-        C.SDL_ClickTrayEntry(self.value);
+        c.SDL_ClickTrayEntry(self.value);
     }
 
     /// Create a submenu for a system tray entry.
@@ -64,7 +64,7 @@ pub const Entry = struct {
         self: Entry,
     ) Menu {
         return .{
-            .value = C.SDL_CreateTraySubmenu(self.value).?,
+            .value = c.SDL_CreateTraySubmenu(self.value).?,
         };
     }
 
@@ -87,7 +87,7 @@ pub const Entry = struct {
     pub fn getChecked(
         self: Entry,
     ) bool {
-        return C.SDL_GetTrayEntryChecked(self.value);
+        return c.SDL_GetTrayEntryChecked(self.value);
     }
 
     /// Gets whether or not an entry is enabled.
@@ -106,7 +106,7 @@ pub const Entry = struct {
     pub fn getEnabled(
         self: Entry,
     ) bool {
-        return C.SDL_GetTrayEntryEnabled(self.value);
+        return c.SDL_GetTrayEntryEnabled(self.value);
     }
 
     /// Gets the label of an entry.
@@ -128,7 +128,7 @@ pub const Entry = struct {
     pub fn getLabel(
         self: Entry,
     ) ?[:0]const u8 {
-        const ret = C.SDL_GetTrayEntryLabel(self.value);
+        const ret = c.SDL_GetTrayEntryLabel(self.value);
         if (ret == null)
             return null;
         return std.mem.span(ret);
@@ -151,7 +151,7 @@ pub const Entry = struct {
         self: Entry,
     ) Menu {
         return .{
-            .value = C.SDL_GetTrayEntryParent(self.value).?,
+            .value = c.SDL_GetTrayEntryParent(self.value).?,
         };
     }
 
@@ -180,7 +180,7 @@ pub const Entry = struct {
         self: Entry,
     ) Menu {
         return .{
-            .value = C.SDL_GetTraySubmenu(self.value).?,
+            .value = c.SDL_GetTraySubmenu(self.value).?,
         };
     }
 
@@ -197,7 +197,7 @@ pub const Entry = struct {
     pub fn remove(
         self: Entry,
     ) void {
-        C.SDL_RemoveTrayEntry(self.value);
+        c.SDL_RemoveTrayEntry(self.value);
     }
 
     /// Sets a callback to be invoked when the entry is selected.
@@ -217,7 +217,7 @@ pub const Entry = struct {
         callback: Callback,
         user_data: ?*anyopaque,
     ) void {
-        C.SDL_SetTrayEntryCallback(self.value, callback, user_data);
+        c.SDL_SetTrayEntryCallback(self.value, callback, user_data);
     }
 
     /// Sets whether or not an entry is checked.
@@ -238,7 +238,7 @@ pub const Entry = struct {
         self: Entry,
         checked: bool,
     ) void {
-        C.SDL_SetTrayEntryChecked(self.value, checked);
+        c.SDL_SetTrayEntryChecked(self.value, checked);
     }
 
     /// Sets whether or not an entry is enabled.
@@ -256,7 +256,7 @@ pub const Entry = struct {
         self: Entry,
         enabled: bool,
     ) void {
-        C.SDL_SetTrayEntryEnabled(self.value, enabled);
+        c.SDL_SetTrayEntryEnabled(self.value, enabled);
     }
 
     /// Sets the label of an entry.
@@ -278,7 +278,7 @@ pub const Entry = struct {
         self: Entry,
         label: [:0]const u8,
     ) void {
-        C.SDL_SetTrayEntryLabel(self.value, label.ptr);
+        c.SDL_SetTrayEntryLabel(self.value, label.ptr);
     }
 };
 
@@ -300,19 +300,19 @@ pub const EntryFlags = struct {
     disabled: bool = false,
 
     /// Convert this to an SDL value.
-    pub fn toSdl(self: EntryFlags) C.SDL_TrayEntryFlags {
-        var ret: C.SDL_TrayEntryFlags = 0;
+    pub fn toSdl(self: EntryFlags) c.SDL_TrayEntryFlags {
+        var ret: c.SDL_TrayEntryFlags = 0;
         switch (self.entry) {
-            .button => ret |= C.SDL_TRAYENTRY_BUTTON,
+            .button => ret |= c.SDL_TRAYENTRY_BUTTON,
             .checkbox => |val| {
-                ret |= C.SDL_TRAYENTRY_CHECKBOX;
+                ret |= c.SDL_TRAYENTRY_CHECKBOX;
                 if (val)
-                    ret |= C.SDL_TRAYENTRY_CHECKED;
+                    ret |= c.SDL_TRAYENTRY_CHECKED;
             },
-            .submenu => ret |= C.SDL_TRAYENTRY_SUBMENU,
+            .submenu => ret |= c.SDL_TRAYENTRY_SUBMENU,
         }
         if (self.disabled)
-            ret |= C.SDL_TRAYENTRY_DISABLED;
+            ret |= c.SDL_TRAYENTRY_DISABLED;
         return ret;
     }
 };
@@ -321,13 +321,13 @@ pub const EntryFlags = struct {
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const EntryType = enum(C.SDL_TrayEntryFlags) {
+pub const EntryType = enum(c.SDL_TrayEntryFlags) {
     /// Make the entry a simple button.
-    button = C.SDL_TRAYENTRY_BUTTON,
+    button = c.SDL_TRAYENTRY_BUTTON,
     /// Make the entry a checkbox.
-    checkbox = C.SDL_TRAYENTRY_CHECKBOX,
+    checkbox = c.SDL_TRAYENTRY_CHECKBOX,
     /// Prepare the entry to have a submenu.
-    submenu = C.SDL_TRAYENTRY_SUBMENU,
+    submenu = c.SDL_TRAYENTRY_SUBMENU,
 };
 
 /// An opaque handle representing a menu/submenu on a system tray object.
@@ -335,7 +335,7 @@ pub const EntryType = enum(C.SDL_TrayEntryFlags) {
 /// ## Version
 /// This struct is available since SDL 3.2.0.
 pub const Menu = struct {
-    value: *C.SDL_TrayMenu,
+    value: *c.SDL_TrayMenu,
 
     /// Returns a list of entries in the menu, in order.
     ///
@@ -355,7 +355,7 @@ pub const Menu = struct {
         self: Menu,
     ) []const Entry {
         var count: c_int = undefined;
-        const ret: [*]const Entry = @ptrCast(C.SDL_GetTrayEntries(self.value, &count).?);
+        const ret: [*]const Entry = @ptrCast(c.SDL_GetTrayEntries(self.value, &count).?);
         return ret[0..@intCast(count)];
     }
 
@@ -378,7 +378,7 @@ pub const Menu = struct {
     pub fn getParentEntry(
         self: Menu,
     ) ?Entry {
-        const ret = C.SDL_GetTrayMenuParentEntry(self.value);
+        const ret = c.SDL_GetTrayMenuParentEntry(self.value);
         if (ret) |val| {
             return .{
                 .value = val,
@@ -406,7 +406,7 @@ pub const Menu = struct {
     pub fn getParentTray(
         self: Menu,
     ) ?Tray {
-        const ret = C.SDL_GetTrayMenuParentTray(self.value);
+        const ret = c.SDL_GetTrayMenuParentTray(self.value);
         if (ret) |val| {
             return .{
                 .value = val,
@@ -443,7 +443,7 @@ pub const Menu = struct {
         label: ?[:0]const u8,
         flags: EntryFlags,
     ) ?Entry {
-        const ret = C.SDL_InsertTrayEntryAt(
+        const ret = c.SDL_InsertTrayEntryAt(
             self.value,
             if (pos) |val| @intCast(val) else -1,
             if (label) |val| val.ptr else null,
@@ -461,7 +461,7 @@ pub const Menu = struct {
 /// ## Version
 /// This struct is available since SDL 3.2.0.
 pub const Tray = struct {
-    value: *C.SDL_Tray,
+    value: *c.SDL_Tray,
 
     /// Create a menu for a system tray.
     ///
@@ -487,7 +487,7 @@ pub const Tray = struct {
         self: Tray,
     ) Menu {
         return .{
-            .value = C.SDL_CreateTrayMenu(self.value).?,
+            .value = c.SDL_CreateTrayMenu(self.value).?,
         };
     }
 
@@ -507,7 +507,7 @@ pub const Tray = struct {
     pub fn deinit(
         self: Tray,
     ) void {
-        C.SDL_DestroyTray(self.value);
+        c.SDL_DestroyTray(self.value);
     }
 
     /// Gets a previously created tray menu.
@@ -535,7 +535,7 @@ pub const Tray = struct {
         self: Tray,
     ) Menu {
         return .{
-            .value = C.SDL_GetTrayMenu(self.value).?,
+            .value = c.SDL_GetTrayMenu(self.value).?,
         };
     }
 
@@ -554,7 +554,7 @@ pub const Tray = struct {
         self: Tray,
         icon: ?surface.Surface,
     ) void {
-        C.SDL_SetTrayIcon(self.value, if (icon) |val| val.value else null);
+        c.SDL_SetTrayIcon(self.value, if (icon) |val| val.value else null);
     }
 
     /// Create an icon to be placed in the operating system's tray, or equivalent.
@@ -584,7 +584,7 @@ pub const Tray = struct {
         icon: ?surface.Surface,
         tooltip: ?[:0]const u8,
     ) Tray {
-        return .{ .value = C.SDL_CreateTray(
+        return .{ .value = c.SDL_CreateTray(
             if (icon) |val| val.value else null,
             if (tooltip) |val| val.ptr else null,
         ).? };
@@ -605,7 +605,7 @@ pub const Tray = struct {
         self: Tray,
         tooltip: ?[:0]const u8,
     ) void {
-        C.SDL_SetTrayTooltip(self.value, if (tooltip) |val| val.ptr else null);
+        c.SDL_SetTrayTooltip(self.value, if (tooltip) |val| val.ptr else null);
     }
 };
 
@@ -620,7 +620,7 @@ pub const Tray = struct {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn update() void {
-    C.SDL_UpdateTrays();
+    c.SDL_UpdateTrays();
 }
 
 // Tray tests.

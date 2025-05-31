@@ -65,7 +65,7 @@ fn sdlLog(
     category: c_int,
     priority: sdl3.c.SDL_LogPriority,
     message: [*c]const u8,
-) callconv(.C) void {
+) callconv(.c) void {
     _ = user_data;
     const category_managed = sdl3.log.Category.fromSdl(category);
     const category_str: ?[]const u8 = if (category_managed) |val| switch (val.value) {

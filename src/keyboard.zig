@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const init = @import("init.zig");
 const keycode = @import("keycode.zig");
@@ -20,19 +20,19 @@ pub const Capitalization = enum(c_uint) {
     /// No capitalization will be done.
     none,
     /// The first letter of sentences will be capitalized.
-    sentences = C.SDL_CAPITALIZE_SENTENCES,
+    sentences = c.SDL_CAPITALIZE_SENTENCES,
     /// The first letter of words will be capitalized.
-    words = C.SDL_CAPITALIZE_WORDS,
+    words = c.SDL_CAPITALIZE_WORDS,
     /// All letters will be capitalized.
-    letters = C.SDL_CAPITALIZE_LETTERS,
+    letters = c.SDL_CAPITALIZE_LETTERS,
 
     /// Get from an SDL value.
-    pub fn fromSdl(value: C.SDL_Capitalization) Capitalization {
+    pub fn fromSdl(value: c.SDL_Capitalization) Capitalization {
         return @enumFromInt(value);
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: Capitalization) C.SDL_Capitalization {
+    pub fn toSdl(self: Capitalization) c.SDL_Capitalization {
         return @intFromEnum(self);
     }
 };
@@ -60,15 +60,15 @@ pub const TextInputProperties = struct {
     pub fn toSdl(self: TextInputProperties) !properties.Group {
         const ret = try properties.Group.init();
         if (self.input_type) |val|
-            try ret.set(C.SDL_PROP_TEXTINPUT_TYPE_NUMBER, .{ .number = @intFromEnum(val) });
+            try ret.set(c.SDL_PROP_TEXTINPUT_TYPE_NUMBER, .{ .number = @intFromEnum(val) });
         if (self.capitalization) |val|
-            try ret.set(C.SDL_PROP_TEXTINPUT_CAPITALIZATION_NUMBER, .{ .number = @intFromEnum(val) });
+            try ret.set(c.SDL_PROP_TEXTINPUT_CAPITALIZATION_NUMBER, .{ .number = @intFromEnum(val) });
         if (self.auto_correct) |val|
-            try ret.set(C.SDL_PROP_TEXTINPUT_AUTOCORRECT_BOOLEAN, .{ .boolean = val });
+            try ret.set(c.SDL_PROP_TEXTINPUT_AUTOCORRECT_BOOLEAN, .{ .boolean = val });
         if (self.multi_line) |val|
-            try ret.set(C.SDL_PROP_TEXTINPUT_MULTILINE_BOOLEAN, .{ .boolean = val });
+            try ret.set(c.SDL_PROP_TEXTINPUT_MULTILINE_BOOLEAN, .{ .boolean = val });
         if (self.android_input_type) |val|
-            try ret.set(C.SDL_PROP_TEXTINPUT_ANDROID_INPUTTYPE_NUMBER, .{ .number = val });
+            try ret.set(c.SDL_PROP_TEXTINPUT_ANDROID_INPUTTYPE_NUMBER, .{ .number = val });
         return ret;
     }
 };
@@ -83,23 +83,23 @@ pub const TextInputProperties = struct {
 /// This enum is available since SDL 3.2.0.
 pub const TextInputType = enum(c_uint) {
     /// The input is text.
-    text = C.SDL_TEXTINPUT_TYPE_TEXT,
+    text = c.SDL_TEXTINPUT_TYPE_TEXT,
     /// The input is a person's name.
-    text_name = C.SDL_TEXTINPUT_TYPE_TEXT_NAME,
+    text_name = c.SDL_TEXTINPUT_TYPE_TEXT_NAME,
     /// The input is an e-mail address.
-    text_email = C.SDL_TEXTINPUT_TYPE_TEXT_EMAIL,
+    text_email = c.SDL_TEXTINPUT_TYPE_TEXT_EMAIL,
     /// The input is a username.
-    text_username = C.SDL_TEXTINPUT_TYPE_TEXT_USERNAME,
+    text_username = c.SDL_TEXTINPUT_TYPE_TEXT_USERNAME,
     /// he input is a secure password that is hidden.
-    text_password_hidden = C.SDL_TEXTINPUT_TYPE_TEXT_PASSWORD_HIDDEN,
+    text_password_hidden = c.SDL_TEXTINPUT_TYPE_TEXT_PASSWORD_HIDDEN,
     /// The input is a secure password that is visible.
-    text_password_visible = C.SDL_TEXTINPUT_TYPE_TEXT_PASSWORD_VISIBLE,
+    text_password_visible = c.SDL_TEXTINPUT_TYPE_TEXT_PASSWORD_VISIBLE,
     /// The input is a number.
-    number = C.SDL_TEXTINPUT_TYPE_NUMBER,
+    number = c.SDL_TEXTINPUT_TYPE_NUMBER,
     /// The input is a secure PIN that is hidden.
-    number_password_hidden = C.SDL_TEXTINPUT_TYPE_NUMBER_PASSWORD_HIDDEN,
+    number_password_hidden = c.SDL_TEXTINPUT_TYPE_NUMBER_PASSWORD_HIDDEN,
     /// The input is a secure PIN that is visible.
-    number_password_visible = C.SDL_TEXTINPUT_TYPE_NUMBER_PASSWORD_VISIBLE,
+    number_password_visible = c.SDL_TEXTINPUT_TYPE_NUMBER_PASSWORD_VISIBLE,
 };
 
 /// This is a unique ID for a keyboard for the time it is connected to the system, and is never reused for the lifetime of the application.
@@ -110,11 +110,11 @@ pub const TextInputType = enum(c_uint) {
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
 pub const ID = packed struct {
-    value: C.SDL_KeyboardID,
+    value: c.SDL_KeyboardID,
 
     // Size tests.
     comptime {
-        std.debug.assert(@sizeOf(C.SDL_KeyboardID) == @sizeOf(ID));
+        std.debug.assert(@sizeOf(c.SDL_KeyboardID) == @sizeOf(ID));
     }
 
     /// Get the name of a keyboard.
@@ -136,7 +136,7 @@ pub const ID = packed struct {
     pub fn getName(
         self: ID,
     ) !?[:0]const u8 {
-        const ret = try errors.wrapCallCString(C.SDL_GetKeyboardNameForID(
+        const ret = try errors.wrapCallCString(c.SDL_GetKeyboardNameForID(
             self.value,
         ));
         if (std.mem.eql(u8, ret, ""))
@@ -158,7 +158,7 @@ pub const ID = packed struct {
 pub fn clearComposition(
     window: video.Window,
 ) !void {
-    const ret = C.SDL_ClearComposition(
+    const ret = c.SDL_ClearComposition(
         window.value,
     );
     return errors.wrapCallBool(ret);
@@ -175,7 +175,7 @@ pub fn clearComposition(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getFocus() ?video.Window {
-    const ret = C.SDL_GetKeyboardFocus();
+    const ret = c.SDL_GetKeyboardFocus();
     if (ret) |val|
         return video.Window{ .value = val };
     return null;
@@ -198,7 +198,7 @@ pub fn getFocus() ?video.Window {
 /// This function is available since SDL 3.2.0.
 pub fn getKeyboards() ![]ID {
     var count: c_int = undefined;
-    const ret: [*]ID = @ptrCast(try errors.wrapCallCPtr(C.SDL_KeyboardID, C.SDL_GetKeyboards(
+    const ret: [*]ID = @ptrCast(try errors.wrapCallCPtr(c.SDL_KeyboardID, c.SDL_GetKeyboards(
         &count,
     )));
     return ret[0..@intCast(count)];
@@ -220,10 +220,10 @@ pub fn getKeyboards() ![]ID {
 pub fn getKeyFromName(
     name: [:0]const u8,
 ) !?keycode.Keycode {
-    const ret = C.SDL_GetKeyFromName(
+    const ret = c.SDL_GetKeyFromName(
         name,
     );
-    return keycode.Keycode.fromSdl(try errors.wrapCall(C.SDL_Keycode, ret, C.SDLK_UNKNOWN));
+    return keycode.Keycode.fromSdl(try errors.wrapCall(c.SDL_Keycode, ret, c.SDLK_UNKNOWN));
 }
 
 /// Get the key code corresponding to the given scancode according to the current keyboard layout.
@@ -251,12 +251,12 @@ pub fn getKeyFromScancode(
     modifier: keycode.KeyModifier,
     used_in_key_events: bool,
 ) ?keycode.Keycode {
-    const ret = C.SDL_GetKeyFromScancode(
+    const ret = c.SDL_GetKeyFromScancode(
         code.toSdl(),
         modifier.toSdl(),
         used_in_key_events,
     );
-    if (ret == C.SDLK_UNKNOWN)
+    if (ret == c.SDLK_UNKNOWN)
         return null;
     return keycode.Keycode.fromSdl(ret);
 }
@@ -282,7 +282,7 @@ pub fn getKeyFromScancode(
 pub fn getKeyName(
     key: keycode.Keycode,
 ) ?[:0]const u8 {
-    const ret = C.SDL_GetKeyName(
+    const ret = c.SDL_GetKeyName(
         key.toSdl(),
     );
     const converted_ret = std.mem.span(ret);
@@ -302,7 +302,7 @@ pub fn getKeyName(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getModState() keycode.KeyModifier {
-    const ret = C.SDL_GetModState();
+    const ret = c.SDL_GetModState();
     return keycode.KeyModifier.fromSdl(ret);
 }
 
@@ -326,12 +326,12 @@ pub fn getModState() keycode.KeyModifier {
 pub fn getScancodeFromKey(
     key: keycode.Keycode,
 ) ?struct { code: scancode.Scancode, key_mod: keycode.KeyModifier } {
-    var key_mod: C.SDL_Keymod = undefined;
-    const ret = C.SDL_GetScancodeFromKey(
+    var key_mod: c.SDL_Keymod = undefined;
+    const ret = c.SDL_GetScancodeFromKey(
         key.toSdl(),
         &key_mod,
     );
-    if (ret == C.SDL_SCANCODE_UNKNOWN)
+    if (ret == c.SDL_SCANCODE_UNKNOWN)
         return null;
     return .{ .code = scancode.Scancode.fromSdl(@intCast(ret)), .key_mod = keycode.KeyModifier.fromSdl(key_mod) };
 }
@@ -352,10 +352,10 @@ pub fn getScancodeFromKey(
 pub fn getScancodeFromName(
     name: [:0]const u8,
 ) !scancode.Scancode {
-    const ret = C.SDL_GetScancodeFromName(
+    const ret = c.SDL_GetScancodeFromName(
         name,
     );
-    return scancode.Scancode.fromSdl(@intCast(try errors.wrapCall(C.SDL_Scancode, ret, C.SDL_SCANCODE_UNKNOWN)));
+    return scancode.Scancode.fromSdl(@intCast(try errors.wrapCall(c.SDL_Scancode, ret, c.SDL_SCANCODE_UNKNOWN)));
 }
 
 /// Get a human-readable name for a scancode.
@@ -381,7 +381,7 @@ pub fn getScancodeFromName(
 pub fn getScancodeName(
     code: scancode.Scancode,
 ) ?[:0]const u8 {
-    const ret = C.SDL_GetScancodeName(
+    const ret = c.SDL_GetScancodeName(
         code.toSdl(),
     );
     const converted_ret = std.mem.span(ret);
@@ -416,7 +416,7 @@ pub fn getScancodeName(
 /// This function is available since SDL 3.2.0.
 pub fn getState() []const bool {
     var num_keys: c_int = undefined;
-    const ret = C.SDL_GetKeyboardState(
+    const ret = c.SDL_GetKeyboardState(
         &num_keys,
     );
     return ret[0..@intCast(num_keys)];
@@ -441,9 +441,9 @@ pub fn getState() []const bool {
 pub fn getTextInputArea(
     window: video.Window,
 ) !struct { input_area: rect.IRect, cursor_offset: i32 } {
-    var input_area: C.SDL_Rect = undefined;
+    var input_area: c.SDL_Rect = undefined;
     var cursor_offset: c_int = undefined;
-    const ret = C.SDL_GetTextInputArea(
+    const ret = c.SDL_GetTextInputArea(
         window.value,
         &input_area,
         &cursor_offset,
@@ -463,7 +463,7 @@ pub fn getTextInputArea(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn hasKeyboard() bool {
-    return C.SDL_HasKeyboard();
+    return c.SDL_HasKeyboard();
 }
 
 /// Check whether the platform has screen keyboard support.
@@ -477,7 +477,7 @@ pub fn hasKeyboard() bool {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn hasScreenSupport() bool {
-    return C.SDL_HasScreenKeyboardSupport();
+    return c.SDL_HasScreenKeyboardSupport();
 }
 
 /// Clear the state of the keyboard.
@@ -491,7 +491,7 @@ pub fn hasScreenSupport() bool {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn reset() void {
-    C.SDL_ResetKeyboard();
+    c.SDL_ResetKeyboard();
 }
 
 /// Set the current key modifier state for the keyboard.
@@ -513,7 +513,7 @@ pub fn reset() void {
 pub fn setModState(
     modifiers: keycode.KeyModifier,
 ) void {
-    C.SDL_SetModState(
+    c.SDL_SetModState(
         modifiers.toSdl(),
     );
 }
@@ -533,7 +533,7 @@ pub fn setScancodeName(
     code: scancode.Scancode,
     name: [:0]const u8,
 ) !void {
-    const ret = C.SDL_SetScancodeName(
+    const ret = c.SDL_SetScancodeName(
         code.toSdl(),
         name,
     );
@@ -560,8 +560,8 @@ pub fn setTextInputArea(
     input_area: ?rect.IRect,
     cursor: i32,
 ) !void {
-    const input_area_sdl: ?C.SDL_Rect = if (input_area == null) null else input_area.?.toSdl();
-    const ret = C.SDL_SetTextInputArea(
+    const input_area_sdl: ?c.SDL_Rect = if (input_area == null) null else input_area.?.toSdl();
+    const ret = c.SDL_SetTextInputArea(
         window.value,
         if (input_area_sdl == null) null else &(input_area_sdl.?),
         @intCast(cursor),
@@ -585,7 +585,7 @@ pub fn setTextInputArea(
 pub fn shownOnScreen(
     window: video.Window,
 ) bool {
-    const ret = C.SDL_ScreenKeyboardShown(
+    const ret = c.SDL_ScreenKeyboardShown(
         window.value,
     );
     return ret;
@@ -612,7 +612,7 @@ pub fn shownOnScreen(
 pub fn startTextInput(
     window: video.Window,
 ) !void {
-    const ret = C.SDL_StartTextInput(
+    const ret = c.SDL_StartTextInput(
         window.value,
     );
     return errors.wrapCallBool(ret);
@@ -643,7 +643,7 @@ pub fn startTextInputWithProperties(
 ) !void {
     const input_properties = try props.toSdl();
     defer input_properties.deinit();
-    const ret = C.SDL_StartTextInputWithProperties(
+    const ret = c.SDL_StartTextInputWithProperties(
         window.value,
         input_properties.value,
     );
@@ -666,7 +666,7 @@ pub fn startTextInputWithProperties(
 pub fn stopTextInput(
     window: video.Window,
 ) !void {
-    const ret = C.SDL_StopTextInput(
+    const ret = c.SDL_StopTextInput(
         window.value,
     );
     return errors.wrapCallBool(ret);
@@ -688,7 +688,7 @@ pub fn stopTextInput(
 pub fn textInputActive(
     window: video.Window,
 ) bool {
-    const ret = C.SDL_TextInputActive(
+    const ret = c.SDL_TextInputActive(
         window.value,
     );
     return ret;

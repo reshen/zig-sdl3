@@ -7,7 +7,7 @@ const State = struct {
     quit: bool = false,
 };
 
-fn switch_icon_color(user_data: ?*anyopaque, entry: ?*sdl3.c.SDL_TrayEntry) callconv(.C) void {
+fn switch_icon_color(user_data: ?*anyopaque, entry: ?*sdl3.c.SDL_TrayEntry) callconv(.c) void {
     const button = sdl3.tray.Entry{ .value = entry.? };
     const state: *State = @alignCast(@ptrCast(user_data));
     const color = sdl3.pixels.FColor{ .r = state.random.float(f32), .g = state.random.float(f32), .b = state.random.float(f32), .a = 1 };
@@ -15,7 +15,7 @@ fn switch_icon_color(user_data: ?*anyopaque, entry: ?*sdl3.c.SDL_TrayEntry) call
     button.getParent().getParentTray().?.setIcon(state.surface);
 }
 
-fn toggle_button(user_data: ?*anyopaque, entry: ?*sdl3.c.SDL_TrayEntry) callconv(.C) void {
+fn toggle_button(user_data: ?*anyopaque, entry: ?*sdl3.c.SDL_TrayEntry) callconv(.c) void {
     _ = user_data;
     const checkbox = sdl3.tray.Entry{ .value = entry.? };
     const sub_menu = checkbox.getParent();
@@ -33,7 +33,7 @@ fn toggle_button(user_data: ?*anyopaque, entry: ?*sdl3.c.SDL_TrayEntry) callconv
     tray.setTooltip("Toggled sub-menu checkbox");
 }
 
-fn quit(user_data: ?*anyopaque, entry: ?*sdl3.c.SDL_TrayEntry) callconv(.C) void {
+fn quit(user_data: ?*anyopaque, entry: ?*sdl3.c.SDL_TrayEntry) callconv(.c) void {
     _ = entry;
     const state: *State = @alignCast(@ptrCast(user_data));
     state.quit = true;

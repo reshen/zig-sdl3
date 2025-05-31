@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const std = @import("std");
 const stdinc = @import("stdinc.zig");
@@ -23,26 +23,26 @@ const max_log_message_stack = 1024;
 pub const LogOutputFunction = *const fn (
     user_data: ?*anyopaque,
     category: c_int,
-    priority: C.SDL_LogPriority,
+    priority: c.SDL_LogPriority,
     message: [*c]const u8,
-) callconv(.C) void;
+) callconv(.c) void;
 
 /// The predefined log priorities.
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
 pub const Priority = enum(c_uint) {
-    trace = C.SDL_LOG_PRIORITY_TRACE,
-    verbose = C.SDL_LOG_PRIORITY_VERBOSE,
-    debug = C.SDL_LOG_PRIORITY_DEBUG,
-    info = C.SDL_LOG_PRIORITY_INFO,
-    warn = C.SDL_LOG_PRIORITY_WARN,
-    err = C.SDL_LOG_PRIORITY_ERROR,
-    critical = C.SDL_LOG_PRIORITY_CRITICAL,
+    trace = c.SDL_LOG_PRIORITY_TRACE,
+    verbose = c.SDL_LOG_PRIORITY_VERBOSE,
+    debug = c.SDL_LOG_PRIORITY_DEBUG,
+    info = c.SDL_LOG_PRIORITY_INFO,
+    warn = c.SDL_LOG_PRIORITY_WARN,
+    err = c.SDL_LOG_PRIORITY_ERROR,
+    critical = c.SDL_LOG_PRIORITY_CRITICAL,
 
     /// Make a priority from an SDL value.
     pub fn fromSdl(val: c_uint) ?Priority {
-        if (val == C.SDL_LOG_PRIORITY_INVALID)
+        if (val == c.SDL_LOG_PRIORITY_INVALID)
             return null;
         return @enumFromInt(val);
     }
@@ -67,7 +67,7 @@ pub const Priority = enum(c_uint) {
         self: Priority,
         prefix: ?[:0]const u8,
     ) !void {
-        const ret = C.SDL_SetLogPriorityPrefix(
+        const ret = c.SDL_SetLogPriorityPrefix(
             @intFromEnum(self),
             if (prefix) |val| val.ptr else null,
         );
@@ -87,22 +87,22 @@ pub const Priority = enum(c_uint) {
 /// This is available since SDL 3.2.0.
 pub const Category = packed struct {
     value: c_int,
-    pub const application = Category{ .value = C.SDL_LOG_CATEGORY_APPLICATION };
-    pub const errors = Category{ .value = C.SDL_LOG_CATEGORY_ERROR };
-    pub const assert = Category{ .value = C.SDL_LOG_CATEGORY_ASSERT };
-    pub const system = Category{ .value = C.SDL_LOG_CATEGORY_SYSTEM };
-    pub const audio = Category{ .value = C.SDL_LOG_CATEGORY_AUDIO };
-    pub const video = Category{ .value = C.SDL_LOG_CATEGORY_VIDEO };
-    pub const render = Category{ .value = C.SDL_LOG_CATEGORY_RENDER };
-    pub const input = Category{ .value = C.SDL_LOG_CATEGORY_INPUT };
-    pub const testing = Category{ .value = C.SDL_LOG_CATEGORY_TEST };
-    pub const gpu = Category{ .value = C.SDL_LOG_CATEGORY_GPU };
+    pub const application = Category{ .value = c.SDL_LOG_CATEGORY_APPLICATION };
+    pub const errors = Category{ .value = c.SDL_LOG_CATEGORY_ERROR };
+    pub const assert = Category{ .value = c.SDL_LOG_CATEGORY_ASSERT };
+    pub const system = Category{ .value = c.SDL_LOG_CATEGORY_SYSTEM };
+    pub const audio = Category{ .value = c.SDL_LOG_CATEGORY_AUDIO };
+    pub const video = Category{ .value = c.SDL_LOG_CATEGORY_VIDEO };
+    pub const render = Category{ .value = c.SDL_LOG_CATEGORY_RENDER };
+    pub const input = Category{ .value = c.SDL_LOG_CATEGORY_INPUT };
+    pub const testing = Category{ .value = c.SDL_LOG_CATEGORY_TEST };
+    pub const gpu = Category{ .value = c.SDL_LOG_CATEGORY_GPU };
     /// First value to use for custom log categories.
-    pub const custom = Category{ .value = C.SDL_LOG_CATEGORY_CUSTOM };
+    pub const custom = Category{ .value = c.SDL_LOG_CATEGORY_CUSTOM };
 
     /// Get zig representation of a category.
     pub fn fromSdl(val: c_int) ?Category {
-        if (val == C.SDL_LOG_CATEGORY_ERROR)
+        if (val == c.SDL_LOG_CATEGORY_ERROR)
             return null;
         return .{ .value = val };
     }
@@ -123,7 +123,7 @@ pub const Category = packed struct {
     pub fn getPriority(
         self: Category,
     ) Priority {
-        return @enumFromInt(C.SDL_GetLogPriority(self.value));
+        return @enumFromInt(c.SDL_GetLogPriority(self.value));
     }
 
     /// Log a message with the specified category and priority.
@@ -149,7 +149,7 @@ pub const Category = packed struct {
         const allocator = fallback.get();
         const msg = try std.fmt.allocPrintZ(allocator, fmt, args);
         defer allocator.free(msg);
-        C.SDL_LogMessage(
+        c.SDL_LogMessage(
             self.value,
             @intFromEnum(priority),
             "%s",
@@ -178,7 +178,7 @@ pub const Category = packed struct {
         const allocator = fallback.get();
         const msg = try std.fmt.allocPrintZ(allocator, fmt, args);
         defer allocator.free(msg);
-        C.SDL_LogCritical(
+        c.SDL_LogCritical(
             self.value,
             "%s",
             msg.ptr,
@@ -206,7 +206,7 @@ pub const Category = packed struct {
         const allocator = fallback.get();
         const msg = try std.fmt.allocPrintZ(allocator, fmt, args);
         defer allocator.free(msg);
-        C.SDL_LogDebug(
+        c.SDL_LogDebug(
             self.value,
             "%s",
             msg.ptr,
@@ -234,7 +234,7 @@ pub const Category = packed struct {
         const allocator = fallback.get();
         const msg = try std.fmt.allocPrintZ(allocator, fmt, args);
         defer allocator.free(msg);
-        C.SDL_LogError(
+        c.SDL_LogError(
             self.value,
             "%s",
             msg.ptr,
@@ -262,7 +262,7 @@ pub const Category = packed struct {
         const allocator = fallback.get();
         const msg = try std.fmt.allocPrintZ(allocator, fmt, args);
         defer allocator.free(msg);
-        C.SDL_LogInfo(
+        c.SDL_LogInfo(
             self.value,
             "%s",
             msg.ptr,
@@ -290,7 +290,7 @@ pub const Category = packed struct {
         const allocator = fallback.get();
         const msg = try std.fmt.allocPrintZ(allocator, fmt, args);
         defer allocator.free(msg);
-        C.SDL_LogTrace(
+        c.SDL_LogTrace(
             self.value,
             "%s",
             msg.ptr,
@@ -318,7 +318,7 @@ pub const Category = packed struct {
         const allocator = fallback.get();
         const msg = try std.fmt.allocPrintZ(allocator, fmt, args);
         defer allocator.free(msg);
-        C.SDL_LogVerbose(
+        c.SDL_LogVerbose(
             self.value,
             "%s",
             msg.ptr,
@@ -346,7 +346,7 @@ pub const Category = packed struct {
         const allocator = fallback.get();
         const msg = try std.fmt.allocPrintZ(allocator, fmt, args);
         defer allocator.free(msg);
-        C.SDL_LogWarn(
+        c.SDL_LogWarn(
             self.value,
             "%s",
             msg.ptr,
@@ -368,7 +368,7 @@ pub const Category = packed struct {
         self: Category,
         priority: Priority,
     ) void {
-        const ret = C.SDL_SetLogPriority(
+        const ret = c.SDL_SetLogPriority(
             self.value,
             @intFromEnum(priority),
         );
@@ -387,7 +387,7 @@ pub const Category = packed struct {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getDefaultLogOutputFunction() LogOutputFunction {
-    return C.SDL_GetDefaultLogOutputFunction().?;
+    return c.SDL_GetDefaultLogOutputFunction().?;
 }
 
 /// Get the current log output function.
@@ -402,9 +402,9 @@ pub fn getDefaultLogOutputFunction() LogOutputFunction {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getLogOutputFunction() struct { callback: LogOutputFunction, user_data: ?*anyopaque } {
-    var callback: C.SDL_LogOutputFunction = undefined;
+    var callback: c.SDL_LogOutputFunction = undefined;
     var user_data: ?*anyopaque = undefined;
-    C.SDL_GetLogOutputFunction(
+    c.SDL_GetLogOutputFunction(
         &callback,
         &user_data,
     );
@@ -430,7 +430,7 @@ pub fn log(
     const allocator = fallback.get();
     const msg = try std.fmt.allocPrintZ(allocator, fmt, args);
     defer allocator.free(msg);
-    C.SDL_Log(
+    c.SDL_Log(
         "%s",
         msg.ptr,
     );
@@ -447,7 +447,7 @@ pub fn log(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn resetAllPriorities() void {
-    C.SDL_ResetLogPriorities();
+    c.SDL_ResetLogPriorities();
 }
 
 /// Set the priority of all log categories.
@@ -463,7 +463,7 @@ pub fn resetAllPriorities() void {
 pub fn setAllPriorities(
     priority: Priority,
 ) void {
-    C.SDL_SetLogPriorities(
+    c.SDL_SetLogPriorities(
         @intFromEnum(priority),
     );
 }
@@ -483,7 +483,7 @@ pub fn setLogOutputFunction(
     callback: LogOutputFunction,
     user_data: ?*anyopaque,
 ) void {
-    C.SDL_SetLogOutputFunction(
+    c.SDL_SetLogOutputFunction(
         callback,
         user_data,
     );
@@ -496,7 +496,7 @@ const TestLogCallbackData = struct {
     last_priority: ?Priority = null,
 };
 
-fn testLogCallback(user_data: ?*anyopaque, category: c_int, priority: C.SDL_LogPriority, message: [*c]const u8) callconv(.C) void {
+fn testLogCallback(user_data: ?*anyopaque, category: c_int, priority: c.SDL_LogPriority, message: [*c]const u8) callconv(.c) void {
     var data: *TestLogCallbackData = @ptrCast(@alignCast(user_data));
     data.last_str = data.buf.items.len;
     data.last_category = Category.fromSdl(category);

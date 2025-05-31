@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const std = @import("std");
 
@@ -11,7 +11,7 @@ const std = @import("std");
 /// ## Version
 /// This struct is available since SDL 3.2.0.
 pub const File = struct {
-    value: *C.SDL_AsyncIO,
+    value: *c.SDL_AsyncIO,
 
     /// Use this function to create a new IO object for reading from and/or writing to a named file.
     ///
@@ -35,7 +35,7 @@ pub const File = struct {
         file: [:0]const u8,
         mode: IoMode,
     ) !File {
-        return .{ .value = try errors.wrapNull(*C.SDL_AsyncIO, C.SDL_AsyncIOFromFile(
+        return .{ .value = try errors.wrapNull(*c.SDL_AsyncIO, c.SDL_AsyncIOFromFile(
             file.ptr,
             switch (mode) {
                 .read_only => "r",
@@ -65,7 +65,7 @@ pub const File = struct {
     pub fn getSize(
         self: File,
     ) !usize {
-        return @intCast(try errors.wrapCall(i64, C.SDL_GetAsyncIOSize(self.value), -1));
+        return @intCast(try errors.wrapCall(i64, c.SDL_GetAsyncIOSize(self.value), -1));
     }
 };
 
@@ -116,7 +116,7 @@ pub const Outcome = struct {
     user_data: ?*anyopaque,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_AsyncIOOutcome) Outcome {
+    pub fn fromSdl(value: c.SDL_AsyncIOOutcome) Outcome {
         return .{
             .file = .{ .value = value.asyncio.? },
             .task_type = @enumFromInt(value.type),
@@ -129,7 +129,7 @@ pub const Outcome = struct {
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: Outcome) C.SDL_AsyncIOOutcome {
+    pub fn toSdl(self: Outcome) c.SDL_AsyncIOOutcome {
         return .{
             .asyncio = self.file.value,
             .type = @intFromEnum(self.task_type),
@@ -152,7 +152,7 @@ pub const Outcome = struct {
 /// ## Version
 /// This struct is available since SDL 3.2.0.
 pub const Queue = struct {
-    value: *C.SDL_AsyncIOQueue,
+    value: *c.SDL_AsyncIOQueue,
 
     /// Close and free any allocated resources for an async I/O object.
     ///
@@ -196,7 +196,7 @@ pub const Queue = struct {
         flush: bool,
         user_data: ?*anyopaque,
     ) !void {
-        return errors.wrapCallBool(C.SDL_CloseAsyncIO(
+        return errors.wrapCallBool(c.SDL_CloseAsyncIO(
             file.value,
             flush,
             self.value,
@@ -231,7 +231,7 @@ pub const Queue = struct {
     pub fn deinit(
         self: Queue,
     ) void {
-        C.SDL_DestroyAsyncIOQueue(self.value);
+        c.SDL_DestroyAsyncIOQueue(self.value);
     }
 
     /// Query an async I/O task queue for completed tasks.
@@ -260,8 +260,8 @@ pub const Queue = struct {
     pub fn getResult(
         self: Queue,
     ) ?Outcome {
-        var outcome: C.SDL_AsyncIOOutcome = undefined;
-        const ret = C.SDL_GetAsyncIOResult(
+        var outcome: c.SDL_AsyncIOOutcome = undefined;
+        const ret = c.SDL_GetAsyncIOResult(
             self.value,
             &outcome,
         );
@@ -285,7 +285,7 @@ pub const Queue = struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn init() !Queue {
-        return .{ .value = try errors.wrapNull(*C.SDL_AsyncIOQueue, C.SDL_CreateAsyncIOQueue()) };
+        return .{ .value = try errors.wrapNull(*c.SDL_AsyncIOQueue, c.SDL_CreateAsyncIOQueue()) };
     }
 
     /// Load all the data from a file path, asynchronously.
@@ -316,7 +316,7 @@ pub const Queue = struct {
         file: [:0]const u8,
         user_data: ?*anyopaque,
     ) !void {
-        return errors.wrapCallBool(C.SDL_LoadFileAsync(
+        return errors.wrapCallBool(c.SDL_LoadFileAsync(
             file,
             self.value,
             user_data,
@@ -356,7 +356,7 @@ pub const Queue = struct {
         offset: usize,
         user_data: ?*anyopaque,
     ) !void {
-        return errors.wrapCallBool(C.SDL_ReadAsyncIO(
+        return errors.wrapCallBool(c.SDL_ReadAsyncIO(
             file.value,
             data.ptr,
             @intCast(offset),
@@ -386,7 +386,7 @@ pub const Queue = struct {
     pub fn signal(
         self: Queue,
     ) void {
-        C.SDL_SignalAsyncIOQueue(self.value);
+        c.SDL_SignalAsyncIOQueue(self.value);
     }
 
     /// Block until an async I/O task queue has a completed task.
@@ -427,8 +427,8 @@ pub const Queue = struct {
         self: Queue,
         timeout_milliseconds: ?usize,
     ) ?Outcome {
-        var outcome: C.SDL_AsyncIOOutcome = undefined;
-        const ret = C.SDL_WaitAsyncIOResult(
+        var outcome: c.SDL_AsyncIOOutcome = undefined;
+        const ret = c.SDL_WaitAsyncIOResult(
             self.value,
             &outcome,
             if (timeout_milliseconds) |val| @intCast(val) else -1,
@@ -469,7 +469,7 @@ pub const Queue = struct {
         offset: usize,
         user_data: ?*anyopaque,
     ) !void {
-        return errors.wrapCallBool(C.SDL_WriteAsyncIO(
+        return errors.wrapCallBool(c.SDL_WriteAsyncIO(
             file.value,
             @constCast(data.ptr),
             @intCast(offset),
@@ -486,11 +486,11 @@ pub const Queue = struct {
 /// This enum is available since SDL 3.2.0.
 pub const Result = enum(c_uint) {
     /// Request was completed without error.
-    complete = C.SDL_ASYNCIO_COMPLETE,
+    complete = c.SDL_ASYNCIO_COMPLETE,
     /// Request failed for some reason.
-    failure = C.SDL_ASYNCIO_FAILURE,
+    failure = c.SDL_ASYNCIO_FAILURE,
     /// Request was canceled before completing.
-    canceled = C.SDL_ASYNCIO_CANCELED,
+    canceled = c.SDL_ASYNCIO_CANCELED,
 };
 
 /// Types of asynchronous I/O tasks.
@@ -499,11 +499,11 @@ pub const Result = enum(c_uint) {
 /// This enum is available since SDL 3.2.0.
 pub const TaskType = enum(c_uint) {
     /// A read operation.
-    read = C.SDL_ASYNCIO_TASK_READ,
+    read = c.SDL_ASYNCIO_TASK_READ,
     /// A write operation.
-    write = C.SDL_ASYNCIO_TASK_WRITE,
+    write = c.SDL_ASYNCIO_TASK_WRITE,
     /// A close operation.
-    close = C.SDL_ASYNCIO_TASK_CLOSE,
+    close = c.SDL_ASYNCIO_TASK_CLOSE,
 };
 
 // Test asynchronous IO.

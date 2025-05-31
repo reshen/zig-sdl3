@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const io_stream = @import("io_stream.zig");
 const properties = @import("properties.zig");
@@ -32,7 +32,7 @@ const std = @import("std");
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const PostmixCallback = *const fn (user_data: ?*anyopaque, spec: [*c]const C.SDL_AudioSpec, buffer: [*c]f32, buffer_len: c_int) callconv(.C) void;
+pub const PostmixCallback = *const fn (user_data: ?*anyopaque, spec: [*c]const c.SDL_AudioSpec, buffer: [*c]f32, buffer_len: c_int) callconv(.c) void;
 
 /// A callback that fires when data passes through a `Stream`.
 ///
@@ -64,7 +64,7 @@ pub const PostmixCallback = *const fn (user_data: ?*anyopaque, spec: [*c]const C
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const StreamCallback = *const fn (user_data: ?*anyopaque, stream: ?*C.SDL_AudioStream, additional_amount: c_int, total_amount: c_int) callconv(.C) void;
+pub const StreamCallback = *const fn (user_data: ?*anyopaque, stream: ?*c.SDL_AudioStream, additional_amount: c_int, total_amount: c_int) callconv(.c) void;
 
 /// Audio format.
 ///
@@ -72,17 +72,17 @@ pub const StreamCallback = *const fn (user_data: ?*anyopaque, stream: ?*C.SDL_Au
 /// This enum is available since SDL 3.2.0.
 pub const Format = struct {
     value: c_uint,
-    pub const unsigned_8_bit = Format{ .value = C.SDL_AUDIO_U8 };
-    pub const signed_8_bit = Format{ .value = C.SDL_AUDIO_S8 };
-    pub const signed_16_bit_little_endian = Format{ .value = C.SDL_AUDIO_S16LE };
-    pub const signed_16_bit_big_endian = Format{ .value = C.SDL_AUDIO_S16BE };
-    pub const signed_32_bit_little_endian = Format{ .value = C.SDL_AUDIO_S32LE };
-    pub const signed_32_bit_big_endian = Format{ .value = C.SDL_AUDIO_S32BE };
-    pub const floating_32_bit_little_endian = Format{ .value = C.SDL_AUDIO_F32LE };
-    pub const floating_32_bit_big_endian = Format{ .value = C.SDL_AUDIO_F32BE };
-    pub const signed_16_bit = Format{ .value = C.SDL_AUDIO_S16 };
-    pub const signed_32_bit = Format{ .value = C.SDL_AUDIO_S32 };
-    pub const floating_32_bit = Format{ .value = C.SDL_AUDIO_F32 };
+    pub const unsigned_8_bit = Format{ .value = c.SDL_AUDIO_U8 };
+    pub const signed_8_bit = Format{ .value = c.SDL_AUDIO_S8 };
+    pub const signed_16_bit_little_endian = Format{ .value = c.SDL_AUDIO_S16LE };
+    pub const signed_16_bit_big_endian = Format{ .value = c.SDL_AUDIO_S16BE };
+    pub const signed_32_bit_little_endian = Format{ .value = c.SDL_AUDIO_S32LE };
+    pub const signed_32_bit_big_endian = Format{ .value = c.SDL_AUDIO_S32BE };
+    pub const floating_32_bit_little_endian = Format{ .value = c.SDL_AUDIO_F32LE };
+    pub const floating_32_bit_big_endian = Format{ .value = c.SDL_AUDIO_F32BE };
+    pub const signed_16_bit = Format{ .value = c.SDL_AUDIO_S16 };
+    pub const signed_32_bit = Format{ .value = c.SDL_AUDIO_S32 };
+    pub const floating_32_bit = Format{ .value = c.SDL_AUDIO_F32 };
 
     /// Define an audio format.
     ///
@@ -117,11 +117,11 @@ pub const Format = struct {
     ) Format {
         var ret: c_int = 0;
         if (signed)
-            ret |= C.SDL_AUDIO_MASK_SIGNED;
+            ret |= c.SDL_AUDIO_MASK_SIGNED;
         if (big_endian)
-            ret |= C.SDL_AUDIO_MASK_BIG_ENDIAN;
+            ret |= c.SDL_AUDIO_MASK_BIG_ENDIAN;
         if (float)
-            ret |= C.SDL_AUDIO_MASK_FLOAT;
+            ret |= c.SDL_AUDIO_MASK_FLOAT;
         ret |= @as(c_int, @intCast(bit_width));
         return Format{ .value = @as(c_uint, @bitCast(ret)) };
     }
@@ -145,7 +145,7 @@ pub const Format = struct {
     pub fn getBitwidth(
         self: Format,
     ) u8 {
-        const ret = C.SDL_AUDIO_BITSIZE(
+        const ret = c.SDL_AUDIO_BITSIZE(
             self.value,
         );
         return @intCast(ret);
@@ -170,7 +170,7 @@ pub const Format = struct {
     pub fn getByteSize(
         self: Format,
     ) u8 {
-        const ret = C.SDL_AUDIO_BYTESIZE(
+        const ret = c.SDL_AUDIO_BYTESIZE(
             self.value,
         );
         return @intCast(ret);
@@ -192,7 +192,7 @@ pub const Format = struct {
     pub fn getName(
         self: Format,
     ) ?[:0]const u8 {
-        const ret: [:0]const u8 = std.mem.span(C.SDL_GetAudioFormatName(self.value));
+        const ret: [:0]const u8 = std.mem.span(c.SDL_GetAudioFormatName(self.value));
         if (std.mem.eql(u8, ret, "SDL_AUDIO_UNKNOWN"))
             return null;
         return ret;
@@ -217,7 +217,7 @@ pub const Format = struct {
     pub fn getSilenceValue(
         self: Format,
     ) u8 {
-        return @intCast(C.SDL_GetSilenceValueForFormat(self.value));
+        return @intCast(c.SDL_GetSilenceValueForFormat(self.value));
     }
 
     /// If the format is big endian.
@@ -239,7 +239,7 @@ pub const Format = struct {
     pub fn isBigEndian(
         self: Format,
     ) bool {
-        const ret = C.SDL_AUDIO_ISBIGENDIAN(
+        const ret = c.SDL_AUDIO_ISBIGENDIAN(
             self.value,
         );
         return ret != 0;
@@ -264,7 +264,7 @@ pub const Format = struct {
     pub fn isFloat(
         self: Format,
     ) bool {
-        const ret = C.SDL_AUDIO_ISFLOAT(
+        const ret = c.SDL_AUDIO_ISFLOAT(
             self.value,
         );
         return ret != 0;
@@ -289,7 +289,7 @@ pub const Format = struct {
     pub fn isInt(
         self: Format,
     ) bool {
-        const ret = C.SDL_AUDIO_ISINT(
+        const ret = c.SDL_AUDIO_ISINT(
             self.value,
         );
         return ret;
@@ -314,7 +314,7 @@ pub const Format = struct {
     pub fn isLittleEndian(
         self: Format,
     ) bool {
-        const ret = C.SDL_AUDIO_ISLITTLEENDIAN(
+        const ret = c.SDL_AUDIO_ISLITTLEENDIAN(
             self.value,
         );
         return ret;
@@ -339,7 +339,7 @@ pub const Format = struct {
     pub fn isSigned(
         self: Format,
     ) bool {
-        const ret = C.SDL_AUDIO_ISSIGNED(
+        const ret = c.SDL_AUDIO_ISSIGNED(
             self.value,
         );
         return ret != 0;
@@ -364,7 +364,7 @@ pub const Format = struct {
     pub fn isUnsigned(
         self: Format,
     ) bool {
-        const ret = C.SDL_AUDIO_ISUNSIGNED(
+        const ret = c.SDL_AUDIO_ISUNSIGNED(
             self.value,
         );
         return ret;
@@ -376,15 +376,15 @@ pub const Format = struct {
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
 pub const Device = packed struct {
-    value: C.SDL_AudioDeviceID,
+    value: c.SDL_AudioDeviceID,
     /// A value used to request a default playback audio device.
-    pub const default_playback = Device{ .value = C.SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK };
+    pub const default_playback = Device{ .value = c.SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK };
     /// A value used to request a default recording audio device.
-    pub const default_recording = Device{ .value = C.SDL_AUDIO_DEVICE_DEFAULT_RECORDING };
+    pub const default_recording = Device{ .value = c.SDL_AUDIO_DEVICE_DEFAULT_RECORDING };
 
     // Test sizes.
     comptime {
-        std.debug.assert(@sizeOf(C.SDL_AudioDeviceID) == @sizeOf(Device));
+        std.debug.assert(@sizeOf(c.SDL_AudioDeviceID) == @sizeOf(Device));
     }
 
     /// Bind a single audio stream to an audio device.
@@ -405,7 +405,7 @@ pub const Device = packed struct {
         self: Device,
         stream: Stream,
     ) !void {
-        const ret = C.SDL_BindAudioStream(
+        const ret = c.SDL_BindAudioStream(
             self.value,
             stream.value,
         );
@@ -442,7 +442,7 @@ pub const Device = packed struct {
         self: Device,
         streams: []Stream,
     ) !void {
-        const ret = C.SDL_BindAudioStreams(
+        const ret = c.SDL_BindAudioStreams(
             self.value,
             @ptrCast(streams.ptr),
             @intCast(streams.len),
@@ -471,7 +471,7 @@ pub const Device = packed struct {
     pub fn close(
         self: Device,
     ) void {
-        const ret = C.SDL_CloseAudioDevice(
+        const ret = c.SDL_CloseAudioDevice(
             self.value,
         );
         _ = ret;
@@ -508,9 +508,9 @@ pub const Device = packed struct {
     pub fn getFormat(
         self: Device,
     ) !struct { spec: Spec, buffer_size_frames: usize } {
-        var spec: C.SDL_AudioSpec = undefined;
+        var spec: c.SDL_AudioSpec = undefined;
         var buffer_size_frames: c_int = undefined;
-        const ret = C.SDL_GetAudioDeviceFormat(
+        const ret = c.SDL_GetAudioDeviceFormat(
             self.value,
             &spec,
             &buffer_size_frames,
@@ -543,7 +543,7 @@ pub const Device = packed struct {
         self: Device,
     ) ?[]c_int {
         var count: c_int = undefined;
-        const ret = C.SDL_GetAudioDeviceChannelMap(
+        const ret = c.SDL_GetAudioDeviceChannelMap(
             self.value,
             &count,
         );
@@ -575,7 +575,7 @@ pub const Device = packed struct {
     pub fn getGain(
         self: Device,
     ) !f32 {
-        const ret = C.SDL_GetAudioDeviceGain(
+        const ret = c.SDL_GetAudioDeviceGain(
             self.value,
         );
         return @floatCast(try errors.wrapCall(f32, ret, -1));
@@ -597,7 +597,7 @@ pub const Device = packed struct {
     pub fn getName(
         self: Device,
     ) ![:0]const u8 {
-        const ret = C.SDL_GetAudioDeviceName(
+        const ret = c.SDL_GetAudioDeviceName(
             self.value,
         );
         return errors.wrapCallCString(ret);
@@ -625,7 +625,7 @@ pub const Device = packed struct {
     pub fn getPaused(
         self: Device,
     ) bool {
-        const ret = C.SDL_AudioDevicePaused(
+        const ret = c.SDL_AudioDevicePaused(
             self.value,
         );
         return ret;
@@ -659,7 +659,7 @@ pub const Device = packed struct {
     pub fn isPhysical(
         self: Device,
     ) bool {
-        return C.SDL_IsAudioDevicePhysical(self.value);
+        return c.SDL_IsAudioDevicePhysical(self.value);
     }
 
     /// Determine if an audio device is a playback device (instead of recording).
@@ -681,7 +681,7 @@ pub const Device = packed struct {
     pub fn isPlayback(
         self: Device,
     ) bool {
-        return C.SDL_IsAudioDevicePlayback(self.value);
+        return c.SDL_IsAudioDevicePlayback(self.value);
     }
 
     /// Open a specific audio device.
@@ -741,13 +741,13 @@ pub const Device = packed struct {
         self: Device,
         spec: ?Spec,
     ) !Device {
-        const spec_sdl: C.SDL_AudioSpec = if (spec) |val| val.toSdl() else undefined;
-        const ret = C.SDL_OpenAudioDevice(
+        const spec_sdl: c.SDL_AudioSpec = if (spec) |val| val.toSdl() else undefined;
+        const ret = c.SDL_OpenAudioDevice(
             self.value,
             if (spec != null) &spec_sdl else null,
         );
         return .{
-            .value = try errors.wrapCall(C.SDL_AudioDeviceID, ret, 0),
+            .value = try errors.wrapCall(c.SDL_AudioDeviceID, ret, 0),
         };
     }
 
@@ -800,15 +800,15 @@ pub const Device = packed struct {
         callback: ?StreamCallback,
         user_data: ?*anyopaque,
     ) !Stream {
-        const spec_sdl: C.SDL_AudioSpec = if (spec) |val| val.toSdl() else undefined;
-        const ret = C.SDL_OpenAudioDeviceStream(
+        const spec_sdl: c.SDL_AudioSpec = if (spec) |val| val.toSdl() else undefined;
+        const ret = c.SDL_OpenAudioDeviceStream(
             self.value,
             if (spec != null) &spec_sdl else null,
             callback orelse null,
             user_data,
         );
         return .{
-            .value = try errors.wrapNull(*C.SDL_AudioStream, ret),
+            .value = try errors.wrapNull(*c.SDL_AudioStream, ret),
         };
     }
 
@@ -838,7 +838,7 @@ pub const Device = packed struct {
     pub fn pausePlayback(
         self: Device,
     ) !void {
-        const ret = C.SDL_PauseAudioDevice(
+        const ret = c.SDL_PauseAudioDevice(
             self.value,
         );
         return errors.wrapCallBool(ret);
@@ -866,7 +866,7 @@ pub const Device = packed struct {
     pub fn resumePlayback(
         self: Device,
     ) !void {
-        const ret = C.SDL_ResumeAudioDevice(
+        const ret = c.SDL_ResumeAudioDevice(
             self.value,
         );
         return errors.wrapCallBool(ret);
@@ -901,7 +901,7 @@ pub const Device = packed struct {
         self: Device,
         gain: f32,
     ) !void {
-        const ret = C.SDL_SetAudioDeviceGain(
+        const ret = c.SDL_SetAudioDeviceGain(
             self.value,
             gain,
         );
@@ -953,7 +953,7 @@ pub const Device = packed struct {
         callback: ?PostmixCallback,
         user_data: ?*anyopaque,
     ) !void {
-        return errors.wrapCallBool(C.SDL_SetAudioPostmixCallback(self.value, callback orelse null, user_data));
+        return errors.wrapCallBool(c.SDL_SetAudioPostmixCallback(self.value, callback orelse null, user_data));
     }
 };
 
@@ -975,11 +975,11 @@ pub const Device = packed struct {
 /// ## Version
 /// This struct is available since SDL 3.2.0.
 pub const Stream = packed struct {
-    value: *C.SDL_AudioStream,
+    value: *c.SDL_AudioStream,
 
     // Size tests.
     comptime {
-        std.debug.assert(@sizeOf(*C.SDL_AudioStream) == @sizeOf(Stream));
+        std.debug.assert(@sizeOf(*c.SDL_AudioStream) == @sizeOf(Stream));
     }
 
     /// Clear any pending data in the stream.
@@ -998,7 +998,7 @@ pub const Stream = packed struct {
     pub fn clear(
         self: Stream,
     ) !void {
-        return errors.wrapCallBool(C.SDL_ClearAudioStream(self.value));
+        return errors.wrapCallBool(c.SDL_ClearAudioStream(self.value));
     }
 
     /// Free an audio stream.
@@ -1021,7 +1021,7 @@ pub const Stream = packed struct {
     pub fn deinit(
         self: Stream,
     ) void {
-        C.SDL_DestroyAudioStream(self.value);
+        c.SDL_DestroyAudioStream(self.value);
     }
 
     /// Tell the stream that you're done sending data, and anything being buffered should be converted/resampled and made available immediately.
@@ -1041,7 +1041,7 @@ pub const Stream = packed struct {
     pub fn flush(
         self: Stream,
     ) !void {
-        return errors.wrapCallBool(C.SDL_FlushAudioStream(self.value));
+        return errors.wrapCallBool(c.SDL_FlushAudioStream(self.value));
     }
 
     /// Get the number of converted/resampled bytes available.
@@ -1067,7 +1067,7 @@ pub const Stream = packed struct {
     pub fn getAvailable(
         self: Stream,
     ) usize {
-        return @intCast(C.SDL_GetAudioStreamAvailable(self.value));
+        return @intCast(c.SDL_GetAudioStreamAvailable(self.value));
     }
 
     /// Query an audio stream for its currently-bound device.
@@ -1091,7 +1091,7 @@ pub const Stream = packed struct {
     pub fn getDevice(
         self: Stream,
     ) ?Device {
-        const ret = C.SDL_GetAudioStreamDevice(
+        const ret = c.SDL_GetAudioStreamDevice(
             self.value,
         );
         if (ret == 0)
@@ -1118,7 +1118,7 @@ pub const Stream = packed struct {
     pub fn getDevicePaused(
         self: Stream,
     ) bool {
-        return C.SDL_AudioStreamDevicePaused(self.value);
+        return c.SDL_AudioStreamDevicePaused(self.value);
     }
 
     /// Query the current format of an audio stream.
@@ -1137,9 +1137,9 @@ pub const Stream = packed struct {
     pub fn getFormat(
         self: Stream,
     ) !struct { input_format: Spec, output_format: Spec } {
-        var input_format: C.SDL_AudioSpec = undefined;
-        var output_format: C.SDL_AudioSpec = undefined;
-        try errors.wrapCallBool(C.SDL_GetAudioStreamFormat(self.value, &input_format, &output_format));
+        var input_format: c.SDL_AudioSpec = undefined;
+        var output_format: c.SDL_AudioSpec = undefined;
+        try errors.wrapCallBool(c.SDL_GetAudioStreamFormat(self.value, &input_format, &output_format));
         return .{
             .input_format = Spec.fromSdl(input_format),
             .output_format = Spec.fromSdl(output_format),
@@ -1162,7 +1162,7 @@ pub const Stream = packed struct {
     pub fn getFrequencyRatio(
         self: Stream,
     ) !f32 {
-        return errors.wrapCall(f32, C.SDL_GetAudioStreamFrequencyRatio(self.value), 0);
+        return errors.wrapCall(f32, c.SDL_GetAudioStreamFrequencyRatio(self.value), 0);
     }
 
     /// Get the gain of an audio stream.
@@ -1186,7 +1186,7 @@ pub const Stream = packed struct {
     pub fn getGain(
         self: Stream,
     ) !f32 {
-        return errors.wrapCall(f32, C.SDL_GetAudioStreamGain(self.value), -1);
+        return errors.wrapCall(f32, c.SDL_GetAudioStreamGain(self.value), -1);
     }
 
     /// Get the current input channel map of an audio stream.
@@ -1212,7 +1212,7 @@ pub const Stream = packed struct {
         self: Stream,
     ) ?[]c_int {
         var count: c_int = undefined;
-        const ret = C.SDL_GetAudioStreamInputChannelMap(self.value, &count);
+        const ret = c.SDL_GetAudioStreamInputChannelMap(self.value, &count);
         if (ret == null)
             return null;
         return ret[0..@intCast(count)];
@@ -1235,7 +1235,7 @@ pub const Stream = packed struct {
         self: Stream,
     ) !properties.Group {
         return .{
-            .value = try errors.wrapCall(C.SDL_PropertiesID, C.SDL_GetAudioStreamProperties(self.value), 0),
+            .value = try errors.wrapCall(c.SDL_PropertiesID, c.SDL_GetAudioStreamProperties(self.value), 0),
         };
     }
 
@@ -1269,7 +1269,7 @@ pub const Stream = packed struct {
     pub fn getQueued(
         self: Stream,
     ) !usize {
-        return @intCast(try errors.wrapCall(c_int, C.SDL_GetAudioStreamQueued(self.value), -1));
+        return @intCast(try errors.wrapCall(c_int, c.SDL_GetAudioStreamQueued(self.value), -1));
     }
 
     /// Get the current output channel map of an audio stream.
@@ -1295,7 +1295,7 @@ pub const Stream = packed struct {
         self: Stream,
     ) ?[]c_int {
         var count: c_int = undefined;
-        const ret = C.SDL_GetAudioStreamOutputChannelMap(self.value, &count);
+        const ret = c.SDL_GetAudioStreamOutputChannelMap(self.value, &count);
         if (ret == null)
             return null;
         return ret[0..@intCast(count)];
@@ -1322,7 +1322,7 @@ pub const Stream = packed struct {
         const src_spec_sdl = src_spec.toSdl();
         const dst_spec_sdl = dst_spec.toSdl();
         return .{
-            .value = try errors.wrapNull(*C.SDL_AudioStream, C.SDL_CreateAudioStream(&src_spec_sdl, &dst_spec_sdl)),
+            .value = try errors.wrapNull(*c.SDL_AudioStream, c.SDL_CreateAudioStream(&src_spec_sdl, &dst_spec_sdl)),
         };
     }
 
@@ -1349,7 +1349,7 @@ pub const Stream = packed struct {
     pub fn lock(
         self: Stream,
     ) !void {
-        return errors.wrapCallBool(C.SDL_LockAudioStream(self.value));
+        return errors.wrapCallBool(c.SDL_LockAudioStream(self.value));
     }
 
     /// Use this function to pause audio playback on the audio device associated with an audio stream.
@@ -1373,7 +1373,7 @@ pub const Stream = packed struct {
     pub fn pauseDevice(
         self: Stream,
     ) !void {
-        return errors.wrapCallBool(C.SDL_PauseAudioStreamDevice(self.value));
+        return errors.wrapCallBool(c.SDL_PauseAudioStreamDevice(self.value));
     }
 
     /// Add data to the stream.
@@ -1398,7 +1398,7 @@ pub const Stream = packed struct {
         self: Stream,
         data: []const u8,
     ) !void {
-        return errors.wrapCallBool(C.SDL_PutAudioStreamData(
+        return errors.wrapCallBool(c.SDL_PutAudioStreamData(
             self.value,
             data.ptr,
             @intCast(data.len),
@@ -1424,7 +1424,7 @@ pub const Stream = packed struct {
     pub fn resumeDevice(
         self: Stream,
     ) !void {
-        return errors.wrapCallBool(C.SDL_ResumeAudioStreamDevice(self.value));
+        return errors.wrapCallBool(c.SDL_ResumeAudioStreamDevice(self.value));
     }
 
     /// Change the input and output formats of an audio stream.
@@ -1457,9 +1457,9 @@ pub const Stream = packed struct {
         src_spec: ?Spec,
         dst_spec: ?Spec,
     ) !void {
-        const src_spec_sdl: C.SDL_AudioSpec = if (src_spec) |val| val.toSdl() else undefined;
-        const dst_spec_sdl: C.SDL_AudioSpec = if (dst_spec) |val| val.toSdl() else undefined;
-        return errors.wrapCallBool(C.SDL_SetAudioStreamFormat(
+        const src_spec_sdl: c.SDL_AudioSpec = if (src_spec) |val| val.toSdl() else undefined;
+        const dst_spec_sdl: c.SDL_AudioSpec = if (dst_spec) |val| val.toSdl() else undefined;
+        return errors.wrapCallBool(c.SDL_SetAudioStreamFormat(
             self.value,
             if (src_spec != null) &src_spec_sdl else null,
             if (dst_spec != null) &dst_spec_sdl else null,
@@ -1489,7 +1489,7 @@ pub const Stream = packed struct {
         self: Stream,
         frequency_ratio: f32,
     ) !void {
-        return errors.wrapCallBool(C.SDL_SetAudioStreamFrequencyRatio(self.value, frequency_ratio));
+        return errors.wrapCallBool(c.SDL_SetAudioStreamFrequencyRatio(self.value, frequency_ratio));
     }
 
     /// Change the gain of an audio stream.
@@ -1514,7 +1514,7 @@ pub const Stream = packed struct {
         self: Stream,
         gain: f32,
     ) !void {
-        return errors.wrapCallBool(C.SDL_SetAudioStreamGain(self.value, gain));
+        return errors.wrapCallBool(c.SDL_SetAudioStreamGain(self.value, gain));
     }
 
     /// Set a callback that runs when data is requested from an audio stream.
@@ -1554,7 +1554,7 @@ pub const Stream = packed struct {
         callback: ?StreamCallback,
         user_data: ?*anyopaque,
     ) void {
-        _ = C.SDL_SetAudioStreamGetCallback(
+        _ = c.SDL_SetAudioStreamGetCallback(
             self.value,
             if (callback) |val| val else null,
             user_data,
@@ -1602,7 +1602,7 @@ pub const Stream = packed struct {
         channel_map: ?[]const c_int,
     ) !void {
         return errors.wrapCallBool(
-            C.SDL_SetAudioStreamInputChannelMap(self.value, if (channel_map) |val| val.ptr else null, @intCast(if (channel_map) |val| val.len else 0)),
+            c.SDL_SetAudioStreamInputChannelMap(self.value, if (channel_map) |val| val.ptr else null, @intCast(if (channel_map) |val| val.len else 0)),
         );
     }
 
@@ -1646,7 +1646,7 @@ pub const Stream = packed struct {
         channel_map: ?[]const c_int,
     ) !void {
         return errors.wrapCallBool(
-            C.SDL_SetAudioStreamOutputChannelMap(self.value, if (channel_map) |val| val.ptr else null, @intCast(if (channel_map) |val| val.len else 0)),
+            c.SDL_SetAudioStreamOutputChannelMap(self.value, if (channel_map) |val| val.ptr else null, @intCast(if (channel_map) |val| val.len else 0)),
         );
     }
 
@@ -1691,7 +1691,7 @@ pub const Stream = packed struct {
         callback: ?StreamCallback,
         user_data: ?*anyopaque,
     ) void {
-        _ = C.SDL_SetAudioStreamPutCallback(
+        _ = c.SDL_SetAudioStreamPutCallback(
             self.value,
             if (callback) |val| val else null,
             user_data,
@@ -1714,7 +1714,7 @@ pub const Stream = packed struct {
     pub fn unbind(
         self: Stream,
     ) void {
-        C.SDL_UnbindAudioStream(self.value);
+        c.SDL_UnbindAudioStream(self.value);
     }
 
     /// Unlock an audio stream for serialized access.
@@ -1733,7 +1733,7 @@ pub const Stream = packed struct {
     pub fn unlock(
         self: Stream,
     ) !void {
-        return errors.wrapCallBool(C.SDL_UnlockAudioStream(self.value));
+        return errors.wrapCallBool(c.SDL_UnlockAudioStream(self.value));
     }
 };
 
@@ -1750,7 +1750,7 @@ pub const Spec = struct {
     sample_rate: usize,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(data: C.SDL_AudioSpec) Spec {
+    pub fn fromSdl(data: c.SDL_AudioSpec) Spec {
         return .{
             .format = Format{ .value = data.format },
             .num_channels = @intCast(data.channels),
@@ -1759,7 +1759,7 @@ pub const Spec = struct {
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: Spec) C.SDL_AudioSpec {
+    pub fn toSdl(self: Spec) c.SDL_AudioSpec {
         return .{
             .format = self.format.value,
             .channels = @intCast(self.num_channels),
@@ -1801,7 +1801,7 @@ pub const Spec = struct {
         const dst_spec_sdl = dst_spec.toSdl();
         var dst_data: [*c]u8 = undefined;
         var dst_len: c_int = undefined;
-        try errors.wrapCallBool(C.SDL_ConvertAudioSamples(
+        try errors.wrapCallBool(c.SDL_ConvertAudioSamples(
             &src_spec_sdl,
             src_data.ptr,
             @intCast(src_data.len),
@@ -1837,7 +1837,7 @@ pub const Spec = struct {
         self: Stream,
         data: []u8,
     ) ![]u8 {
-        const ret = try errors.wrapCall(c_int, C.SDL_GetAudioStreamData(self.value, data.ptr, @intCast(data.len)), -1);
+        const ret = try errors.wrapCall(c_int, c.SDL_GetAudioStreamData(self.value, data.ptr, @intCast(data.len)), -1);
         return data.ptr[0..@intCast(ret)];
     }
 
@@ -1879,7 +1879,7 @@ pub const Spec = struct {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getCurrentDriverName() ?[:0]const u8 {
-    const ret = C.SDL_GetCurrentAudioDriver();
+    const ret = c.SDL_GetCurrentAudioDriver();
     if (ret == null)
         return null;
     return std.mem.span(ret);
@@ -1908,7 +1908,7 @@ pub fn getCurrentDriverName() ?[:0]const u8 {
 pub fn getDriverName(
     index: usize,
 ) ?[:0]const u8 {
-    const ret = C.SDL_GetAudioDriver(
+    const ret = c.SDL_GetAudioDriver(
         @intCast(index),
     );
     if (ret == null)
@@ -1935,7 +1935,7 @@ pub fn getDriverName(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getNumDrivers() usize {
-    const ret = C.SDL_GetNumAudioDrivers();
+    const ret = c.SDL_GetNumAudioDrivers();
     return @intCast(ret);
 }
 
@@ -1958,7 +1958,7 @@ pub fn getNumDrivers() usize {
 /// This function is available since SDL 3.2.0.
 pub fn getPlaybackDevices() ![]Device {
     var count: c_int = undefined;
-    const ret = @as([*]Device, @ptrCast(try errors.wrapCallCPtr(C.SDL_AudioDeviceID, C.SDL_GetAudioPlaybackDevices(&count))));
+    const ret = @as([*]Device, @ptrCast(try errors.wrapCallCPtr(c.SDL_AudioDeviceID, c.SDL_GetAudioPlaybackDevices(&count))));
     return ret[0..@intCast(count)];
 }
 
@@ -1981,7 +1981,7 @@ pub fn getPlaybackDevices() ![]Device {
 /// This function is available since SDL 3.2.0.
 pub fn getRecordingDevices() ![]Device {
     var count: c_int = undefined;
-    const ret = @as([*]Device, @ptrCast(try errors.wrapCallCPtr(C.SDL_AudioDeviceID, C.SDL_GetAudioRecordingDevices(&count))));
+    const ret = @as([*]Device, @ptrCast(try errors.wrapCallCPtr(c.SDL_AudioDeviceID, c.SDL_GetAudioRecordingDevices(&count))));
     return ret[0..@intCast(count)];
 }
 
@@ -2008,8 +2008,8 @@ pub fn loadWav(
 ) !struct { spec: Spec, data: []u8 } {
     var data: [*c]u8 = undefined;
     var len: u32 = undefined;
-    var spec: C.SDL_AudioSpec = undefined;
-    try errors.wrapCallBool(C.SDL_LoadWAV(
+    var spec: c.SDL_AudioSpec = undefined;
+    try errors.wrapCallBool(c.SDL_LoadWAV(
         path.ptr,
         &spec,
         &data,
@@ -2065,8 +2065,8 @@ pub fn loadWavIo(
 ) !struct { spec: Spec, data: []u8 } {
     var data: [*c]u8 = undefined;
     var len: u32 = undefined;
-    var spec: C.SDL_AudioSpec = undefined;
-    try errors.wrapCallBool(C.SDL_LoadWAV_IO(
+    var spec: c.SDL_AudioSpec = undefined;
+    try errors.wrapCallBool(c.SDL_LoadWAV_IO(
         src.value,
         close_io,
         &spec,
@@ -2113,7 +2113,7 @@ pub fn mix(
 ) !void {
     if (src.len != dst.len)
         return errors.set("Source and destination audio length for mix do not match");
-    return errors.wrapCallBool(C.SDL_MixAudio(
+    return errors.wrapCallBool(c.SDL_MixAudio(
         dst.ptr,
         src.ptr,
         format.value,
@@ -2141,7 +2141,7 @@ pub fn mix(
 pub fn unbindStreams(
     streams: []const Stream,
 ) void {
-    C.SDL_UnbindAudioStreams(
+    c.SDL_UnbindAudioStreams(
         @ptrCast(streams.ptr),
         @intCast(streams.len),
     );

@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const init = @import("init.zig");
 const std = @import("std");
@@ -36,7 +36,7 @@ pub const Action = enum(c_uint) {
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const Filter = *const fn (user_data: ?*anyopaque, event: [*c]C.SDL_Event) callconv(.C) bool;
+pub const Filter = *const fn (user_data: ?*anyopaque, event: [*c]c.SDL_Event) callconv(.c) bool;
 
 /// For clearing out a group of events.
 ///
@@ -87,8 +87,8 @@ pub const Group = enum {
     /// ## Version
     /// Provided by zig-sdl3.
     pub const Iterator = struct {
-        curr: C.SDL_EventType,
-        max: C.SDL_EventType,
+        curr: c.SDL_EventType,
+        max: c.SDL_EventType,
 
         /// Get the next event type in the iterator.
         ///
@@ -105,7 +105,7 @@ pub const Group = enum {
         /// Provided by zig-sdl3.
         pub fn next(
             self: *Iterator,
-        ) ?C.SDL_EventType {
+        ) ?c.SDL_EventType {
             if (self.curr <= self.max) {
                 const ret = self.curr;
                 self.curr += 1;
@@ -133,7 +133,7 @@ pub const Group = enum {
         self: Group,
         event_type: Type,
     ) bool {
-        const raw: C.SDL_EventType = @intFromEnum(event_type);
+        const raw: c.SDL_EventType = @intFromEnum(event_type);
         const minmax = self.minMax();
         return raw >= minmax.min and raw <= minmax.max;
     }
@@ -176,27 +176,27 @@ pub const Group = enum {
     /// Provided by zig-sdl3.
     pub fn minMax(
         self: Group,
-    ) struct { min: C.SDL_EventType, max: C.SDL_EventType } {
+    ) struct { min: c.SDL_EventType, max: c.SDL_EventType } {
         return switch (self) {
-            .all => .{ .min = 0, .max = std.math.maxInt(C.SDL_EventType) },
-            .application => .{ .min = C.SDL_EVENT_QUIT, .max = C.SDL_EVENT_SYSTEM_THEME_CHANGED },
-            .display => .{ .min = C.SDL_EVENT_DISPLAY_FIRST, .max = C.SDL_EVENT_DISPLAY_LAST },
-            .window => .{ .min = C.SDL_EVENT_WINDOW_FIRST, .max = C.SDL_EVENT_WINDOW_LAST },
-            .keyboard => .{ .min = C.SDL_EVENT_KEY_DOWN, .max = C.SDL_EVENT_TEXT_EDITING_CANDIDATES },
-            .mouse => .{ .min = C.SDL_EVENT_MOUSE_MOTION, .max = C.SDL_EVENT_MOUSE_REMOVED },
-            .joystick => .{ .min = C.SDL_EVENT_JOYSTICK_AXIS_MOTION, .max = C.SDL_EVENT_JOYSTICK_UPDATE_COMPLETE },
-            .gamepad => .{ .min = C.SDL_EVENT_GAMEPAD_AXIS_MOTION, .max = C.SDL_EVENT_GAMEPAD_STEAM_HANDLE_UPDATED },
-            .touch => .{ .min = C.SDL_EVENT_FINGER_DOWN, .max = C.SDL_EVENT_FINGER_CANCELED },
-            .clipboard => .{ .min = C.SDL_EVENT_CLIPBOARD_UPDATE, .max = C.SDL_EVENT_CLIPBOARD_UPDATE },
-            .drag_and_drop => .{ .min = C.SDL_EVENT_DROP_FILE, .max = C.SDL_EVENT_DROP_POSITION },
-            .audio => .{ .min = C.SDL_EVENT_AUDIO_DEVICE_ADDED, .max = C.SDL_EVENT_AUDIO_DEVICE_FORMAT_CHANGED },
-            .sensor => .{ .min = C.SDL_EVENT_SENSOR_UPDATE, .max = C.SDL_EVENT_SENSOR_UPDATE },
-            .pen => .{ .min = C.SDL_EVENT_PEN_PROXIMITY_IN, .max = C.SDL_EVENT_PEN_AXIS },
-            .camera => .{ .min = C.SDL_EVENT_CAMERA_DEVICE_ADDED, .max = C.SDL_EVENT_CAMERA_DEVICE_DENIED },
-            .render => .{ .min = C.SDL_EVENT_RENDER_TARGETS_RESET, .max = C.SDL_EVENT_RENDER_DEVICE_LOST },
-            .reserved => .{ .min = C.SDL_EVENT_PRIVATE0, .max = C.SDL_EVENT_PRIVATE3 },
-            .internal => .{ .min = C.SDL_EVENT_POLL_SENTINEL, .max = C.SDL_EVENT_POLL_SENTINEL },
-            .user => .{ .min = C.SDL_EVENT_USER, .max = C.SDL_EVENT_LAST },
+            .all => .{ .min = 0, .max = std.math.maxInt(c.SDL_EventType) },
+            .application => .{ .min = c.SDL_EVENT_QUIT, .max = c.SDL_EVENT_SYSTEM_THEME_CHANGED },
+            .display => .{ .min = c.SDL_EVENT_DISPLAY_FIRST, .max = c.SDL_EVENT_DISPLAY_LAST },
+            .window => .{ .min = c.SDL_EVENT_WINDOW_FIRST, .max = c.SDL_EVENT_WINDOW_LAST },
+            .keyboard => .{ .min = c.SDL_EVENT_KEY_DOWN, .max = c.SDL_EVENT_TEXT_EDITING_CANDIDATES },
+            .mouse => .{ .min = c.SDL_EVENT_MOUSE_MOTION, .max = c.SDL_EVENT_MOUSE_REMOVED },
+            .joystick => .{ .min = c.SDL_EVENT_JOYSTICK_AXIS_MOTION, .max = c.SDL_EVENT_JOYSTICK_UPDATE_COMPLETE },
+            .gamepad => .{ .min = c.SDL_EVENT_GAMEPAD_AXIS_MOTION, .max = c.SDL_EVENT_GAMEPAD_STEAM_HANDLE_UPDATED },
+            .touch => .{ .min = c.SDL_EVENT_FINGER_DOWN, .max = c.SDL_EVENT_FINGER_CANCELED },
+            .clipboard => .{ .min = c.SDL_EVENT_CLIPBOARD_UPDATE, .max = c.SDL_EVENT_CLIPBOARD_UPDATE },
+            .drag_and_drop => .{ .min = c.SDL_EVENT_DROP_FILE, .max = c.SDL_EVENT_DROP_POSITION },
+            .audio => .{ .min = c.SDL_EVENT_AUDIO_DEVICE_ADDED, .max = c.SDL_EVENT_AUDIO_DEVICE_FORMAT_CHANGED },
+            .sensor => .{ .min = c.SDL_EVENT_SENSOR_UPDATE, .max = c.SDL_EVENT_SENSOR_UPDATE },
+            .pen => .{ .min = c.SDL_EVENT_PEN_PROXIMITY_IN, .max = c.SDL_EVENT_PEN_AXIS },
+            .camera => .{ .min = c.SDL_EVENT_CAMERA_DEVICE_ADDED, .max = c.SDL_EVENT_CAMERA_DEVICE_DENIED },
+            .render => .{ .min = c.SDL_EVENT_RENDER_TARGETS_RESET, .max = c.SDL_EVENT_RENDER_DEVICE_LOST },
+            .reserved => .{ .min = c.SDL_EVENT_PRIVATE0, .max = c.SDL_EVENT_PRIVATE3 },
+            .internal => .{ .min = c.SDL_EVENT_POLL_SENTINEL, .max = c.SDL_EVENT_POLL_SENTINEL },
+            .user => .{ .min = c.SDL_EVENT_USER, .max = c.SDL_EVENT_LAST },
         };
     }
 };
@@ -205,22 +205,22 @@ pub const Group = enum {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const Type = enum(C.SDL_EventType) {
+pub const Type = enum(c.SDL_EventType) {
     /// User-requested quit.
-    quit = C.SDL_EVENT_QUIT,
+    quit = c.SDL_EVENT_QUIT,
     /// The application is being terminated by the OS.
     /// This event must be handled in a callback set with `events.addWatch()`.
     /// Called on iOS in `applicationWillTerminate()`.
     /// Called on Android in `onDestroy()`.
-    terminating = C.SDL_EVENT_TERMINATING,
+    terminating = c.SDL_EVENT_TERMINATING,
     // /// The application is low on memory, free memory if possible.
     // /// This event must be handled in a callback set with `events.addWatch()`.
-    // low_memory = C.SDL_EVENT_LOW_MEMORY,
+    // low_memory = c.SDL_EVENT_LOW_MEMORY,
     // /// The application is about to enter the background.
     // /// This event must be handled in a callback set with `events.addWatch()`.
     // /// Called on iOS in `applicationWillResignActive()`.
     // /// Called on Android in `onPause()`.
-    // WillEnterBackground = C.SDL_EVENT_WILL_ENTER_BACKGROUND,
+    // WillEnterBackground = c.SDL_EVENT_WILL_ENTER_BACKGROUND,
     // DidEnterBackground,
     // WillEnterForeground,
     // DidEnterForeground,
@@ -260,23 +260,23 @@ pub const Type = enum(C.SDL_EventType) {
     // WindowDestroyed,
     // WindowHdrStateChanged,
     /// Key pressed.
-    key_down = C.SDL_EVENT_KEY_DOWN,
+    key_down = c.SDL_EVENT_KEY_DOWN,
     /// Key released.
-    key_up = C.SDL_EVENT_KEY_UP,
+    key_up = c.SDL_EVENT_KEY_UP,
     // TextEditing,
     // TextInput,
     // KeymapChanged,
     // KeyboardAdded,
     // KeyboardRemoved,
     // TextEditingCandidates,
-    /// Mouse moved
-    mouse_motion,
-    /// Mouse button pressed
-    mouse_button_down,
-    /// Mouse button released
-    mouse_button_up,
-    /// Mouse wheel motion
-    mouse_wheel,
+    /// Mouse moved.
+    mouse_motion = c.SDL_EVENT_MOUSE_MOTION,
+    /// Mouse button pressed.
+    mouse_button_down = c.SDL_EVENT_MOUSE_BUTTON_DOWN,
+    /// Mouse button released.
+    mouse_button_up = c.SDL_EVENT_MOUSE_BUTTON_UP,
+    /// Mouse wheel motion.
+    mouse_wheel = c.SDL_EVENT_MOUSE_WHEEL,
     // MouseAdded,
     // MouseRemoved,
     // JoystickAxisMotion,
@@ -336,9 +336,9 @@ pub const Type = enum(C.SDL_EventType) {
     /// User events, should be allocated with `events.register()`.
     user,
     /// An unknown event type.
-    unknown = C.SDL_EVENT_FIRST,
+    unknown = c.SDL_EVENT_FIRST,
     /// For padding out the union.
-    padding = C.SDL_EVENT_ENUM_PADDING,
+    padding = c.SDL_EVENT_ENUM_PADDING,
     // _,
 };
 
@@ -351,7 +351,7 @@ pub const Common = struct {
     timestamp: u64,
 
     /// Create a common event from an SDL one.
-    fn fromSdl(event: *const C.SDL_Event) Common {
+    fn fromSdl(event: *const c.SDL_Event) Common {
         return .{ .timestamp = event.common.timestamp };
     }
 };
@@ -361,7 +361,7 @@ pub const Unknown = struct {
     /// Common event information.
     common: Common,
     /// Event type that was not known.
-    event_type: C.SDL_EventType,
+    event_type: c.SDL_EventType,
 };
 
 /// A user-defined event type (event.user.*).
@@ -390,7 +390,7 @@ pub const User = struct {
     /// Common event information.
     common: Common,
     /// The event type.
-    event_type: C.SDL_EventType,
+    event_type: c.SDL_EventType,
     /// Associated window if any.
     window_id: ?video.WindowID = null,
     /// User defined event code.
@@ -428,22 +428,32 @@ pub const MouseMotion = struct {
 ///
 /// ## Version
 /// This struct is available since SDL 3.2.0.
+///
+/// ## Code Examples
+/// ```zig
+///     const mouse_button = if (ev == .mouse_button_down) ev.mouse_button_down.button else break :event_handle;
+///     if (mouse_button == .left) {
+///         std.debug.print("left click\n", .{});
+///     } else if (mouse_button == .right) {
+///         std.debug.print("right click\n", .{});
+///     }
+/// ```
 pub const MouseButton = struct {
     /// Common event information.
     common: Common,
     /// Associated window if any.
     window_id: ?video.WindowID = null,
-    /// The mouse instance id in relative mode, .touch for touch events, or null
+    /// The mouse instance id in relative mode, .touch for touch events, or null.
     which: ?mouse.ID = null,
-    /// The mouse button index
+    /// The mouse button index.
     button: mouse.Button,
-    /// If the button is pressed
+    /// If the button is pressed.
     down: bool,
     /// 1 for single-click, 2 for double-click, etc.
     clicks: u8,
-    /// X coordinate, relative to window
+    /// X coordinate, relative to window.
     x: f32,
-    /// Y coordinate, relative to window
+    /// Y coordinate, relative to window.
     y: f32,
 };
 
@@ -521,7 +531,7 @@ pub const Key = struct {
 pub const Window = struct {
     /// Common event information.
     common: Common,
-    /// Associated window
+    /// Associated window.
     window_id: video.WindowID,
     /// Event dependent data 1.
     data1: i32,
@@ -536,7 +546,7 @@ pub const Quit = struct {
 };
 
 /// Needed to calculate padding.
-const DummyEnum = enum(C.SDL_EventType) {
+const DummyEnum = enum(c.SDL_EventType) {
     empty,
 };
 
@@ -554,7 +564,7 @@ pub const Event = union(Type) {
     /// Application being terminated by the OS.
     terminating: Common,
 
-    /// Window has been resized
+    /// A window resized event.
     window_resized: Window,
 
     /// A key pressed event.
@@ -562,13 +572,13 @@ pub const Event = union(Type) {
     /// A key released event.
     key_up: Key,
 
-    /// Mouse moved
+    /// A mouse moved event.
     mouse_motion: MouseMotion,
-    /// Mouse button pressed
+    /// A mouse button pressed event.
     mouse_button_down: MouseButton,
-    /// Mouse button released
+    /// A mouse button released event.
     mouse_button_up: MouseButton,
-    /// Mouse wheel motion
+    /// A mouse wheel motion event.
     mouse_wheel: MouseWheel,
 
     /// A user event.
@@ -576,12 +586,12 @@ pub const Event = union(Type) {
 
     /// An unknown event.
     unknown: Unknown,
-    // Padding to make union the same size of a `C.SDL_Event`.
-    padding: [@sizeOf(C.SDL_Event) - @sizeOf(DummyUnion)]u8,
+    // Padding to make union the same size of a `c.SDL_Event`.
+    padding: [@sizeOf(c.SDL_Event) - @sizeOf(DummyUnion)]u8,
 
     // Size tests.
     comptime {
-        std.debug.assert(@sizeOf(C.SDL_Event) == @sizeOf(Event));
+        std.debug.assert(@sizeOf(c.SDL_Event) == @sizeOf(Event));
     }
 
     /// Create a managed event from an SDL event.
@@ -597,97 +607,85 @@ pub const Event = union(Type) {
     ///
     /// ## Version
     /// This function is provided by zig-sdl3.
-    pub fn fromSdl(event: C.SDL_Event) Event {
+    pub fn fromSdl(event: c.SDL_Event) Event {
         return switch (event.type) {
-            C.SDL_EVENT_QUIT => .{ .quit = .{
+            c.SDL_EVENT_QUIT => .{ .quit = .{
                 .common = Common.fromSdl(&event),
             } },
-            C.SDL_EVENT_TERMINATING => .{ .terminating = Common.fromSdl(&event) },
-            C.SDL_EVENT_WINDOW_RESIZED => .{ .window_resized = .{
+            c.SDL_EVENT_TERMINATING => .{ .terminating = Common.fromSdl(&event) },
+            c.SDL_EVENT_WINDOW_RESIZED => .{ .window_resized = .{
                 .common = Common.fromSdl(&event),
                 .window_id = event.window.windowID,
                 .data1 = event.window.data1,
                 .data2 = event.window.data2,
             } },
-            C.SDL_EVENT_KEY_DOWN => .{
-                .key_down = .{
-                    .common = Common.fromSdl(&event),
-                    .window_id = if (event.key.windowID == 0) null else event.key.windowID,
-                    .which = .{
-                        .value = event.key.which,
-                    },
-                    .scancode = @enumFromInt(event.key.scancode),
-                    .key = @enumFromInt(event.key.key),
-                    .mod = keycode.KeyModifier.fromSdl(event.key.mod),
-                    .raw = event.key.raw,
-                    .down = event.key.down,
-                    .repeat = event.key.repeat,
+            c.SDL_EVENT_KEY_DOWN => .{ .key_down = .{
+                .common = Common.fromSdl(&event),
+                .window_id = if (event.key.windowID == 0) null else event.key.windowID,
+                .which = .{
+                    .value = event.key.which,
                 },
-            },
-            C.SDL_EVENT_KEY_UP => .{
-                .key_up = .{
-                    .common = Common.fromSdl(&event),
-                    .window_id = if (event.key.windowID == 0) null else event.key.windowID,
-                    .which = .{
-                        .value = event.key.which,
-                    },
-                    .scancode = @enumFromInt(event.key.scancode),
-                    .key = @enumFromInt(event.key.key),
-                    .mod = keycode.KeyModifier.fromSdl(event.key.mod),
-                    .raw = event.key.raw,
-                    .down = event.key.down,
-                    .repeat = event.key.repeat,
+                .scancode = @enumFromInt(event.key.scancode),
+                .key = @enumFromInt(event.key.key),
+                .mod = keycode.KeyModifier.fromSdl(event.key.mod),
+                .raw = event.key.raw,
+                .down = event.key.down,
+                .repeat = event.key.repeat,
+            } },
+            c.SDL_EVENT_KEY_UP => .{ .key_up = .{
+                .common = Common.fromSdl(&event),
+                .window_id = if (event.key.windowID == 0) null else event.key.windowID,
+                .which = .{
+                    .value = event.key.which,
                 },
-            },
-            C.SDL_EVENT_MOUSE_MOTION => .{ .mouse_motion = .{
+                .scancode = @enumFromInt(event.key.scancode),
+                .key = @enumFromInt(event.key.key),
+                .mod = keycode.KeyModifier.fromSdl(event.key.mod),
+                .raw = event.key.raw,
+                .down = event.key.down,
+                .repeat = event.key.repeat,
+            } },
+            c.SDL_EVENT_MOUSE_MOTION => .{ .mouse_motion = .{
                 .common = .fromSdl(&event),
                 .window_id = if (event.motion.windowID == 0) null else event.motion.windowID,
-                .which = .{
-                    .value = event.motion.which,
-                },
+                .which = .fromSdl(event.button.which),
                 .state = .fromSdl(event.motion.state),
                 .x = event.motion.x,
                 .y = event.motion.y,
                 .x_rel = event.motion.xrel,
                 .y_rel = event.motion.yrel,
             } },
-            C.SDL_EVENT_MOUSE_BUTTON_DOWN => .{ .mouse_button_down = .{
+            c.SDL_EVENT_MOUSE_BUTTON_DOWN => .{ .mouse_button_down = .{
                 .common = .fromSdl(&event),
                 .window_id = if (event.button.windowID == 0) null else event.button.windowID,
-                .which = .{
-                    .value = event.button.which,
-                },
+                .which = .fromSdl(event.button.which),
                 .button = @enumFromInt(event.button.button),
                 .down = event.button.down,
                 .clicks = event.button.clicks,
                 .x = event.button.x,
                 .y = event.button.y,
             } },
-            C.SDL_EVENT_MOUSE_BUTTON_UP => .{ .mouse_button_up = .{
+            c.SDL_EVENT_MOUSE_BUTTON_UP => .{ .mouse_button_up = .{
                 .common = .fromSdl(&event),
                 .window_id = if (event.button.windowID == 0) null else event.button.windowID,
-                .which = .{
-                    .value = event.button.which,
-                },
+                .which = .fromSdl(event.button.which),
                 .button = @enumFromInt(event.button.button),
                 .down = event.button.down,
                 .clicks = event.button.clicks,
                 .x = event.button.x,
                 .y = event.button.y,
             } },
-            C.SDL_EVENT_MOUSE_WHEEL => .{ .mouse_wheel = .{
+            c.SDL_EVENT_MOUSE_WHEEL => .{ .mouse_wheel = .{
                 .common = .fromSdl(&event),
                 .window_id = if (event.button.windowID == 0) null else event.button.windowID,
-                .which = .{
-                    .value = event.button.which,
-                },
+                .which = .fromSdl(event.button.which),
                 .scroll_x = event.wheel.x,
                 .scroll_y = event.wheel.y,
                 .direction = @enumFromInt(event.wheel.direction),
                 .x = event.wheel.mouse_x,
                 .y = event.wheel.mouse_y,
             } },
-            C.SDL_EVENT_USER...C.SDL_EVENT_LAST => .{ .user = .{
+            c.SDL_EVENT_USER...c.SDL_EVENT_LAST => .{ .user = .{
                 .common = Common.fromSdl(&event),
                 .event_type = event.type,
                 .window_id = if (event.user.windowID == 0) null else event.user.windowID,
@@ -695,7 +693,7 @@ pub const Event = union(Type) {
                 .data1 = event.user.data1,
                 .data2 = event.user.data2,
             } },
-            C.SDL_EVENT_ENUM_PADDING => .{
+            c.SDL_EVENT_ENUM_PADDING => .{
                 .padding = @splat(0),
             },
             else => .{ .unknown = .{
@@ -719,7 +717,7 @@ pub const Event = union(Type) {
     ///
     /// ## Version
     /// This function is provided by zig-sdl3.
-    pub fn fromSdlInPlace(event: *C.SDL_Event) *Event {
+    pub fn fromSdlInPlace(event: *c.SDL_Event) *Event {
         const managed: *Event = @ptrCast(event);
         managed.* = fromSdl(event.*);
         return managed;
@@ -742,7 +740,7 @@ pub const Event = union(Type) {
         self: Event,
     ) ?video.Window {
         const event = toSdl(self);
-        const ret = C.SDL_GetWindowFromEvent(&event);
+        const ret = c.SDL_GetWindowFromEvent(&event);
         if (ret) |val| {
             return .{ .value = val };
         }
@@ -762,42 +760,92 @@ pub const Event = union(Type) {
     ///
     /// ## Version
     /// This function is provided by zig-sdl3.
-    pub fn toSdl(event: Event) C.SDL_Event {
+    pub fn toSdl(event: Event) c.SDL_Event {
         return switch (event) {
             .quit => |val| .{ .quit = .{
-                .type = C.SDL_EVENT_QUIT,
+                .type = c.SDL_EVENT_QUIT,
                 .timestamp = val.common.timestamp,
             } },
             .terminating => |val| .{ .common = .{
-                .type = C.SDL_EVENT_TERMINATING,
+                .type = c.SDL_EVENT_TERMINATING,
                 .timestamp = val.timestamp,
             } },
             .window_resized => |val| .{ .window = .{
-                .type = C.SDL_EVENT_WINDOW_RESIZED,
+                .type = c.SDL_EVENT_WINDOW_RESIZED,
                 .timestamp = val.common.timestamp,
             } },
-            .key_up => .{
-                .type = C.SDL_EVENT_KEY_UP,
-            },
-            .key_down => .{
-                .type = C.SDL_EVENT_KEY_DOWN,
-            },
-            .mouse_motion => .{
-                .type = C.SDL_EVENT_MOUSE_MOTION,
-            },
-            .mouse_button_down => .{
-                .type = C.SDL_EVENT_MOUSE_BUTTON_DOWN,
-            },
-            .mouse_button_up => .{
-                .type = C.SDL_EVENT_MOUSE_BUTTON_UP,
-            },
-            .mouse_wheel => .{
-                .type = C.SDL_EVENT_MOUSE_WHEEL,
-            },
+            .key_up => |val| .{ .key = .{
+                .type = c.SDL_EVENT_KEY_UP,
+                .timestamp = val.common.timestamp,
+                .windowID = val.window_id orelse 0,
+                .which = if (val.which) |which| which.value else 0,
+                .scancode = if (val.scancode) |code| code.toSdl() else c.SDL_SCANCODE_UNKNOWN,
+                .key = keycode.Keycode.toSdl(val.key),
+                .mod = val.mod.toSdl(),
+                .raw = val.raw,
+                .down = val.down,
+                .repeat = val.repeat,
+            } },
+            .key_down => |val| .{ .key = .{
+                .type = c.SDL_EVENT_KEY_DOWN,
+                .timestamp = val.common.timestamp,
+                .windowID = val.window_id orelse 0,
+                .which = if (val.which) |which| which.value else 0,
+                .scancode = if (val.scancode) |code| code.toSdl() else c.SDL_SCANCODE_UNKNOWN,
+                .key = keycode.Keycode.toSdl(val.key),
+                .mod = val.mod.toSdl(),
+                .raw = val.raw,
+                .down = val.down,
+                .repeat = val.repeat,
+            } },
+            .mouse_motion => |val| .{ .motion = .{
+                .type = c.SDL_EVENT_MOUSE_MOTION,
+                .timestamp = val.common.timestamp,
+                .windowID = val.window_id orelse 0,
+                .which = if (val.which) |which| which.value else 0,
+                .state = val.state.toSdl(),
+                .x = val.x,
+                .y = val.y,
+                .xrel = val.x_rel,
+                .yrel = val.y_rel,
+            } },
+            .mouse_button_up => |val| .{ .button = .{
+                .type = c.SDL_EVENT_MOUSE_BUTTON_UP,
+                .timestamp = val.common.timestamp,
+                .windowID = val.window_id orelse 0,
+                .which = mouse.ID.toSdl(val.which),
+                .button = @intCast(val.button),
+                .down = val.down,
+                .clicks = val.clicks,
+                .x = val.x,
+                .y = val.y,
+            } },
+            .mouse_button_down => |val| .{ .button = .{
+                .type = c.SDL_EVENT_MOUSE_BUTTON_DOWN,
+                .timestamp = val.common.timestamp,
+                .windowID = val.window_id orelse 0,
+                .which = mouse.ID.toSdl(val.which),
+                .button = @intCast(val.button),
+                .down = val.down,
+                .clicks = val.clicks,
+                .x = val.x,
+                .y = val.y,
+            } },
+            .mouse_wheel => |val| .{ .wheel = .{
+                .type = c.SDL_EVENT_MOUSE_WHEEL,
+                .timestamp = val.common.timestamp,
+                .windowID = val.window_id orelse 0,
+                .which = mouse.ID.toSdl(val.which),
+                .x = val.scroll_x,
+                .y = val.scroll_y,
+                .direction = @intCast(val.direction),
+                .mouse_x = val.x,
+                .mouse_y = val.y,
+            } },
             .user => |val| .{ .user = .{
                 .type = val.event_type,
                 .timestamp = val.common.timestamp,
-                .windowID = if (val.window_id) |id| id else 0,
+                .windowID = val.window_id orelse 0,
                 .code = val.code,
                 .data1 = val.data1,
                 .data2 = val.data2,
@@ -807,7 +855,7 @@ pub const Event = union(Type) {
                 .timestamp = val.common.timestamp,
             } },
             .padding => .{
-                .type = C.SDL_EVENT_ENUM_PADDING,
+                .type = c.SDL_EVENT_ENUM_PADDING,
             },
         };
     }
@@ -826,8 +874,8 @@ pub const Event = union(Type) {
     ///
     /// ## Version
     /// This function is provided by zig-sdl3.
-    pub fn toSdlInPlace(event: *Event) *C.SDL_Event {
-        const unmanaged: *C.SDL_Event = @ptrCast(event);
+    pub fn toSdlInPlace(event: *Event) *c.SDL_Event {
+        const unmanaged: *c.SDL_Event = @ptrCast(event);
         unmanaged.* = toSdl(event.*);
         return unmanaged;
     }
@@ -859,7 +907,7 @@ pub fn addWatch(
     event_filter: Filter,
     user_data: ?*anyopaque,
 ) !void {
-    return errors.wrapCallBool(C.SDL_AddEventWatch(event_filter, user_data));
+    return errors.wrapCallBool(c.SDL_AddEventWatch(event_filter, user_data));
 }
 
 /// If an event is available in the queue.
@@ -876,7 +924,7 @@ pub fn addWatch(
 /// ## Version
 /// This is provided by zig-sdl3.
 pub fn available() bool {
-    return C.SDL_PollEvent(null);
+    return c.SDL_PollEvent(null);
 }
 
 /// Query the state of processing events by type.
@@ -895,7 +943,7 @@ pub fn available() bool {
 pub fn enabled(
     event_type: Type,
 ) bool {
-    return C.SDL_EventEnabled(@intFromEnum(event_type));
+    return c.SDL_EventEnabled(@intFromEnum(event_type));
 }
 
 /// Run a specific filter function on the current event queue, removing any events for which the filter returns false.
@@ -917,7 +965,7 @@ pub fn filter(
     event_filter: Filter,
     user_data: ?*anyopaque,
 ) void {
-    C.SDL_FilterEvents(event_filter, user_data);
+    c.SDL_FilterEvents(event_filter, user_data);
 }
 
 /// Clear events of a specific type from the event queue.
@@ -945,7 +993,7 @@ pub fn filter(
 pub fn flush(
     event_type: Type,
 ) void {
-    C.SDL_FlushEvent(@intFromEnum(event_type));
+    c.SDL_FlushEvent(@intFromEnum(event_type));
 }
 
 /// Clear events of a range of types from the event queue.
@@ -971,7 +1019,7 @@ pub fn flushGroup(
     group: Group,
 ) void {
     const minmax = group.minMax();
-    C.SDL_FlushEvents(minmax.min, minmax.max);
+    c.SDL_FlushEvents(minmax.min, minmax.max);
 }
 
 /// Query the current event filter.
@@ -988,9 +1036,9 @@ pub fn flushGroup(
 ///
 /// This function is available since SDL 3.2.0.
 pub fn getFilter() ?struct { event_filter: Filter, user_data: ?*anyopaque } {
-    var event_filter: C.SDL_FunctionPointer = undefined;
+    var event_filter: c.SDL_FunctionPointer = undefined;
     var user_data: ?*anyopaque = undefined;
-    const ret = C.SDL_GetEventFilter(&event_filter, &user_data);
+    const ret = c.SDL_GetEventFilter(&event_filter, &user_data);
     if (!ret)
         return null;
     return .{ .event_filter = @ptrCast(event_filter), .user_data = user_data };
@@ -1012,7 +1060,7 @@ pub fn getFilter() ?struct { event_filter: Filter, user_data: ?*anyopaque } {
 pub fn has(
     event_type: Type,
 ) bool {
-    return C.SDL_HasEvent(@intFromEnum(event_type));
+    return c.SDL_HasEvent(@intFromEnum(event_type));
 }
 
 /// Check for the existence of certain event types in the event queue.
@@ -1035,7 +1083,7 @@ pub fn hasGroup(
     group: Group,
 ) bool {
     const minmax = group.minMax();
-    return C.SDL_HasEvents(minmax.min, minmax.max);
+    return c.SDL_HasEvents(minmax.min, minmax.max);
 }
 
 /// Check the event queue for messages and optionally return them.
@@ -1063,8 +1111,8 @@ pub fn peep(
     group: Group,
 ) !usize {
     const minmax = group.minMax();
-    const raw: [*]C.SDL_Event = @ptrCast(events.ptr); // Hacky! We ensure in unit tests our enum is the same size so we can do this, then convert in-place.
-    const ret = C.SDL_PeepEvents(raw, @intCast(events.len), @intFromEnum(action), minmax.min, minmax.max);
+    const raw: [*]c.SDL_Event = @ptrCast(events.ptr); // Hacky! We ensure in unit tests our enum is the same size so we can do this, then convert in-place.
+    const ret = c.SDL_PeepEvents(raw, @intCast(events.len), @intFromEnum(action), minmax.min, minmax.max);
     for (0..@intCast(ret)) |ind| {
         _ = Event.fromSdlInPlace(&raw[ind]);
     }
@@ -1096,7 +1144,7 @@ pub fn peepSize(
     group: Group,
 ) !usize {
     const minmax = group.minMax();
-    const ret = C.SDL_PeepEvents(null, @intCast(num_events), @intFromEnum(action), minmax.min, minmax.max);
+    const ret = c.SDL_PeepEvents(null, @intCast(num_events), @intFromEnum(action), minmax.min, minmax.max);
     return @intCast(try errors.wrapCall(c_int, ret, -1));
 }
 
@@ -1130,8 +1178,8 @@ pub fn peepSize(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn poll() ?Event {
-    var event: C.SDL_Event = undefined;
-    const ret = C.SDL_PollEvent(&event);
+    var event: c.SDL_Event = undefined;
+    const ret = c.SDL_PollEvent(&event);
     if (!ret)
         return null;
     return Event.fromSdl(event);
@@ -1153,7 +1201,7 @@ pub fn poll() ?Event {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn pump() void {
-    C.SDL_PumpEvents();
+    c.SDL_PumpEvents();
 }
 
 /// Add an event to the event queue.
@@ -1182,7 +1230,7 @@ pub fn push(
     event: Event,
 ) !void {
     var event_umanaged = event.toSdl();
-    const ret = C.SDL_PushEvent(&event_umanaged);
+    const ret = c.SDL_PushEvent(&event_umanaged);
     return errors.wrapCallBool(ret);
 }
 
@@ -1201,8 +1249,8 @@ pub fn push(
 /// This function is available since SDL 3.2.0.
 pub fn register(
     num_events: usize,
-) ?C.SDL_EventType {
-    const ret = C.SDL_RegisterEvents(@intCast(num_events));
+) ?c.SDL_EventType {
+    const ret = c.SDL_RegisterEvents(@intCast(num_events));
     if (ret == 0)
         return null;
     return ret;
@@ -1226,7 +1274,7 @@ pub fn removeWatch(
     event_filter: Filter,
     user_data: ?*anyopaque,
 ) void {
-    C.SDL_RemoveEventWatch(event_filter, user_data);
+    c.SDL_RemoveEventWatch(event_filter, user_data);
 }
 
 /// Set the state of processing events by type.
@@ -1244,7 +1292,7 @@ pub fn setEnabled(
     event_type: Type,
     enable: bool,
 ) void {
-    C.SDL_SetEventEnabled(@intFromEnum(event_type), enable);
+    c.SDL_SetEventEnabled(@intFromEnum(event_type), enable);
 }
 
 /// Set up a filter to process all events before they are added to the internal event queue.
@@ -1280,7 +1328,7 @@ pub fn setFilter(
     event_filter: Filter,
     user_data: ?*anyopaque,
 ) void {
-    C.SDL_SetEventFilter(event_filter, user_data);
+    c.SDL_SetEventFilter(event_filter, user_data);
 }
 
 /// Wait indefinitely for the next available event.
@@ -1306,12 +1354,12 @@ pub fn wait(
     pop_event: bool,
 ) !?Event {
     if (pop_event) {
-        var event: C.SDL_Event = undefined;
-        const ret = C.SDL_WaitEvent(&event);
+        var event: c.SDL_Event = undefined;
+        const ret = c.SDL_WaitEvent(&event);
         try errors.wrapCallBool(ret);
         return Event.fromSdl(event);
     } else {
-        const ret = C.SDL_WaitEvent(null);
+        const ret = c.SDL_WaitEvent(null);
         try errors.wrapCallBool(ret);
         return null;
     }
@@ -1345,13 +1393,13 @@ pub fn waitTimeout(
     timeout_milliseconds: u31,
 ) ?struct { event: ?Event } {
     if (pop_event) {
-        var event: C.SDL_Event = undefined;
-        const ret = C.SDL_WaitEventTimeout(&event, @intCast(timeout_milliseconds));
+        var event: c.SDL_Event = undefined;
+        const ret = c.SDL_WaitEventTimeout(&event, @intCast(timeout_milliseconds));
         if (!ret)
             return null;
         return .{ .event = Event.fromSdl(event) };
     } else {
-        const ret = C.SDL_WaitEventTimeout(null, @intCast(timeout_milliseconds));
+        const ret = c.SDL_WaitEventTimeout(null, @intCast(timeout_milliseconds));
         if (!ret)
             return null;
         return .{ .event = null };
@@ -1360,8 +1408,8 @@ pub fn waitTimeout(
 
 fn dummyFilter(
     user_data: ?*anyopaque,
-    event: [*c]C.SDL_Event,
-) callconv(.C) bool {
+    event: [*c]c.SDL_Event,
+) callconv(.c) bool {
     _ = user_data;
     _ = event;
     return true;
@@ -1369,6 +1417,8 @@ fn dummyFilter(
 
 // Test SDL events.
 test "Events" {
+    std.testing.refAllDeclsRecursive(@This());
+
     defer init.shutdown();
     try init.init(.{ .events = true });
     defer init.quit(.{ .events = true });

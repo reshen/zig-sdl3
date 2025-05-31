@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const scancode = @import("scancode.zig");
 const std = @import("std");
 
@@ -14,262 +14,262 @@ const std = @import("std");
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const Keycode = enum(C.SDL_Keycode) {
-    return_key = C.SDLK_RETURN,
-    escape = C.SDLK_ESCAPE,
-    backspace = C.SDLK_BACKSPACE,
-    tab = C.SDLK_TAB,
-    space = C.SDLK_SPACE,
-    exclaim = C.SDLK_EXCLAIM,
-    dblapostrophe = C.SDLK_DBLAPOSTROPHE,
-    hash = C.SDLK_HASH,
-    dollar = C.SDLK_DOLLAR,
-    percent = C.SDLK_PERCENT,
-    ampersand = C.SDLK_AMPERSAND,
-    apostrophe = C.SDLK_APOSTROPHE,
-    left_paren = C.SDLK_LEFTPAREN,
-    right_paren = C.SDLK_RIGHTPAREN,
-    asterisk = C.SDLK_ASTERISK,
-    plus = C.SDLK_PLUS,
-    comma = C.SDLK_COMMA,
-    minus = C.SDLK_MINUS,
-    period = C.SDLK_PERIOD,
-    slash = C.SDLK_SLASH,
-    zero = C.SDLK_0,
-    one = C.SDLK_1,
-    two = C.SDLK_2,
-    three = C.SDLK_3,
-    four = C.SDLK_4,
-    five = C.SDLK_5,
-    six = C.SDLK_6,
-    seven = C.SDLK_7,
-    eight = C.SDLK_8,
-    nine = C.SDLK_9,
-    colon = C.SDLK_COLON,
-    semicolon = C.SDLK_SEMICOLON,
-    less = C.SDLK_LESS,
-    equals = C.SDLK_EQUALS,
-    greater = C.SDLK_GREATER,
-    question = C.SDLK_QUESTION,
-    at = C.SDLK_AT,
-    left_bracket = C.SDLK_LEFTBRACKET,
-    backslash = C.SDLK_BACKSLASH,
-    right_bracket = C.SDLK_RIGHTBRACKET,
-    caret = C.SDLK_CARET,
-    underscore = C.SDLK_UNDERSCORE,
-    grave = C.SDLK_GRAVE,
-    a = C.SDLK_A,
-    b = C.SDLK_B,
-    c = C.SDLK_C,
-    d = C.SDLK_D,
-    e = C.SDLK_E,
-    f = C.SDLK_F,
-    g = C.SDLK_G,
-    h = C.SDLK_H,
-    i = C.SDLK_I,
-    j = C.SDLK_J,
-    k = C.SDLK_K,
-    l = C.SDLK_L,
-    m = C.SDLK_M,
-    n = C.SDLK_N,
-    o = C.SDLK_O,
-    p = C.SDLK_P,
-    q = C.SDLK_Q,
-    r = C.SDLK_R,
-    s = C.SDLK_S,
-    t = C.SDLK_T,
-    u = C.SDLK_U,
-    v = C.SDLK_V,
-    w = C.SDLK_W,
-    x = C.SDLK_X,
-    y = C.SDLK_Y,
-    z = C.SDLK_Z,
-    left_brace = C.SDLK_LEFTBRACE,
-    pipe = C.SDLK_PIPE,
-    right_brace = C.SDLK_RIGHTBRACE,
-    tilde = C.SDLK_TILDE,
-    delete = C.SDLK_DELETE,
-    plus_minus = C.SDLK_PLUSMINUS,
-    caps_lock = C.SDLK_CAPSLOCK,
-    func1 = C.SDLK_F1,
-    func2 = C.SDLK_F2,
-    func3 = C.SDLK_F3,
-    func4 = C.SDLK_F4,
-    func5 = C.SDLK_F5,
-    func6 = C.SDLK_F6,
-    func7 = C.SDLK_F7,
-    func8 = C.SDLK_F8,
-    func9 = C.SDLK_F9,
-    func10 = C.SDLK_F10,
-    func11 = C.SDLK_F11,
-    func12 = C.SDLK_F12,
-    print_screen = C.SDLK_PRINTSCREEN,
-    scroll_lock = C.SDLK_SCROLLLOCK,
-    pause = C.SDLK_PAUSE,
-    insert = C.SDLK_INSERT,
-    home = C.SDLK_HOME,
-    page_up = C.SDLK_PAGEUP,
-    end = C.SDLK_END,
-    page_down = C.SDLK_PAGEDOWN,
-    right = C.SDLK_RIGHT,
-    left = C.SDLK_LEFT,
-    down = C.SDLK_DOWN,
-    up = C.SDLK_UP,
-    num_lock_clear = C.SDLK_NUMLOCKCLEAR,
-    kp_divide = C.SDLK_KP_DIVIDE,
-    kp_multiply = C.SDLK_KP_MULTIPLY,
-    kp_minus = C.SDLK_KP_MINUS,
-    kp_plus = C.SDLK_KP_PLUS,
-    kp_enter = C.SDLK_KP_ENTER,
-    kp_1 = C.SDLK_KP_1,
-    kp_2 = C.SDLK_KP_2,
-    kp_3 = C.SDLK_KP_3,
-    kp_4 = C.SDLK_KP_4,
-    kp_5 = C.SDLK_KP_5,
-    kp_6 = C.SDLK_KP_6,
-    kp_7 = C.SDLK_KP_7,
-    kp_8 = C.SDLK_KP_8,
-    kp_9 = C.SDLK_KP_9,
-    kp_0 = C.SDLK_KP_0,
-    kp_period = C.SDLK_KP_PERIOD,
-    application = C.SDLK_APPLICATION,
-    power = C.SDLK_POWER,
-    kp_equals = C.SDLK_KP_EQUALS,
-    func13 = C.SDLK_F13,
-    func14 = C.SDLK_F14,
-    func15 = C.SDLK_F15,
-    func16 = C.SDLK_F16,
-    func17 = C.SDLK_F17,
-    func18 = C.SDLK_F18,
-    func19 = C.SDLK_F19,
-    func20 = C.SDLK_F20,
-    func21 = C.SDLK_F21,
-    func22 = C.SDLK_F22,
-    func23 = C.SDLK_F23,
-    func24 = C.SDLK_F24,
-    execute = C.SDLK_EXECUTE,
-    help = C.SDLK_HELP,
-    menu = C.SDLK_MENU,
-    select = C.SDLK_SELECT,
-    stop = C.SDLK_STOP,
-    again = C.SDLK_AGAIN,
-    undo = C.SDLK_UNDO,
-    cut = C.SDLK_CUT,
-    copy = C.SDLK_COPY,
-    paste = C.SDLK_PASTE,
-    find = C.SDLK_FIND,
-    mute = C.SDLK_MUTE,
-    volume_up = C.SDLK_VOLUMEUP,
-    volume_down = C.SDLK_VOLUMEDOWN,
-    kp_comma = C.SDLK_KP_COMMA,
-    kp_equals_as_400 = C.SDLK_KP_EQUALSAS400,
-    alt_erase = C.SDLK_ALTERASE,
-    sysreq = C.SDLK_SYSREQ,
-    cancel = C.SDLK_CANCEL,
-    clear = C.SDLK_CLEAR,
-    prior = C.SDLK_PRIOR,
-    return_key2 = C.SDLK_RETURN2,
-    separator = C.SDLK_SEPARATOR,
-    out = C.SDLK_OUT,
-    oper = C.SDLK_OPER,
-    clear_again = C.SDLK_CLEARAGAIN,
-    cr_sel = C.SDLK_CRSEL,
-    ex_sel = C.SDLK_EXSEL,
-    kp_00 = C.SDLK_KP_00,
-    kp_000 = C.SDLK_KP_000,
-    thousands_separator = C.SDLK_THOUSANDSSEPARATOR,
-    decimal_separator = C.SDLK_DECIMALSEPARATOR,
-    currency_unit = C.SDLK_CURRENCYUNIT,
-    currency_subunit = C.SDLK_CURRENCYSUBUNIT,
-    kp_left_paren = C.SDLK_KP_LEFTPAREN,
-    kp_right_paren = C.SDLK_KP_RIGHTPAREN,
-    kp_left_brace = C.SDLK_KP_LEFTBRACE,
-    kp_right_brace = C.SDLK_KP_RIGHTBRACE,
-    kp_tab = C.SDLK_KP_TAB,
-    kp_backspace = C.SDLK_KP_BACKSPACE,
-    kp_a = C.SDLK_KP_A,
-    kp_b = C.SDLK_KP_B,
-    kp_c = C.SDLK_KP_C,
-    kp_d = C.SDLK_KP_D,
-    kp_e = C.SDLK_KP_E,
-    kp_f = C.SDLK_KP_F,
-    kp_xor = C.SDLK_KP_XOR,
-    kp_power = C.SDLK_KP_POWER,
-    kp_percent = C.SDLK_KP_PERCENT,
-    kp_less = C.SDLK_KP_LESS,
-    kp_greater = C.SDLK_KP_GREATER,
-    kp_ampersand = C.SDLK_KP_AMPERSAND,
-    kp_dblampersand = C.SDLK_KP_DBLAMPERSAND,
-    kp_verticalbar = C.SDLK_KP_VERTICALBAR,
-    kp_dbl_vertical_bar = C.SDLK_KP_DBLVERTICALBAR,
-    kp_colon = C.SDLK_KP_COLON,
-    kp_hash = C.SDLK_KP_HASH,
-    kp_space = C.SDLK_KP_SPACE,
-    kp_at = C.SDLK_KP_AT,
-    kp_exclam = C.SDLK_KP_EXCLAM,
-    kp_mem_store = C.SDLK_KP_MEMSTORE,
-    kp_mem_recall = C.SDLK_KP_MEMRECALL,
-    kp_mem_clear = C.SDLK_KP_MEMCLEAR,
-    kp_mem_add = C.SDLK_KP_MEMADD,
-    kp_mem_subtract = C.SDLK_KP_MEMSUBTRACT,
-    kp_mem_multiply = C.SDLK_KP_MEMMULTIPLY,
-    kp_mem_divide = C.SDLK_KP_MEMDIVIDE,
-    kp_plus_minus = C.SDLK_KP_PLUSMINUS,
-    kp_clear = C.SDLK_KP_CLEAR,
-    kp_clear_entry = C.SDLK_KP_CLEARENTRY,
-    kp_binary = C.SDLK_KP_BINARY,
-    kp_octal = C.SDLK_KP_OCTAL,
-    kp_decimal = C.SDLK_KP_DECIMAL,
-    kp_hexadecimal = C.SDLK_KP_HEXADECIMAL,
-    left_ctrl = C.SDLK_LCTRL,
-    left_shift = C.SDLK_LSHIFT,
-    left_alt = C.SDLK_LALT,
-    left_gui = C.SDLK_LGUI,
-    right_ctrl = C.SDLK_RCTRL,
-    right_shift = C.SDLK_RSHIFT,
-    right_alt = C.SDLK_RALT,
-    right_gui = C.SDLK_RGUI,
-    mode = C.SDLK_MODE,
-    sleep = C.SDLK_SLEEP,
-    wake = C.SDLK_WAKE,
-    channel_increment = C.SDLK_CHANNEL_INCREMENT,
-    channel_decrement = C.SDLK_CHANNEL_DECREMENT,
-    media_play = C.SDLK_MEDIA_PLAY,
-    media_pause = C.SDLK_MEDIA_PAUSE,
-    media_record = C.SDLK_MEDIA_RECORD,
-    media_fast_forward = C.SDLK_MEDIA_FAST_FORWARD,
-    media_rewind = C.SDLK_MEDIA_REWIND,
-    media_next_track = C.SDLK_MEDIA_NEXT_TRACK,
-    media_previous_track = C.SDLK_MEDIA_PREVIOUS_TRACK,
-    media_stop = C.SDLK_MEDIA_STOP,
-    media_eject = C.SDLK_MEDIA_EJECT,
-    media_play_pause = C.SDLK_MEDIA_PLAY_PAUSE,
-    media_select = C.SDLK_MEDIA_SELECT,
-    ac_new = C.SDLK_AC_NEW,
-    ac_open = C.SDLK_AC_OPEN,
-    ac_close = C.SDLK_AC_CLOSE,
-    ac_exit = C.SDLK_AC_EXIT,
-    ac_save = C.SDLK_AC_SAVE,
-    ac_print = C.SDLK_AC_PRINT,
-    ac_properties = C.SDLK_AC_PROPERTIES,
-    ac_search = C.SDLK_AC_SEARCH,
-    ac_home = C.SDLK_AC_HOME,
-    ac_back = C.SDLK_AC_BACK,
-    ac_forward = C.SDLK_AC_FORWARD,
-    ac_stop = C.SDLK_AC_STOP,
-    ac_refresh = C.SDLK_AC_REFRESH,
-    ac_bookmarks = C.SDLK_AC_BOOKMARKS,
-    soft_left = C.SDLK_SOFTLEFT,
-    soft_right = C.SDLK_SOFTRIGHT,
-    call = C.SDLK_CALL,
-    end_call = C.SDLK_ENDCALL,
-    left_tab = C.SDLK_LEFT_TAB,
-    level5_shift = C.SDLK_LEVEL5_SHIFT,
-    multi_key_compose = C.SDLK_MULTI_KEY_COMPOSE,
-    left_meta = C.SDLK_LMETA,
-    right_meta = C.SDLK_RMETA,
-    left_hyper = C.SDLK_LHYPER,
-    right_hyper = C.SDLK_RHYPER,
+pub const Keycode = enum(c.SDL_Keycode) {
+    return_key = c.SDLK_RETURN,
+    escape = c.SDLK_ESCAPE,
+    backspace = c.SDLK_BACKSPACE,
+    tab = c.SDLK_TAB,
+    space = c.SDLK_SPACE,
+    exclaim = c.SDLK_EXCLAIM,
+    dblapostrophe = c.SDLK_DBLAPOSTROPHE,
+    hash = c.SDLK_HASH,
+    dollar = c.SDLK_DOLLAR,
+    percent = c.SDLK_PERCENT,
+    ampersand = c.SDLK_AMPERSAND,
+    apostrophe = c.SDLK_APOSTROPHE,
+    left_paren = c.SDLK_LEFTPAREN,
+    right_paren = c.SDLK_RIGHTPAREN,
+    asterisk = c.SDLK_ASTERISK,
+    plus = c.SDLK_PLUS,
+    comma = c.SDLK_COMMA,
+    minus = c.SDLK_MINUS,
+    period = c.SDLK_PERIOD,
+    slash = c.SDLK_SLASH,
+    zero = c.SDLK_0,
+    one = c.SDLK_1,
+    two = c.SDLK_2,
+    three = c.SDLK_3,
+    four = c.SDLK_4,
+    five = c.SDLK_5,
+    six = c.SDLK_6,
+    seven = c.SDLK_7,
+    eight = c.SDLK_8,
+    nine = c.SDLK_9,
+    colon = c.SDLK_COLON,
+    semicolon = c.SDLK_SEMICOLON,
+    less = c.SDLK_LESS,
+    equals = c.SDLK_EQUALS,
+    greater = c.SDLK_GREATER,
+    question = c.SDLK_QUESTION,
+    at = c.SDLK_AT,
+    left_bracket = c.SDLK_LEFTBRACKET,
+    backslash = c.SDLK_BACKSLASH,
+    right_bracket = c.SDLK_RIGHTBRACKET,
+    caret = c.SDLK_CARET,
+    underscore = c.SDLK_UNDERSCORE,
+    grave = c.SDLK_GRAVE,
+    a = c.SDLK_A,
+    b = c.SDLK_B,
+    c = c.SDLK_C,
+    d = c.SDLK_D,
+    e = c.SDLK_E,
+    f = c.SDLK_F,
+    g = c.SDLK_G,
+    h = c.SDLK_H,
+    i = c.SDLK_I,
+    j = c.SDLK_J,
+    k = c.SDLK_K,
+    l = c.SDLK_L,
+    m = c.SDLK_M,
+    n = c.SDLK_N,
+    o = c.SDLK_O,
+    p = c.SDLK_P,
+    q = c.SDLK_Q,
+    r = c.SDLK_R,
+    s = c.SDLK_S,
+    t = c.SDLK_T,
+    u = c.SDLK_U,
+    v = c.SDLK_V,
+    w = c.SDLK_W,
+    x = c.SDLK_X,
+    y = c.SDLK_Y,
+    z = c.SDLK_Z,
+    left_brace = c.SDLK_LEFTBRACE,
+    pipe = c.SDLK_PIPE,
+    right_brace = c.SDLK_RIGHTBRACE,
+    tilde = c.SDLK_TILDE,
+    delete = c.SDLK_DELETE,
+    plus_minus = c.SDLK_PLUSMINUS,
+    caps_lock = c.SDLK_CAPSLOCK,
+    func1 = c.SDLK_F1,
+    func2 = c.SDLK_F2,
+    func3 = c.SDLK_F3,
+    func4 = c.SDLK_F4,
+    func5 = c.SDLK_F5,
+    func6 = c.SDLK_F6,
+    func7 = c.SDLK_F7,
+    func8 = c.SDLK_F8,
+    func9 = c.SDLK_F9,
+    func10 = c.SDLK_F10,
+    func11 = c.SDLK_F11,
+    func12 = c.SDLK_F12,
+    print_screen = c.SDLK_PRINTSCREEN,
+    scroll_lock = c.SDLK_SCROLLLOCK,
+    pause = c.SDLK_PAUSE,
+    insert = c.SDLK_INSERT,
+    home = c.SDLK_HOME,
+    page_up = c.SDLK_PAGEUP,
+    end = c.SDLK_END,
+    page_down = c.SDLK_PAGEDOWN,
+    right = c.SDLK_RIGHT,
+    left = c.SDLK_LEFT,
+    down = c.SDLK_DOWN,
+    up = c.SDLK_UP,
+    num_lock_clear = c.SDLK_NUMLOCKCLEAR,
+    kp_divide = c.SDLK_KP_DIVIDE,
+    kp_multiply = c.SDLK_KP_MULTIPLY,
+    kp_minus = c.SDLK_KP_MINUS,
+    kp_plus = c.SDLK_KP_PLUS,
+    kp_enter = c.SDLK_KP_ENTER,
+    kp_1 = c.SDLK_KP_1,
+    kp_2 = c.SDLK_KP_2,
+    kp_3 = c.SDLK_KP_3,
+    kp_4 = c.SDLK_KP_4,
+    kp_5 = c.SDLK_KP_5,
+    kp_6 = c.SDLK_KP_6,
+    kp_7 = c.SDLK_KP_7,
+    kp_8 = c.SDLK_KP_8,
+    kp_9 = c.SDLK_KP_9,
+    kp_0 = c.SDLK_KP_0,
+    kp_period = c.SDLK_KP_PERIOD,
+    application = c.SDLK_APPLICATION,
+    power = c.SDLK_POWER,
+    kp_equals = c.SDLK_KP_EQUALS,
+    func13 = c.SDLK_F13,
+    func14 = c.SDLK_F14,
+    func15 = c.SDLK_F15,
+    func16 = c.SDLK_F16,
+    func17 = c.SDLK_F17,
+    func18 = c.SDLK_F18,
+    func19 = c.SDLK_F19,
+    func20 = c.SDLK_F20,
+    func21 = c.SDLK_F21,
+    func22 = c.SDLK_F22,
+    func23 = c.SDLK_F23,
+    func24 = c.SDLK_F24,
+    execute = c.SDLK_EXECUTE,
+    help = c.SDLK_HELP,
+    menu = c.SDLK_MENU,
+    select = c.SDLK_SELECT,
+    stop = c.SDLK_STOP,
+    again = c.SDLK_AGAIN,
+    undo = c.SDLK_UNDO,
+    cut = c.SDLK_CUT,
+    copy = c.SDLK_COPY,
+    paste = c.SDLK_PASTE,
+    find = c.SDLK_FIND,
+    mute = c.SDLK_MUTE,
+    volume_up = c.SDLK_VOLUMEUP,
+    volume_down = c.SDLK_VOLUMEDOWN,
+    kp_comma = c.SDLK_KP_COMMA,
+    kp_equals_as_400 = c.SDLK_KP_EQUALSAS400,
+    alt_erase = c.SDLK_ALTERASE,
+    sysreq = c.SDLK_SYSREQ,
+    cancel = c.SDLK_CANCEL,
+    clear = c.SDLK_CLEAR,
+    prior = c.SDLK_PRIOR,
+    return_key2 = c.SDLK_RETURN2,
+    separator = c.SDLK_SEPARATOR,
+    out = c.SDLK_OUT,
+    oper = c.SDLK_OPER,
+    clear_again = c.SDLK_CLEARAGAIN,
+    cr_sel = c.SDLK_CRSEL,
+    ex_sel = c.SDLK_EXSEL,
+    kp_00 = c.SDLK_KP_00,
+    kp_000 = c.SDLK_KP_000,
+    thousands_separator = c.SDLK_THOUSANDSSEPARATOR,
+    decimal_separator = c.SDLK_DECIMALSEPARATOR,
+    currency_unit = c.SDLK_CURRENCYUNIT,
+    currency_subunit = c.SDLK_CURRENCYSUBUNIT,
+    kp_left_paren = c.SDLK_KP_LEFTPAREN,
+    kp_right_paren = c.SDLK_KP_RIGHTPAREN,
+    kp_left_brace = c.SDLK_KP_LEFTBRACE,
+    kp_right_brace = c.SDLK_KP_RIGHTBRACE,
+    kp_tab = c.SDLK_KP_TAB,
+    kp_backspace = c.SDLK_KP_BACKSPACE,
+    kp_a = c.SDLK_KP_A,
+    kp_b = c.SDLK_KP_B,
+    kp_c = c.SDLK_KP_C,
+    kp_d = c.SDLK_KP_D,
+    kp_e = c.SDLK_KP_E,
+    kp_f = c.SDLK_KP_F,
+    kp_xor = c.SDLK_KP_XOR,
+    kp_power = c.SDLK_KP_POWER,
+    kp_percent = c.SDLK_KP_PERCENT,
+    kp_less = c.SDLK_KP_LESS,
+    kp_greater = c.SDLK_KP_GREATER,
+    kp_ampersand = c.SDLK_KP_AMPERSAND,
+    kp_dblampersand = c.SDLK_KP_DBLAMPERSAND,
+    kp_verticalbar = c.SDLK_KP_VERTICALBAR,
+    kp_dbl_vertical_bar = c.SDLK_KP_DBLVERTICALBAR,
+    kp_colon = c.SDLK_KP_COLON,
+    kp_hash = c.SDLK_KP_HASH,
+    kp_space = c.SDLK_KP_SPACE,
+    kp_at = c.SDLK_KP_AT,
+    kp_exclam = c.SDLK_KP_EXCLAM,
+    kp_mem_store = c.SDLK_KP_MEMSTORE,
+    kp_mem_recall = c.SDLK_KP_MEMRECALL,
+    kp_mem_clear = c.SDLK_KP_MEMCLEAR,
+    kp_mem_add = c.SDLK_KP_MEMADD,
+    kp_mem_subtract = c.SDLK_KP_MEMSUBTRACT,
+    kp_mem_multiply = c.SDLK_KP_MEMMULTIPLY,
+    kp_mem_divide = c.SDLK_KP_MEMDIVIDE,
+    kp_plus_minus = c.SDLK_KP_PLUSMINUS,
+    kp_clear = c.SDLK_KP_CLEAR,
+    kp_clear_entry = c.SDLK_KP_CLEARENTRY,
+    kp_binary = c.SDLK_KP_BINARY,
+    kp_octal = c.SDLK_KP_OCTAL,
+    kp_decimal = c.SDLK_KP_DECIMAL,
+    kp_hexadecimal = c.SDLK_KP_HEXADECIMAL,
+    left_ctrl = c.SDLK_LCTRL,
+    left_shift = c.SDLK_LSHIFT,
+    left_alt = c.SDLK_LALT,
+    left_gui = c.SDLK_LGUI,
+    right_ctrl = c.SDLK_RCTRL,
+    right_shift = c.SDLK_RSHIFT,
+    right_alt = c.SDLK_RALT,
+    right_gui = c.SDLK_RGUI,
+    mode = c.SDLK_MODE,
+    sleep = c.SDLK_SLEEP,
+    wake = c.SDLK_WAKE,
+    channel_increment = c.SDLK_CHANNEL_INCREMENT,
+    channel_decrement = c.SDLK_CHANNEL_DECREMENT,
+    media_play = c.SDLK_MEDIA_PLAY,
+    media_pause = c.SDLK_MEDIA_PAUSE,
+    media_record = c.SDLK_MEDIA_RECORD,
+    media_fast_forward = c.SDLK_MEDIA_FAST_FORWARD,
+    media_rewind = c.SDLK_MEDIA_REWIND,
+    media_next_track = c.SDLK_MEDIA_NEXT_TRACK,
+    media_previous_track = c.SDLK_MEDIA_PREVIOUS_TRACK,
+    media_stop = c.SDLK_MEDIA_STOP,
+    media_eject = c.SDLK_MEDIA_EJECT,
+    media_play_pause = c.SDLK_MEDIA_PLAY_PAUSE,
+    media_select = c.SDLK_MEDIA_SELECT,
+    ac_new = c.SDLK_AC_NEW,
+    ac_open = c.SDLK_AC_OPEN,
+    ac_close = c.SDLK_AC_CLOSE,
+    ac_exit = c.SDLK_AC_EXIT,
+    ac_save = c.SDLK_AC_SAVE,
+    ac_print = c.SDLK_AC_PRINT,
+    ac_properties = c.SDLK_AC_PROPERTIES,
+    ac_search = c.SDLK_AC_SEARCH,
+    ac_home = c.SDLK_AC_HOME,
+    ac_back = c.SDLK_AC_BACK,
+    ac_forward = c.SDLK_AC_FORWARD,
+    ac_stop = c.SDLK_AC_STOP,
+    ac_refresh = c.SDLK_AC_REFRESH,
+    ac_bookmarks = c.SDLK_AC_BOOKMARKS,
+    soft_left = c.SDLK_SOFTLEFT,
+    soft_right = c.SDLK_SOFTRIGHT,
+    call = c.SDLK_CALL,
+    end_call = c.SDLK_ENDCALL,
+    left_tab = c.SDLK_LEFT_TAB,
+    level5_shift = c.SDLK_LEVEL5_SHIFT,
+    multi_key_compose = c.SDLK_MULTI_KEY_COMPOSE,
+    left_meta = c.SDLK_LMETA,
+    right_meta = c.SDLK_RMETA,
+    left_hyper = c.SDLK_LHYPER,
+    right_hyper = c.SDLK_RHYPER,
     _, // non-exhaustive enum for SDL compatibility
 
     /// Create a keycode from a scancode.
@@ -285,7 +285,7 @@ pub const Keycode = enum(C.SDL_Keycode) {
     pub fn fromScancode(
         code: scancode.Scancode,
     ) ?Keycode {
-        const ret = C.SDL_SCANCODE_TO_KEYCODE(code.toSdl());
+        const ret = c.SDL_SCANCODE_TO_KEYCODE(code.toSdl());
         return Keycode.fromSdl(ret);
     }
 
@@ -302,7 +302,7 @@ pub const Keycode = enum(C.SDL_Keycode) {
     pub fn isExtended(
         self: Keycode,
     ) bool {
-        return C.SDLK_EXTENDED_MASK & @intFromEnum(self) != 0;
+        return c.SDLK_EXTENDED_MASK & @intFromEnum(self) != 0;
     }
 
     /// Returns if this keycode maps to a scancode.
@@ -316,7 +316,7 @@ pub const Keycode = enum(C.SDL_Keycode) {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn isScancode(self: Keycode) bool {
-        return C.SDLK_SCANCODE_MASK & @intFromEnum(self) != 0;
+        return c.SDLK_SCANCODE_MASK & @intFromEnum(self) != 0;
     }
 
     /// Create an unmanaged keycode from a keycode enum.
@@ -332,8 +332,8 @@ pub const Keycode = enum(C.SDL_Keycode) {
     ///
     /// ## Version
     /// This function is provided by zig-sdl3.
-    pub fn toSdl(self: ?Keycode) C.SDL_Keycode {
-        return if (self) |val| @intFromEnum(val) else C.SDLK_UNKNOWN;
+    pub fn toSdl(self: ?Keycode) c.SDL_Keycode {
+        return if (self) |val| @intFromEnum(val) else c.SDLK_UNKNOWN;
     }
 
     /// Create a keycode enum from an SDL keycode.
@@ -349,8 +349,8 @@ pub const Keycode = enum(C.SDL_Keycode) {
     ///
     /// ## Version
     /// This function is provided by zig-sdl3.
-    pub fn fromSdl(key_code: C.SDL_Keycode) ?Keycode {
-        if (key_code == C.SDLK_UNKNOWN) return null;
+    pub fn fromSdl(key_code: c.SDL_Keycode) ?Keycode {
+        if (key_code == c.SDLK_UNKNOWN) return null;
         return @enumFromInt(key_code);
     }
 };
@@ -381,39 +381,39 @@ pub const KeyModifier = struct {
     pub const none = KeyModifier{};
 
     /// Convert from an SDL value.
-    pub fn fromSdl(flags: C.SDL_Keymod) KeyModifier {
+    pub fn fromSdl(flags: c.SDL_Keymod) KeyModifier {
         return .{
-            .left_shift = (flags & C.SDL_KMOD_LSHIFT) != 0,
-            .right_shift = (flags & C.SDL_KMOD_RSHIFT) != 0,
-            .level5_shift = (flags & C.SDL_KMOD_LEVEL5) != 0,
-            .left_control = (flags & C.SDL_KMOD_LCTRL) != 0,
-            .right_control = (flags & C.SDL_KMOD_RCTRL) != 0,
-            .left_alt = (flags & C.SDL_KMOD_LALT) != 0,
-            .right_alt = (flags & C.SDL_KMOD_RALT) != 0,
-            .left_gui = (flags & C.SDL_KMOD_LGUI) != 0,
-            .right_gui = (flags & C.SDL_KMOD_RGUI) != 0,
-            .num_lock = (flags & C.SDL_KMOD_NUM) != 0,
-            .caps_lock = (flags & C.SDL_KMOD_CAPS) != 0,
-            .mode = (flags & C.SDL_KMOD_MODE) != 0,
-            .scroll_lock = (flags & C.SDL_KMOD_SCROLL) != 0,
+            .left_shift = (flags & c.SDL_KMOD_LSHIFT) != 0,
+            .right_shift = (flags & c.SDL_KMOD_RSHIFT) != 0,
+            .level5_shift = (flags & c.SDL_KMOD_LEVEL5) != 0,
+            .left_control = (flags & c.SDL_KMOD_LCTRL) != 0,
+            .right_control = (flags & c.SDL_KMOD_RCTRL) != 0,
+            .left_alt = (flags & c.SDL_KMOD_LALT) != 0,
+            .right_alt = (flags & c.SDL_KMOD_RALT) != 0,
+            .left_gui = (flags & c.SDL_KMOD_LGUI) != 0,
+            .right_gui = (flags & c.SDL_KMOD_RGUI) != 0,
+            .num_lock = (flags & c.SDL_KMOD_NUM) != 0,
+            .caps_lock = (flags & c.SDL_KMOD_CAPS) != 0,
+            .mode = (flags & c.SDL_KMOD_MODE) != 0,
+            .scroll_lock = (flags & c.SDL_KMOD_SCROLL) != 0,
         };
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: KeyModifier) C.SDL_Keymod {
-        return (if (self.left_shift) @as(C.SDL_Keymod, C.SDL_KMOD_LSHIFT) else 0) |
-            (if (self.right_shift) @as(C.SDL_Keymod, C.SDL_KMOD_RSHIFT) else 0) |
-            (if (self.level5_shift) @as(C.SDL_Keymod, C.SDL_KMOD_LEVEL5) else 0) |
-            (if (self.left_control) @as(C.SDL_Keymod, C.SDL_KMOD_LCTRL) else 0) |
-            (if (self.right_control) @as(C.SDL_Keymod, C.SDL_KMOD_RCTRL) else 0) |
-            (if (self.left_alt) @as(C.SDL_Keymod, C.SDL_KMOD_LALT) else 0) |
-            (if (self.right_alt) @as(C.SDL_Keymod, C.SDL_KMOD_RALT) else 0) |
-            (if (self.left_gui) @as(C.SDL_Keymod, C.SDL_KMOD_LGUI) else 0) |
-            (if (self.right_gui) @as(C.SDL_Keymod, C.SDL_KMOD_RGUI) else 0) |
-            (if (self.num_lock) @as(C.SDL_Keymod, C.SDL_KMOD_NUM) else 0) |
-            (if (self.caps_lock) @as(C.SDL_Keymod, C.SDL_KMOD_CAPS) else 0) |
-            (if (self.mode) @as(C.SDL_Keymod, C.SDL_KMOD_MODE) else 0) |
-            (if (self.scroll_lock) @as(C.SDL_Keymod, C.SDL_KMOD_SCROLL) else 0) |
+    pub fn toSdl(self: KeyModifier) c.SDL_Keymod {
+        return (if (self.left_shift) @as(c.SDL_Keymod, c.SDL_KMOD_LSHIFT) else 0) |
+            (if (self.right_shift) @as(c.SDL_Keymod, c.SDL_KMOD_RSHIFT) else 0) |
+            (if (self.level5_shift) @as(c.SDL_Keymod, c.SDL_KMOD_LEVEL5) else 0) |
+            (if (self.left_control) @as(c.SDL_Keymod, c.SDL_KMOD_LCTRL) else 0) |
+            (if (self.right_control) @as(c.SDL_Keymod, c.SDL_KMOD_RCTRL) else 0) |
+            (if (self.left_alt) @as(c.SDL_Keymod, c.SDL_KMOD_LALT) else 0) |
+            (if (self.right_alt) @as(c.SDL_Keymod, c.SDL_KMOD_RALT) else 0) |
+            (if (self.left_gui) @as(c.SDL_Keymod, c.SDL_KMOD_LGUI) else 0) |
+            (if (self.right_gui) @as(c.SDL_Keymod, c.SDL_KMOD_RGUI) else 0) |
+            (if (self.num_lock) @as(c.SDL_Keymod, c.SDL_KMOD_NUM) else 0) |
+            (if (self.caps_lock) @as(c.SDL_Keymod, c.SDL_KMOD_CAPS) else 0) |
+            (if (self.mode) @as(c.SDL_Keymod, c.SDL_KMOD_MODE) else 0) |
+            (if (self.scroll_lock) @as(c.SDL_Keymod, c.SDL_KMOD_SCROLL) else 0) |
             0;
     }
 
@@ -428,7 +428,7 @@ pub const KeyModifier = struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn controlDown(self: KeyModifier) bool {
-        return self.toSdl() & C.SDL_KMOD_CTRL != 0;
+        return self.toSdl() & c.SDL_KMOD_CTRL != 0;
     }
 
     /// If any shift key is down.
@@ -442,7 +442,7 @@ pub const KeyModifier = struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn shiftDown(self: KeyModifier) bool {
-        return self.toSdl() & C.SDL_KMOD_SHIFT != 0;
+        return self.toSdl() & c.SDL_KMOD_SHIFT != 0;
     }
 
     /// If any alt key is down.
@@ -456,7 +456,7 @@ pub const KeyModifier = struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn altDown(self: KeyModifier) bool {
-        return self.toSdl() & C.SDL_KMOD_ALT != 0;
+        return self.toSdl() & c.SDL_KMOD_ALT != 0;
     }
 
     /// If any gui key is down.
@@ -470,7 +470,7 @@ pub const KeyModifier = struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn guiDown(self: KeyModifier) bool {
-        return self.toSdl() & C.SDL_KMOD_GUI != 0;
+        return self.toSdl() & c.SDL_KMOD_GUI != 0;
     }
 };
 

@@ -1,20 +1,20 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const init = @import("init.zig");
 const errors = @import("errors.zig");
 const std = @import("std");
 const video = @import("video.zig");
 
 /// Allocation callbacks.
-pub const AllocationCallbacks = *const C.VkAllocationCallbacks;
+pub const AllocationCallbacks = *const c.VkAllocationCallbacks;
 
 /// Vulkan instance handle.
-pub const Instance = C.VkInstance;
+pub const Instance = c.VkInstance;
 
 /// Vulkan physical device handle.
-pub const PhysicalDevice = C.VkPhysicalDevice;
+pub const PhysicalDevice = c.VkPhysicalDevice;
 
 /// Vulkan surface handle.
-pub const SurfaceKHR = C.VkSurfaceKHR;
+pub const SurfaceKHR = c.VkSurfaceKHR;
 
 /// Vulkan surface.
 pub const Surface = struct {
@@ -39,7 +39,7 @@ pub const Surface = struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn deinit(self: Surface) void {
-        C.SDL_Vulkan_DestroySurface(
+        c.SDL_Vulkan_DestroySurface(
             self.instance,
             self.surface,
             self.allocator,
@@ -73,8 +73,8 @@ pub const Surface = struct {
         instance: Instance,
         allocator: ?AllocationCallbacks,
     ) !Surface {
-        var surface: C.VkSurfaceKHR = undefined;
-        const ret = C.SDL_Vulkan_CreateSurface(
+        var surface: c.VkSurfaceKHR = undefined;
+        const ret = c.SDL_Vulkan_CreateSurface(
             window.value,
             instance,
             allocator,
@@ -110,7 +110,7 @@ pub const Surface = struct {
 /// TODO!!!
 pub fn getInstanceExtensions() ![]const [*:0]const u8 {
     var count: u32 = undefined;
-    const val = C.SDL_Vulkan_GetInstanceExtensions(&count);
+    const val = c.SDL_Vulkan_GetInstanceExtensions(&count);
     const ret = try errors.wrapCallCPtrConst([*c]const u8, val);
     return @as([*]const [*:0]const u8, @ptrCast(ret))[0..count];
 }
@@ -135,7 +135,7 @@ pub fn getPresentationSupport(
     physical_device: PhysicalDevice,
     queue_family_index: u32,
 ) bool {
-    return C.SDL_Vulkan_GetPresentationSupport(
+    return c.SDL_Vulkan_GetPresentationSupport(
         instance,
         physical_device,
         queue_family_index,
@@ -156,7 +156,7 @@ pub fn getPresentationSupport(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getVkGetInstanceProcAddr() !*const anyopaque {
-    const ret = C.SDL_Vulkan_GetVkGetInstanceProcAddr();
+    const ret = c.SDL_Vulkan_GetVkGetInstanceProcAddr();
     return errors.wrapNull(*const anyopaque, @ptrCast(ret));
 }
 
@@ -196,7 +196,7 @@ pub fn getVkGetInstanceProcAddr() !*const anyopaque {
 /// This function is available since SDL 3.2.0.
 pub fn loadLibrary(path: ?[:0]const u8) !void {
     const lib: [*c]const u8 = if (path) |val| val.ptr else null;
-    return errors.wrapCallBool(C.SDL_Vulkan_LoadLibrary(lib));
+    return errors.wrapCallBool(c.SDL_Vulkan_LoadLibrary(lib));
 }
 
 /// Unload the Vulkan library previously loaded by `vulkan.loadLibrary()`.
@@ -215,7 +215,7 @@ pub fn loadLibrary(path: ?[:0]const u8) !void {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn unloadLibrary() void {
-    C.SDL_Vulkan_UnloadLibrary();
+    c.SDL_Vulkan_UnloadLibrary();
 }
 
 // Vulkan related testing.

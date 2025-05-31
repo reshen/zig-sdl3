@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const io_stream = @import("io_stream.zig");
 const errors = @import("errors.zig");
 const properties = @import("properties.zig");
@@ -9,7 +9,7 @@ const stdinc = @import("stdinc.zig");
 ///
 /// This datatype is available since SDL 3.2.0.
 pub const Process = packed struct {
-    value: *C.SDL_Process,
+    value: *c.SDL_Process,
 
     /// Description of where standard I/O should be directed when creating a process.
     ///
@@ -37,13 +37,13 @@ pub const Process = packed struct {
     /// This enum is available since SDL 3.2.0.
     pub const Io = enum(c_uint) {
         /// The I/O stream is inherited from the application.
-        inherited = C.SDL_PROCESS_STDIO_INHERITED,
+        inherited = c.SDL_PROCESS_STDIO_INHERITED,
         /// The I/O stream is ignored.
-        ignored = C.SDL_PROCESS_STDIO_NULL,
+        ignored = c.SDL_PROCESS_STDIO_NULL,
         /// The I/O stream is connected to a new `io_stream.Stream` that the application can read or write.
-        app = C.SDL_PROCESS_STDIO_APP,
+        app = c.SDL_PROCESS_STDIO_APP,
         /// The I/O stream is redirected to an existing `io_stream.Stream`.
-        redirect = C.SDL_PROCESS_STDIO_REDIRECT,
+        redirect = c.SDL_PROCESS_STDIO_REDIRECT,
     };
 
     /// Process creation properties.
@@ -79,25 +79,25 @@ pub const Process = packed struct {
         /// Convert to properties.
         pub fn toProperties(self: CreateProperties) !properties.Group {
             const ret = try properties.Group.init();
-            try ret.set(C.SDL_PROP_PROCESS_CREATE_ARGS_POINTER, .{ .pointer = @constCast(@ptrCast(self.args.ptr)) });
+            try ret.set(c.SDL_PROP_PROCESS_CREATE_ARGS_POINTER, .{ .pointer = @constCast(@ptrCast(self.args.ptr)) });
             if (self.environment) |val|
-                try ret.set(C.SDL_PROP_PROCESS_CREATE_ENVIRONMENT_POINTER, .{ .pointer = val.value });
+                try ret.set(c.SDL_PROP_PROCESS_CREATE_ENVIRONMENT_POINTER, .{ .pointer = val.value });
             if (self.stdin) |val|
-                try ret.set(C.SDL_PROP_PROCESS_CREATE_STDIN_NUMBER, .{ .number = @intFromEnum(val) });
+                try ret.set(c.SDL_PROP_PROCESS_CREATE_STDIN_NUMBER, .{ .number = @intFromEnum(val) });
             if (self.stdin_redirect) |val|
-                try ret.set(C.SDL_PROP_PROCESS_CREATE_STDIN_POINTER, .{ .pointer = val.value });
+                try ret.set(c.SDL_PROP_PROCESS_CREATE_STDIN_POINTER, .{ .pointer = val.value });
             if (self.stdout) |val|
-                try ret.set(C.SDL_PROP_PROCESS_CREATE_STDOUT_NUMBER, .{ .number = @intFromEnum(val) });
+                try ret.set(c.SDL_PROP_PROCESS_CREATE_STDOUT_NUMBER, .{ .number = @intFromEnum(val) });
             if (self.stdout_redirect) |val|
-                try ret.set(C.SDL_PROP_PROCESS_CREATE_STDOUT_POINTER, .{ .pointer = val.value });
+                try ret.set(c.SDL_PROP_PROCESS_CREATE_STDOUT_POINTER, .{ .pointer = val.value });
             if (self.stderr) |val|
-                try ret.set(C.SDL_PROP_PROCESS_CREATE_STDERR_NUMBER, .{ .number = @intFromEnum(val) });
+                try ret.set(c.SDL_PROP_PROCESS_CREATE_STDERR_NUMBER, .{ .number = @intFromEnum(val) });
             if (self.stderr_redirect) |val|
-                try ret.set(C.SDL_PROP_PROCESS_CREATE_STDERR_POINTER, .{ .pointer = val.value });
+                try ret.set(c.SDL_PROP_PROCESS_CREATE_STDERR_POINTER, .{ .pointer = val.value });
             if (self.stderr_to_stdout) |val|
-                try ret.set(C.SDL_PROP_PROCESS_CREATE_STDERR_TO_STDOUT_BOOLEAN, .{ .boolean = val });
+                try ret.set(c.SDL_PROP_PROCESS_CREATE_STDERR_TO_STDOUT_BOOLEAN, .{ .boolean = val });
             if (self.background) |val|
-                try ret.set(C.SDL_PROP_PROCESS_CREATE_BACKGROUND_BOOLEAN, .{ .boolean = val });
+                try ret.set(c.SDL_PROP_PROCESS_CREATE_BACKGROUND_BOOLEAN, .{ .boolean = val });
             return ret;
         }
     };
@@ -121,11 +121,11 @@ pub const Process = packed struct {
         /// Convert from an SDL value.
         pub fn fromSdl(value: properties.Group) Properties {
             return .{
-                .pid = if (value.get(C.SDL_PROP_PROCESS_PID_NUMBER)) |val| val.number else null,
-                .stdin = if (value.get(C.SDL_PROP_PROCESS_STDIN_POINTER)) |val| @alignCast(@ptrCast(val.pointer)) else null,
-                .stdout = if (value.get(C.SDL_PROP_PROCESS_STDOUT_POINTER)) |val| @alignCast(@ptrCast(val.pointer)) else null,
-                .stderr = if (value.get(C.SDL_PROP_PROCESS_STDERR_POINTER)) |val| @alignCast(@ptrCast(val.pointer)) else null,
-                .background = if (value.get(C.SDL_PROP_PROCESS_BACKGROUND_BOOLEAN)) |val| val.boolean else null,
+                .pid = if (value.get(c.SDL_PROP_PROCESS_PID_NUMBER)) |val| val.number else null,
+                .stdin = if (value.get(c.SDL_PROP_PROCESS_STDIN_POINTER)) |val| @alignCast(@ptrCast(val.pointer)) else null,
+                .stdout = if (value.get(c.SDL_PROP_PROCESS_STDOUT_POINTER)) |val| @alignCast(@ptrCast(val.pointer)) else null,
+                .stderr = if (value.get(c.SDL_PROP_PROCESS_STDERR_POINTER)) |val| @alignCast(@ptrCast(val.pointer)) else null,
+                .background = if (value.get(c.SDL_PROP_PROCESS_BACKGROUND_BOOLEAN)) |val| val.boolean else null,
             };
         }
     };
@@ -147,7 +147,7 @@ pub const Process = packed struct {
     pub fn deinit(
         self: Process,
     ) void {
-        C.SDL_DestroyProcess(self.value);
+        c.SDL_DestroyProcess(self.value);
     }
 
     /// Create a new process.
@@ -176,11 +176,11 @@ pub const Process = packed struct {
         args: []const [*:0]u8,
         pipe_stdio: bool,
     ) !Process {
-        const ret = C.SDL_CreateProcess(
+        const ret = c.SDL_CreateProcess(
             @ptrCast(args.ptr),
             pipe_stdio,
         );
-        return .{ .value = try errors.wrapNull(*C.SDL_Process, ret) };
+        return .{ .value = try errors.wrapNull(*c.SDL_Process, ret) };
     }
 
     /// Create a new process with the specified properties.
@@ -206,7 +206,7 @@ pub const Process = packed struct {
     ) !?Process {
         const vals = try props.toProperties();
         defer vals.deinit();
-        const ret = C.SDL_CreateProcessWithProperties(vals.value);
+        const ret = c.SDL_CreateProcessWithProperties(vals.value);
         if (ret) |val| {
             return .{ .value = val };
         }
@@ -236,7 +236,7 @@ pub const Process = packed struct {
     pub fn getInput(
         self: Process,
     ) !io_stream.Stream {
-        return .{ .value = try errors.wrapNull(*C.SDL_IOStream, C.SDL_GetProcessOutput(self.value)) };
+        return .{ .value = try errors.wrapNull(*c.SDL_IOStream, c.SDL_GetProcessOutput(self.value)) };
     }
 
     /// Get the `io_stream.Stream` associated with process standard output.
@@ -261,7 +261,7 @@ pub const Process = packed struct {
     pub fn getOutput(
         self: Process,
     ) !io_stream.Stream {
-        return .{ .value = try errors.wrapNull(*C.SDL_IOStream, C.SDL_GetProcessOutput(self.value)) };
+        return .{ .value = try errors.wrapNull(*c.SDL_IOStream, c.SDL_GetProcessOutput(self.value)) };
     }
 
     /// Get the properties associated with a process.
@@ -280,7 +280,7 @@ pub const Process = packed struct {
     pub fn getProperties(
         self: Process,
     ) !Properties {
-        return Properties.fromSdl(.{ .value = try errors.wrapCall(C.SDL_PropertiesID, C.SDL_GetProcessProperties(self.value), 0) });
+        return Properties.fromSdl(.{ .value = try errors.wrapCall(c.SDL_PropertiesID, c.SDL_GetProcessProperties(self.value), 0) });
     }
 
     /// Stop a process.
@@ -298,7 +298,7 @@ pub const Process = packed struct {
         self: Process,
         force: bool,
     ) !void {
-        return errors.wrapCallBool(C.SDL_KillProcess(self.value, force));
+        return errors.wrapCallBool(c.SDL_KillProcess(self.value, force));
     }
 
     /// Read all the output from a process.
@@ -329,7 +329,7 @@ pub const Process = packed struct {
     ) !struct { data: []u8, exit_code: c_int } {
         var size: usize = undefined;
         var exit_code: c_int = undefined;
-        const ret = C.SDL_ReadProcess(self.value, &size, &exit_code);
+        const ret = c.SDL_ReadProcess(self.value, &size, &exit_code);
         return .{
             .data = @as([*]u8, @alignCast(@ptrCast(try errors.wrapNull(*anyopaque, ret))))[0..@intCast(size)],
             .exit_code = exit_code,
@@ -349,7 +349,7 @@ pub const Process = packed struct {
         block: bool,
     ) ?c_int {
         var exit_code: c_int = undefined;
-        const ret = C.SDL_WaitProcess(self.value, block, &exit_code);
+        const ret = c.SDL_WaitProcess(self.value, block, &exit_code);
         if (!ret)
             return null;
         return exit_code;

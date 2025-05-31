@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const std = @import("std");
 
@@ -28,7 +28,7 @@ const std = @import("std");
 pub fn openURL(
     url: [:0]const u8,
 ) !void {
-    const ret = C.SDL_OpenURL(
+    const ret = c.SDL_OpenURL(
         url.ptr,
     );
     return errors.wrapCallBool(ret);

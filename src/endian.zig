@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const std = @import("std");
 
@@ -8,9 +8,9 @@ const std = @import("std");
 /// This enum is provided by zig-sdl3.
 pub const ByteOrder = enum(c_int) {
     /// A value to represent bigendian byteorder.
-    big = C.BIG_ENDIAN,
+    big = c.BIG_ENDIAN,
     /// A value to represent littleendian byteorder.
-    little = C.LITTLE_ENDIAN,
+    little = c.LITTLE_ENDIAN,
 };
 
 /// A function that reports the target system's byte order.
@@ -21,7 +21,7 @@ pub const ByteOrder = enum(c_int) {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub inline fn byteOrder() ByteOrder {
-    return @enumFromInt(C.BYTE_ORDER);
+    return @enumFromInt(c.BYTE_ORDER);
 }
 
 /// A function that reports the target system's floating point word order.
@@ -32,7 +32,7 @@ pub inline fn byteOrder() ByteOrder {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub inline fn floatWordOrder() ByteOrder {
-    return @enumFromInt(C.SDL_FLOATWORDORDER);
+    return @enumFromInt(c.SDL_FLOATWORDORDER);
 }
 
 /// Byte-swap an unsigned 16-bit number.
@@ -53,7 +53,7 @@ pub inline fn floatWordOrder() ByteOrder {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub inline fn swap16(val: u16) u16 {
-    return C.SDL_Swap16(val);
+    return c.SDL_Swap16(val);
 }
 
 /// Swap a 16-bit value from bigendian to native byte order.
@@ -70,7 +70,7 @@ pub inline fn swap16(val: u16) u16 {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub inline fn swap16Be(val: u16) u16 {
-    return C.SDL_Swap16BE(val);
+    return c.SDL_Swap16BE(val);
 }
 
 /// Swap a 16-bit value from littleendian to native byte order.
@@ -87,7 +87,7 @@ pub inline fn swap16Be(val: u16) u16 {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub inline fn swap16Le(val: u16) u16 {
-    return C.SDL_Swap16LE(val);
+    return c.SDL_Swap16LE(val);
 }
 
 /// Byte-swap an unsigned 32-bit number.
@@ -108,7 +108,7 @@ pub inline fn swap16Le(val: u16) u16 {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub inline fn swap32(val: u32) u32 {
-    return C.SDL_Swap32(val);
+    return c.SDL_Swap32(val);
 }
 
 /// Swap a 32-bit value from bigendian to native byte order.
@@ -125,7 +125,7 @@ pub inline fn swap32(val: u32) u32 {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub inline fn swap32Be(val: u32) u32 {
-    return C.SDL_Swap32BE(val);
+    return c.SDL_Swap32BE(val);
 }
 
 /// Swap a 32-bit value from littleendian to native byte order.
@@ -142,7 +142,7 @@ pub inline fn swap32Be(val: u32) u32 {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub inline fn swap32Le(val: u32) u32 {
-    return C.SDL_Swap32LE(val);
+    return c.SDL_Swap32LE(val);
 }
 
 /// Byte-swap an unsigned 64-bit number.
@@ -163,7 +163,7 @@ pub inline fn swap32Le(val: u32) u32 {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub inline fn swap64(val: u64) u64 {
-    return C.SDL_Swap64(val);
+    return c.SDL_Swap64(val);
 }
 
 /// Swap a 64-bit value from bigendian to native byte order.
@@ -180,7 +180,7 @@ pub inline fn swap64(val: u64) u64 {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub inline fn swap64Be(val: u64) u64 {
-    return C.SDL_Swap64BE(val);
+    return c.SDL_Swap64BE(val);
 }
 
 /// Swap a 64-bit value from littleendian to native byte order.
@@ -197,7 +197,7 @@ pub inline fn swap64Be(val: u64) u64 {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub inline fn swap64Le(val: u64) u64 {
-    return C.SDL_Swap64LE(val);
+    return c.SDL_Swap64LE(val);
 }
 
 /// Byte-swap a floating point number.
@@ -218,7 +218,7 @@ pub inline fn swap64Le(val: u64) u64 {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub inline fn swapFloat(val: f32) f32 {
-    return C.SDL_SwapFloat(val);
+    return c.SDL_SwapFloat(val);
 }
 
 /// Swap a floating point value from bigendian to native byte order.
@@ -238,7 +238,7 @@ pub inline fn swapFloat(val: f32) f32 {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub inline fn swapFloatBe(val: f32) f32 {
-    return C.SDL_SwapFloatBE(val);
+    return c.SDL_SwapFloatBE(val);
 }
 
 /// Swap a floating point value from littleendian to native byte order.
@@ -258,7 +258,7 @@ pub inline fn swapFloatBe(val: f32) f32 {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub inline fn swapFloatLe(val: f32) f32 {
-    return C.SDL_SwapFloatLE(val);
+    return c.SDL_SwapFloatLE(val);
 }
 
 // Endian tests.

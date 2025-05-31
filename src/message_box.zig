@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const std = @import("std");
 const video = @import("video.zig");
@@ -16,7 +16,7 @@ pub const BoxData = struct {
     color_scheme: ?ColorScheme,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_MessageBoxData) BoxData {
+    pub fn fromSdl(value: c.SDL_MessageBoxData) BoxData {
         return .{
             .flags = BoxFlags.fromSdl(value.flags),
             .parent_window = if (value.window) |window| .{ .value = window } else null,
@@ -28,7 +28,7 @@ pub const BoxData = struct {
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: BoxData, color_scheme_out: *C.SDL_MessageBoxColorScheme) C.SDL_MessageBoxData {
+    pub fn toSdl(self: BoxData, color_scheme_out: *c.SDL_MessageBoxColorScheme) c.SDL_MessageBoxData {
         if (self.color_scheme) |val|
             color_scheme_out.* = val.toSdl();
         return .{
@@ -63,23 +63,23 @@ pub const BoxFlags = struct {
     buttons_right_to_left: bool = false,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(flags: C.SDL_MessageBoxFlags) BoxFlags {
+    pub fn fromSdl(flags: c.SDL_MessageBoxFlags) BoxFlags {
         return .{
-            .error_dialog = (flags & C.SDL_MESSAGEBOX_ERROR) != 0,
-            .warning_dialog = (flags & C.SDL_MESSAGEBOX_WARNING) != 0,
-            .information_dialog = (flags & C.SDL_MESSAGEBOX_INFORMATION) != 0,
-            .buttons_left_to_right = (flags & C.SDL_MESSAGEBOX_BUTTONS_LEFT_TO_RIGHT) != 0,
-            .buttons_right_to_left = (flags & C.SDL_MESSAGEBOX_BUTTONS_RIGHT_TO_LEFT) != 0,
+            .error_dialog = (flags & c.SDL_MESSAGEBOX_ERROR) != 0,
+            .warning_dialog = (flags & c.SDL_MESSAGEBOX_WARNING) != 0,
+            .information_dialog = (flags & c.SDL_MESSAGEBOX_INFORMATION) != 0,
+            .buttons_left_to_right = (flags & c.SDL_MESSAGEBOX_BUTTONS_LEFT_TO_RIGHT) != 0,
+            .buttons_right_to_left = (flags & c.SDL_MESSAGEBOX_BUTTONS_RIGHT_TO_LEFT) != 0,
         };
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: BoxFlags) C.SDL_MessageBoxFlags {
-        return (if (self.error_dialog) @as(C.SDL_MessageBoxFlags, C.SDL_MESSAGEBOX_ERROR) else 0) |
-            (if (self.warning_dialog) @as(C.SDL_MessageBoxFlags, C.SDL_MESSAGEBOX_WARNING) else 0) |
-            (if (self.information_dialog) @as(C.SDL_MessageBoxFlags, C.SDL_MESSAGEBOX_INFORMATION) else 0) |
-            (if (self.buttons_left_to_right) @as(C.SDL_MessageBoxFlags, C.SDL_MESSAGEBOX_BUTTONS_LEFT_TO_RIGHT) else 0) |
-            (if (self.buttons_right_to_left) @as(C.SDL_MessageBoxFlags, C.SDL_MESSAGEBOX_BUTTONS_RIGHT_TO_LEFT) else 0) |
+    pub fn toSdl(self: BoxFlags) c.SDL_MessageBoxFlags {
+        return (if (self.error_dialog) @as(c.SDL_MessageBoxFlags, c.SDL_MESSAGEBOX_ERROR) else 0) |
+            (if (self.warning_dialog) @as(c.SDL_MessageBoxFlags, c.SDL_MESSAGEBOX_WARNING) else 0) |
+            (if (self.information_dialog) @as(c.SDL_MessageBoxFlags, c.SDL_MESSAGEBOX_INFORMATION) else 0) |
+            (if (self.buttons_left_to_right) @as(c.SDL_MessageBoxFlags, c.SDL_MESSAGEBOX_BUTTONS_LEFT_TO_RIGHT) else 0) |
+            (if (self.buttons_right_to_left) @as(c.SDL_MessageBoxFlags, c.SDL_MESSAGEBOX_BUTTONS_RIGHT_TO_LEFT) else 0) |
             0;
     }
 };
@@ -97,17 +97,17 @@ pub const Button = extern struct {
 
     // Size tests.
     comptime {
-        std.debug.assert(@sizeOf(C.SDL_MessageBoxButtonData) == @sizeOf(Button));
-        std.debug.assert(@offsetOf(C.SDL_MessageBoxButtonData, "flags") == @offsetOf(Button, "flags"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_MessageBoxButtonData, "flags")) == @sizeOf(@FieldType(Button, "flags")));
-        std.debug.assert(@offsetOf(C.SDL_MessageBoxButtonData, "buttonID") == @offsetOf(Button, "value"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_MessageBoxButtonData, "buttonID")) == @sizeOf(@FieldType(Button, "value")));
-        std.debug.assert(@offsetOf(C.SDL_MessageBoxButtonData, "text") == @offsetOf(Button, "text"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_MessageBoxButtonData, "text")) == @sizeOf(@FieldType(Button, "text")));
+        std.debug.assert(@sizeOf(c.SDL_MessageBoxButtonData) == @sizeOf(Button));
+        std.debug.assert(@offsetOf(c.SDL_MessageBoxButtonData, "flags") == @offsetOf(Button, "flags"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_MessageBoxButtonData, "flags")) == @sizeOf(@FieldType(Button, "flags")));
+        std.debug.assert(@offsetOf(c.SDL_MessageBoxButtonData, "buttonID") == @offsetOf(Button, "value"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_MessageBoxButtonData, "buttonID")) == @sizeOf(@FieldType(Button, "value")));
+        std.debug.assert(@offsetOf(c.SDL_MessageBoxButtonData, "text") == @offsetOf(Button, "text"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_MessageBoxButtonData, "text")) == @sizeOf(@FieldType(Button, "text")));
     }
 
     /// Convert from an SDL value.
-    pub fn fromSdl(data: C.SDL_MessageBoxButtonData) Button {
+    pub fn fromSdl(data: c.SDL_MessageBoxButtonData) Button {
         return .{
             .flags = ButtonFlags.fromSdl(data.flags),
             .value = @intCast(data.buttonID),
@@ -116,7 +116,7 @@ pub const Button = extern struct {
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: Button) C.SDL_MessageBoxButtonData {
+    pub fn toSdl(self: Button) c.SDL_MessageBoxButtonData {
         return .{
             .flags = self.flags.toSdl(),
             .buttonID = @intCast(self.value),
@@ -136,23 +136,23 @@ pub const ButtonFlags = packed struct(u32) { // Need to be packed to fit into da
 
     // Button flag tests.
     comptime {
-        std.debug.assert(@sizeOf(C.SDL_MessageBoxButtonFlags) == @sizeOf(ButtonFlags));
-        std.debug.assert(C.SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT == @as(C.SDL_MessageBoxButtonFlags, @bitCast(ButtonFlags{ .mark_default_with_return_key = true })));
-        std.debug.assert(C.SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT == @as(C.SDL_MessageBoxButtonFlags, @bitCast(ButtonFlags{ .mark_default_with_escape_key = true })));
+        std.debug.assert(@sizeOf(c.SDL_MessageBoxButtonFlags) == @sizeOf(ButtonFlags));
+        std.debug.assert(c.SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT == @as(c.SDL_MessageBoxButtonFlags, @bitCast(ButtonFlags{ .mark_default_with_return_key = true })));
+        std.debug.assert(c.SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT == @as(c.SDL_MessageBoxButtonFlags, @bitCast(ButtonFlags{ .mark_default_with_escape_key = true })));
     }
 
     /// Convert from an SDL value.
-    pub fn fromSdl(flags: C.SDL_MessageBoxButtonFlags) ButtonFlags {
+    pub fn fromSdl(flags: c.SDL_MessageBoxButtonFlags) ButtonFlags {
         return .{
-            .mark_default_with_return_key = (flags & C.SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT) != 0,
-            .mark_default_with_escape_key = (flags & C.SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT) != 0,
+            .mark_default_with_return_key = (flags & c.SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT) != 0,
+            .mark_default_with_escape_key = (flags & c.SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT) != 0,
         };
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: ButtonFlags) C.SDL_MessageBoxButtonFlags {
-        return (if (self.mark_default_with_return_key) @as(C.SDL_MessageBoxButtonFlags, C.SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT) else 0) |
-            (if (self.mark_default_with_escape_key) @as(C.SDL_MessageBoxButtonFlags, C.SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT) else 0) |
+    pub fn toSdl(self: ButtonFlags) c.SDL_MessageBoxButtonFlags {
+        return (if (self.mark_default_with_return_key) @as(c.SDL_MessageBoxButtonFlags, c.SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT) else 0) |
+            (if (self.mark_default_with_escape_key) @as(c.SDL_MessageBoxButtonFlags, c.SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT) else 0) |
             0;
     }
 };
@@ -167,7 +167,7 @@ pub const Color = struct {
     b: u8,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(data: C.SDL_MessageBoxColor) Color {
+    pub fn fromSdl(data: c.SDL_MessageBoxColor) Color {
         return .{
             .r = @intCast(data.r),
             .g = @intCast(data.g),
@@ -176,7 +176,7 @@ pub const Color = struct {
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: Color) C.SDL_MessageBoxColor {
+    pub fn toSdl(self: Color) c.SDL_MessageBoxColor {
         return .{
             .r = @intCast(self.r),
             .g = @intCast(self.g),
@@ -206,23 +206,23 @@ pub const ColorScheme = struct {
     button_selected: Color,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(data: C.SDL_MessageBoxColorScheme) ColorScheme {
+    pub fn fromSdl(data: c.SDL_MessageBoxColorScheme) ColorScheme {
         return .{
-            .background = Color.fromSdl(data.colors[C.SDL_MESSAGEBOX_COLOR_BACKGROUND]),
-            .text = Color.fromSdl(data.colors[C.SDL_MESSAGEBOX_COLOR_TEXT]),
-            .button_border = Color.fromSdl(data.colors[C.SDL_MESSAGEBOX_COLOR_BUTTON_BORDER]),
-            .button_background = Color.fromSdl(data.colors[C.SDL_MESSAGEBOX_COLOR_BUTTON_BACKGROUND]),
-            .button_selected = Color.fromSdl(data.colors[C.SDL_MESSAGEBOX_COLOR_BUTTON_SELECTED]),
+            .background = Color.fromSdl(data.colors[c.SDL_MESSAGEBOX_COLOR_BACKGROUND]),
+            .text = Color.fromSdl(data.colors[c.SDL_MESSAGEBOX_COLOR_TEXT]),
+            .button_border = Color.fromSdl(data.colors[c.SDL_MESSAGEBOX_COLOR_BUTTON_BORDER]),
+            .button_background = Color.fromSdl(data.colors[c.SDL_MESSAGEBOX_COLOR_BUTTON_BACKGROUND]),
+            .button_selected = Color.fromSdl(data.colors[c.SDL_MESSAGEBOX_COLOR_BUTTON_SELECTED]),
         };
     }
     /// Convert to an SDL value.
-    pub fn toSdl(self: ColorScheme) C.SDL_MessageBoxColorScheme {
-        var ret: C.SDL_MessageBoxColorScheme = undefined;
-        ret.colors[C.SDL_MESSAGEBOX_COLOR_BACKGROUND] = self.background.toSdl();
-        ret.colors[C.SDL_MESSAGEBOX_COLOR_TEXT] = self.text.toSdl();
-        ret.colors[C.SDL_MESSAGEBOX_COLOR_BUTTON_BORDER] = self.button_border.toSdl();
-        ret.colors[C.SDL_MESSAGEBOX_COLOR_BUTTON_BACKGROUND] = self.button_background.toSdl();
-        ret.colors[C.SDL_MESSAGEBOX_COLOR_BUTTON_SELECTED] = self.button_selected.toSdl();
+    pub fn toSdl(self: ColorScheme) c.SDL_MessageBoxColorScheme {
+        var ret: c.SDL_MessageBoxColorScheme = undefined;
+        ret.colors[c.SDL_MESSAGEBOX_COLOR_BACKGROUND] = self.background.toSdl();
+        ret.colors[c.SDL_MESSAGEBOX_COLOR_TEXT] = self.text.toSdl();
+        ret.colors[c.SDL_MESSAGEBOX_COLOR_BUTTON_BORDER] = self.button_border.toSdl();
+        ret.colors[c.SDL_MESSAGEBOX_COLOR_BUTTON_BACKGROUND] = self.button_background.toSdl();
+        ret.colors[c.SDL_MESSAGEBOX_COLOR_BUTTON_SELECTED] = self.button_selected.toSdl();
         return ret;
     }
 };
@@ -254,10 +254,10 @@ pub const ColorScheme = struct {
 pub fn show(
     data: BoxData,
 ) !c_int {
-    var color_scheme: C.SDL_MessageBoxColorScheme = undefined;
+    var color_scheme: c.SDL_MessageBoxColorScheme = undefined;
     const button_data = data.toSdl(&color_scheme);
     var button_id: c_int = undefined;
-    const ret = C.SDL_ShowMessageBox(&button_data, &button_id);
+    const ret = c.SDL_ShowMessageBox(&button_data, &button_id);
     try errors.wrapCallBool(ret);
     return @intCast(button_id);
 }
@@ -292,7 +292,7 @@ pub fn showSimple(
     message: [:0]const u8,
     parent_window: ?video.Window,
 ) !void {
-    const ret = C.SDL_ShowSimpleMessageBox(
+    const ret = c.SDL_ShowSimpleMessageBox(
         flags.toSdl(),
         title,
         message,

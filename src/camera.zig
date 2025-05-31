@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const pixels = @import("pixels.zig");
 const properties = @import("properties.zig");
@@ -24,8 +24,8 @@ pub const PermissionState = enum(c_int) {
 /// ## Version
 /// This enum is available since SDL 3.2.0.
 pub const Position = enum(c_uint) {
-    front_facing = C.SDL_CAMERA_POSITION_FRONT_FACING,
-    back_facing = C.SDL_CAMERA_POSITION_BACK_FACING,
+    front_facing = c.SDL_CAMERA_POSITION_FRONT_FACING,
+    back_facing = c.SDL_CAMERA_POSITION_BACK_FACING,
 };
 
 /// This is a unique ID for a camera device for the time it is connected to the system, and is never reused for the lifetime of the application.
@@ -36,11 +36,11 @@ pub const Position = enum(c_uint) {
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
 pub const ID = packed struct {
-    value: C.SDL_CameraID,
+    value: c.SDL_CameraID,
 
     // Size tests.
     comptime {
-        std.debug.assert(@sizeOf(C.SDL_CameraID) == @sizeOf(ID));
+        std.debug.assert(@sizeOf(c.SDL_CameraID) == @sizeOf(ID));
     }
 
     /// Get a list of currently connected camera devices.
@@ -56,10 +56,10 @@ pub const ID = packed struct {
     /// This function is available since SDL 3.2.0.
     pub fn getAll() ![]ID {
         var count: c_int = undefined;
-        const val = C.SDL_GetCameras(
+        const val = c.SDL_GetCameras(
             &count,
         );
-        const ret = try errors.wrapCallCPtr(C.SDL_CameraID, val);
+        const ret = try errors.wrapCallCPtr(c.SDL_CameraID, val);
         return @as([*]ID, @ptrCast(ret))[0..@intCast(count)];
     }
 
@@ -79,7 +79,7 @@ pub const ID = packed struct {
     pub fn getName(
         self: ID,
     ) ![:0]const u8 {
-        const ret = C.SDL_GetCameraName(
+        const ret = c.SDL_GetCameraName(
             self.value,
         );
         return errors.wrapCallCString(ret);
@@ -105,10 +105,10 @@ pub const ID = packed struct {
     pub fn getPosition(
         self: ID,
     ) ?Position {
-        const ret = C.SDL_GetCameraPosition(
+        const ret = c.SDL_GetCameraPosition(
             self.value,
         );
-        if (ret == C.SDL_CAMERA_POSITION_UNKNOWN)
+        if (ret == c.SDL_CAMERA_POSITION_UNKNOWN)
             return null;
         return @enumFromInt(ret);
     }
@@ -144,12 +144,12 @@ pub const ID = packed struct {
         allocator: std.mem.Allocator,
     ) ![]Specification {
         var count: c_int = undefined;
-        const val = C.SDL_GetCameraSupportedFormats(
+        const val = c.SDL_GetCameraSupportedFormats(
             self.value,
             &count,
         );
-        defer C.SDL_free(@ptrCast(val));
-        const ret = try errors.wrapCallCPtr([*c]C.SDL_CameraSpec, val);
+        defer c.SDL_free(@ptrCast(val));
+        const ret = try errors.wrapCallCPtr([*c]c.SDL_CameraSpec, val);
         var converted_ret = try allocator.alloc(Specification, @intCast(count));
         for (0..@intCast(count)) |ind| {
             converted_ret[ind] = Specification.fromSdl(ret[ind].*);
@@ -163,11 +163,11 @@ pub const ID = packed struct {
 /// ## Version
 /// This struct is available since SDL 3.2.0.
 pub const Camera = packed struct {
-    value: *C.SDL_Camera,
+    value: *c.SDL_Camera,
 
     // Size tests.
     comptime {
-        std.debug.assert(@sizeOf(*C.SDL_Camera) == @sizeOf(Camera));
+        std.debug.assert(@sizeOf(*c.SDL_Camera) == @sizeOf(Camera));
     }
 
     /// Acquire a frame.
@@ -207,7 +207,7 @@ pub const Camera = packed struct {
         self: Camera,
     ) struct { frame: ?surface.Surface, timestamp_nanoseconds: ?u64 } {
         var timestamp_nanoseconds: u64 = undefined;
-        const ret = C.SDL_AcquireCameraFrame(
+        const ret = c.SDL_AcquireCameraFrame(
             self.value,
             &timestamp_nanoseconds,
         );
@@ -227,7 +227,7 @@ pub const Camera = packed struct {
     pub fn deinit(
         self: Camera,
     ) void {
-        C.SDL_CloseCamera(
+        c.SDL_CloseCamera(
             self.value,
         );
     }
@@ -255,8 +255,8 @@ pub const Camera = packed struct {
     pub fn getFormat(
         self: Camera,
     ) !Specification {
-        var specification: C.SDL_CameraSpec = undefined;
-        const ret = C.SDL_GetCameraFormat(
+        var specification: c.SDL_CameraSpec = undefined;
+        const ret = c.SDL_GetCameraFormat(
             self.value,
             &specification,
         );
@@ -280,10 +280,10 @@ pub const Camera = packed struct {
     pub fn getID(
         self: Camera,
     ) !ID {
-        const ret = C.SDL_GetCameraID(
+        const ret = c.SDL_GetCameraID(
             self.value,
         );
-        return ID{ .value = try errors.wrapCall(C.SDL_CameraID, ret, 0) };
+        return ID{ .value = try errors.wrapCall(c.SDL_CameraID, ret, 0) };
     }
 
     /// Query if camera access has been approved by the user.
@@ -312,7 +312,7 @@ pub const Camera = packed struct {
     pub fn getPermissionState(
         self: Camera,
     ) PermissionState {
-        const ret = C.SDL_GetCameraPermissionState(
+        const ret = c.SDL_GetCameraPermissionState(
             self.value,
         );
         return @enumFromInt(ret);
@@ -334,7 +334,7 @@ pub const Camera = packed struct {
     pub fn getProperties(
         self: Camera,
     ) !properties.Group {
-        const ret = C.SDL_GetCameraProperties(
+        const ret = c.SDL_GetCameraProperties(
             self.value,
         );
         if (ret == 0)
@@ -382,8 +382,8 @@ pub const Camera = packed struct {
         id: ID,
         specification: ?Specification,
     ) !Camera {
-        const specification_sdl: ?C.SDL_CameraSpec = if (specification) |val| val.toSdl() else null;
-        const ret = C.SDL_OpenCamera(
+        const specification_sdl: ?c.SDL_CameraSpec = if (specification) |val| val.toSdl() else null;
+        const ret = c.SDL_OpenCamera(
             id.value,
             if (specification != null) &specification_sdl.? else null,
         );
@@ -418,7 +418,7 @@ pub const Camera = packed struct {
         self: Camera,
         frame: surface.Surface,
     ) void {
-        C.SDL_ReleaseCameraFrame(
+        c.SDL_ReleaseCameraFrame(
             self.value,
             frame.value,
         );
@@ -441,10 +441,10 @@ pub const Specification = struct {
     framerate_denominator: usize,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(data: C.SDL_CameraSpec) Specification {
+    pub fn fromSdl(data: c.SDL_CameraSpec) Specification {
         return .{
-            .format = if (data.format == C.SDL_PIXELFORMAT_UNKNOWN) null else pixels.Format{ .value = data.format },
-            .colorspace = if (data.colorspace == C.SDL_COLORSPACE_UNKNOWN) null else pixels.Colorspace{ .value = data.colorspace },
+            .format = if (data.format == c.SDL_PIXELFORMAT_UNKNOWN) null else pixels.Format{ .value = data.format },
+            .colorspace = if (data.colorspace == c.SDL_COLORSPACE_UNKNOWN) null else pixels.Colorspace{ .value = data.colorspace },
             .width = @intCast(data.width),
             .height = @intCast(data.height),
             .framerate_numerator = @intCast(data.framerate_numerator),
@@ -453,10 +453,10 @@ pub const Specification = struct {
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: Specification) C.SDL_CameraSpec {
+    pub fn toSdl(self: Specification) c.SDL_CameraSpec {
         return .{
-            .format = if (self.format) |val| val.value else C.SDL_PIXELFORMAT_UNKNOWN,
-            .colorspace = if (self.colorspace) |val| val.value else C.SDL_COLORSPACE_UNKNOWN,
+            .format = if (self.format) |val| val.value else c.SDL_PIXELFORMAT_UNKNOWN,
+            .colorspace = if (self.colorspace) |val| val.value else c.SDL_COLORSPACE_UNKNOWN,
             .width = @intCast(self.width),
             .height = @intCast(self.height),
             .framerate_numerator = @intCast(self.framerate_numerator),
@@ -480,7 +480,7 @@ pub const Specification = struct {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getCurrentDriverName() ?[:0]const u8 {
-    const ret = C.SDL_GetCurrentCameraDriver();
+    const ret = c.SDL_GetCurrentCameraDriver();
     if (ret == null)
         return null;
     return std.mem.span(ret);
@@ -509,7 +509,7 @@ pub fn getCurrentDriverName() ?[:0]const u8 {
 pub fn getDriverName(
     driver_index: usize,
 ) ?[:0]const u8 {
-    const ret = C.SDL_GetCameraDriver(
+    const ret = c.SDL_GetCameraDriver(
         @intCast(driver_index),
     );
     if (ret == null)
@@ -536,7 +536,7 @@ pub fn getDriverName(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getNumDrivers() usize {
-    const ret = C.SDL_GetNumCameraDrivers();
+    const ret = c.SDL_GetNumCameraDrivers();
     return @intCast(ret);
 }
 

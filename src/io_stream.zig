@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const properties = @import("properties.zig");
 const std = @import("std");
@@ -84,7 +84,7 @@ pub const Interface = struct {
     ///
     /// ## Return Value
     /// The total size of the data stream, or `-1` on error.
-    size: *const fn (user_data: ?*anyopaque) callconv(.C) i64,
+    size: *const fn (user_data: ?*anyopaque) callconv(.c) i64,
     /// Seek to `offset` relative to `whence`.
     ///
     /// ## Function Parameters
@@ -94,7 +94,7 @@ pub const Interface = struct {
     ///
     /// ## Return Value
     /// The final offset in the data stream, or `-1` on error.
-    seek: *const fn (user_data: ?*anyopaque, offset: i64, whence: C.SDL_IOWhence) callconv(.C) i64,
+    seek: *const fn (user_data: ?*anyopaque, offset: i64, whence: c.SDL_IOWhence) callconv(.c) i64,
     /// Read up to `size` bytes from the data stream to the area pointed at by `ptr`.
     ///
     /// ## Function Parameters
@@ -108,7 +108,7 @@ pub const Interface = struct {
     ///
     /// ## Return Value
     /// The number of bytes read.
-    read: *const fn (user_data: ?*anyopaque, ptr: ?*anyopaque, size: usize, status: [*c]C.SDL_IOStatus) callconv(.C) usize,
+    read: *const fn (user_data: ?*anyopaque, ptr: ?*anyopaque, size: usize, status: [*c]c.SDL_IOStatus) callconv(.c) usize,
     /// Write up to `size` bytes to the data stream from the area pointed at by `ptr`.
     ///
     /// ## Function Parameters
@@ -122,7 +122,7 @@ pub const Interface = struct {
     ///
     /// ## Return Value
     /// The number of bytes written.
-    write: *const fn (user_data: ?*anyopaque, ptr: ?*const anyopaque, size: usize, status: [*c]C.SDL_IOStatus) callconv(.C) usize,
+    write: *const fn (user_data: ?*anyopaque, ptr: ?*const anyopaque, size: usize, status: [*c]c.SDL_IOStatus) callconv(.c) usize,
     /// If the stream is buffering, make sure the data is written out.
     ///
     /// ## Function Parameters
@@ -133,7 +133,7 @@ pub const Interface = struct {
     ///
     /// ## Return Value
     /// True if successful.
-    flush: *const fn (user_data: ?*anyopaque, status: [*c]C.SDL_IOStatus) callconv(.C) bool,
+    flush: *const fn (user_data: ?*anyopaque, status: [*c]c.SDL_IOStatus) callconv(.c) bool,
     /// Close and free any allocated resources.
     ///
     /// ## Function Parameters
@@ -145,10 +145,10 @@ pub const Interface = struct {
     ///
     /// ## Return Value
     /// True if successful.
-    close: *const fn (user_data: ?*anyopaque) callconv(.C) bool,
+    close: *const fn (user_data: ?*anyopaque) callconv(.c) bool,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_IOStreamInterface) Interface {
+    pub fn fromSdl(value: c.SDL_IOStreamInterface) Interface {
         return .{
             .size = value.size.?,
             .seek = value.seek.?,
@@ -160,9 +160,9 @@ pub const Interface = struct {
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: Interface) C.SDL_IOStreamInterface {
+    pub fn toSdl(self: Interface) c.SDL_IOStreamInterface {
         return .{
-            .version = @sizeOf(C.SDL_IOStreamInterface),
+            .version = @sizeOf(c.SDL_IOStreamInterface),
             .size = self.size,
             .seek = self.seek,
             .read = self.read,
@@ -183,7 +183,7 @@ pub const Interface = struct {
 /// ## Version
 /// This struct is available since SDL 3.2.0.
 pub const Stream = struct {
-    value: *C.SDL_IOStream,
+    value: *c.SDL_IOStream,
 
     /// Properties that can be obtained from a stream.
     ///
@@ -222,51 +222,51 @@ pub const Stream = struct {
         /// Convert from SDL properties.
         pub fn fromProperties(props: properties.Group) Properties {
             return .{
-                .memory = if (props.get(C.SDL_PROP_IOSTREAM_MEMORY_POINTER)) |val|
-                    @as([*]u8, @alignCast(@ptrCast(val.pointer.?)))[0..@intCast(props.get(C.SDL_PROP_IOSTREAM_MEMORY_SIZE_NUMBER).?.number)]
+                .memory = if (props.get(c.SDL_PROP_IOSTREAM_MEMORY_POINTER)) |val|
+                    @as([*]u8, @alignCast(@ptrCast(val.pointer.?)))[0..@intCast(props.get(c.SDL_PROP_IOSTREAM_MEMORY_SIZE_NUMBER).?.number)]
                 else
                     null,
-                .dynamic_memory = if (props.get(C.SDL_PROP_IOSTREAM_DYNAMIC_MEMORY_POINTER)) |val| .{
+                .dynamic_memory = if (props.get(c.SDL_PROP_IOSTREAM_DYNAMIC_MEMORY_POINTER)) |val| .{
                     .ptr = val.pointer,
-                    .chunk_size = if (props.get(C.SDL_PROP_IOSTREAM_DYNAMIC_CHUNKSIZE_NUMBER)) |chunk_size| @intCast(chunk_size.number) else null,
+                    .chunk_size = if (props.get(c.SDL_PROP_IOSTREAM_DYNAMIC_CHUNKSIZE_NUMBER)) |chunk_size| @intCast(chunk_size.number) else null,
                 } else null,
-                .window_handle = if (props.get(C.SDL_PROP_IOSTREAM_WINDOWS_HANDLE_POINTER)) |val| val.pointer.? else null,
-                .stdio_file = if (props.get(C.SDL_PROP_IOSTREAM_STDIO_FILE_POINTER)) |val| val.pointer.? else null,
-                .file_descriptor = if (props.get(C.SDL_PROP_IOSTREAM_FILE_DESCRIPTOR_NUMBER)) |val| val.number else null,
-                .android_aasset = if (props.get(C.SDL_PROP_IOSTREAM_ANDROID_AASSET_POINTER)) |val| val.pointer.? else null,
+                .window_handle = if (props.get(c.SDL_PROP_IOSTREAM_WINDOWS_HANDLE_POINTER)) |val| val.pointer.? else null,
+                .stdio_file = if (props.get(c.SDL_PROP_IOSTREAM_STDIO_FILE_POINTER)) |val| val.pointer.? else null,
+                .file_descriptor = if (props.get(c.SDL_PROP_IOSTREAM_FILE_DESCRIPTOR_NUMBER)) |val| val.number else null,
+                .android_aasset = if (props.get(c.SDL_PROP_IOSTREAM_ANDROID_AASSET_POINTER)) |val| val.pointer.? else null,
             };
         }
 
         /// Set properties.
         pub fn setProperties(self: Properties, props: properties.Group) !void {
             if (self.memory) |val| {
-                try props.set(C.SDL_PROP_IOSTREAM_MEMORY_POINTER, .{ .pointer = val.ptr });
-                try props.set(C.SDL_PROP_IOSTREAM_MEMORY_SIZE_NUMBER, .{ .number = @intCast(val.len) });
+                try props.set(c.SDL_PROP_IOSTREAM_MEMORY_POINTER, .{ .pointer = val.ptr });
+                try props.set(c.SDL_PROP_IOSTREAM_MEMORY_SIZE_NUMBER, .{ .number = @intCast(val.len) });
             } else {
-                try props.clear(C.SDL_PROP_IOSTREAM_MEMORY_POINTER);
-                try props.clear(C.SDL_PROP_IOSTREAM_MEMORY_SIZE_NUMBER);
+                try props.clear(c.SDL_PROP_IOSTREAM_MEMORY_POINTER);
+                try props.clear(c.SDL_PROP_IOSTREAM_MEMORY_SIZE_NUMBER);
             }
             if (self.dynamic_memory) |val| {
-                try props.set(C.SDL_PROP_IOSTREAM_DYNAMIC_MEMORY_POINTER, .{ .pointer = val.ptr });
+                try props.set(c.SDL_PROP_IOSTREAM_DYNAMIC_MEMORY_POINTER, .{ .pointer = val.ptr });
                 if (val.chunk_size) |chunk_size| {
-                    try props.set(C.SDL_PROP_IOSTREAM_DYNAMIC_CHUNKSIZE_NUMBER, .{ .number = @intCast(chunk_size) });
+                    try props.set(c.SDL_PROP_IOSTREAM_DYNAMIC_CHUNKSIZE_NUMBER, .{ .number = @intCast(chunk_size) });
                 }
             } else {
-                try props.clear(C.SDL_PROP_IOSTREAM_DYNAMIC_MEMORY_POINTER);
-                try props.clear(C.SDL_PROP_IOSTREAM_DYNAMIC_CHUNKSIZE_NUMBER);
+                try props.clear(c.SDL_PROP_IOSTREAM_DYNAMIC_MEMORY_POINTER);
+                try props.clear(c.SDL_PROP_IOSTREAM_DYNAMIC_CHUNKSIZE_NUMBER);
             }
             if (self.window_handle) |val| {
-                try props.set(C.SDL_PROP_IOSTREAM_WINDOWS_HANDLE_POINTER, .{ .pointer = val });
-            } else try props.clear(C.SDL_PROP_IOSTREAM_WINDOWS_HANDLE_POINTER);
+                try props.set(c.SDL_PROP_IOSTREAM_WINDOWS_HANDLE_POINTER, .{ .pointer = val });
+            } else try props.clear(c.SDL_PROP_IOSTREAM_WINDOWS_HANDLE_POINTER);
             if (self.stdio_file) |val| {
-                try props.set(C.SDL_PROP_IOSTREAM_STDIO_FILE_POINTER, .{ .pointer = val });
-            } else try props.clear(C.SDL_PROP_IOSTREAM_STDIO_FILE_POINTER);
+                try props.set(c.SDL_PROP_IOSTREAM_STDIO_FILE_POINTER, .{ .pointer = val });
+            } else try props.clear(c.SDL_PROP_IOSTREAM_STDIO_FILE_POINTER);
             if (self.file_descriptor) |val| {
-                try props.set(C.SDL_PROP_IOSTREAM_FILE_DESCRIPTOR_NUMBER, .{ .number = val });
-            } else try props.clear(C.SDL_PROP_IOSTREAM_FILE_DESCRIPTOR_NUMBER);
+                try props.set(c.SDL_PROP_IOSTREAM_FILE_DESCRIPTOR_NUMBER, .{ .number = val });
+            } else try props.clear(c.SDL_PROP_IOSTREAM_FILE_DESCRIPTOR_NUMBER);
             if (self.android_aasset) |val| {
-                try props.set(C.SDL_PROP_IOSTREAM_ANDROID_AASSET_POINTER, .{ .pointer = val });
-            } else try props.clear(C.SDL_PROP_IOSTREAM_ANDROID_AASSET_POINTER);
+                try props.set(c.SDL_PROP_IOSTREAM_ANDROID_AASSET_POINTER, .{ .pointer = val });
+            } else try props.clear(c.SDL_PROP_IOSTREAM_ANDROID_AASSET_POINTER);
         }
     };
 
@@ -296,7 +296,7 @@ pub const Stream = struct {
     pub fn deinit(
         self: Stream,
     ) !void {
-        return errors.wrapCallBool(C.SDL_CloseIO(
+        return errors.wrapCallBool(c.SDL_CloseIO(
             self.value,
         ));
     }
@@ -318,7 +318,7 @@ pub const Stream = struct {
     pub fn flush(
         self: Stream,
     ) !void {
-        return errors.wrapCallBool(C.SDL_FlushIO(
+        return errors.wrapCallBool(c.SDL_FlushIO(
             self.value,
         ));
     }
@@ -340,7 +340,7 @@ pub const Stream = struct {
         self: Stream,
     ) !Properties {
         return Properties.fromProperties(.{
-            .value = try errors.wrapCall(C.SDL_PropertiesID, C.SDL_GetIOProperties(
+            .value = try errors.wrapCall(c.SDL_PropertiesID, c.SDL_GetIOProperties(
                 self.value,
             ), 0),
         });
@@ -362,7 +362,7 @@ pub const Stream = struct {
     pub fn getSize(
         self: Stream,
     ) !usize {
-        const ret = C.SDL_GetIOSize(self.value);
+        const ret = c.SDL_GetIOSize(self.value);
         if (ret < 0) {
             errors.callErrorCallback();
             return error.SdlError;
@@ -397,7 +397,7 @@ pub const Stream = struct {
     ) !Stream {
         const interface_sdl = interface.toSdl();
         return .{
-            .value = try errors.wrapNull(*C.SDL_IOStream, C.SDL_OpenIO(
+            .value = try errors.wrapNull(*c.SDL_IOStream, c.SDL_OpenIO(
                 &interface_sdl,
                 user_data,
             )),
@@ -432,7 +432,7 @@ pub const Stream = struct {
         data: []const u8,
     ) !Stream {
         return .{
-            .value = try errors.wrapNull(*C.SDL_IOStream, C.SDL_IOFromConstMem(
+            .value = try errors.wrapNull(*c.SDL_IOStream, c.SDL_IOFromConstMem(
                 data.ptr,
                 data.len,
             )),
@@ -454,7 +454,7 @@ pub const Stream = struct {
     /// This function is available since SDL 3.2.0.
     pub fn initFromDynamicMem() !Stream {
         return .{
-            .value = try errors.wrapNull(*C.SDL_IOStream, C.SDL_IOFromDynamicMem()),
+            .value = try errors.wrapNull(*c.SDL_IOStream, c.SDL_IOFromDynamicMem()),
         };
     }
 
@@ -485,7 +485,7 @@ pub const Stream = struct {
         mode: FileMode,
     ) !Stream {
         return .{
-            .value = try errors.wrapNull(*C.SDL_IOStream, C.SDL_IOFromFile(path.ptr, switch (mode) {
+            .value = try errors.wrapNull(*c.SDL_IOStream, c.SDL_IOFromFile(path.ptr, switch (mode) {
                 .append_binary => "ab",
                 .append_text => "a",
                 .read_append_binary => "a+b",
@@ -527,7 +527,7 @@ pub const Stream = struct {
         data: []u8,
     ) !Stream {
         return .{
-            .value = try errors.wrapNull(*C.SDL_IOStream, C.SDL_IOFromMem(
+            .value = try errors.wrapNull(*c.SDL_IOStream, c.SDL_IOFromMem(
                 data.ptr,
                 data.len,
             )),
@@ -554,7 +554,7 @@ pub const Stream = struct {
     pub fn initFromStreamSource(
         source: *std.io.StreamSource,
     ) !Stream {
-        const ret = C.SDL_OpenIO(&stream_source_interface, source);
+        const ret = c.SDL_OpenIO(&stream_source_interface, source);
         if (ret) |val| {
             return .{ .value = val };
         }
@@ -565,7 +565,7 @@ pub const Stream = struct {
     ///
     /// ## Function Parameters
     /// * `self`: The stream to read all available data from.
-    /// * `close_io`: If true, close the stream before returning, even on error.
+    /// * `close_when_done`: If true, close the stream before returning, even on error.
     ///
     /// ## Return Value
     /// Returns the data.
@@ -581,13 +581,13 @@ pub const Stream = struct {
     /// This function is available since SDL 3.2.0.
     pub fn loadFile(
         self: Stream,
-        close_io: bool,
+        close_when_done: bool,
     ) ![:0]u8 {
         var len: usize = undefined;
-        return @as([*:0]u8, @alignCast(@ptrCast(try errors.wrapNull(*anyopaque, C.SDL_LoadFile_IO(
+        return @as([*:0]u8, @alignCast(@ptrCast(try errors.wrapNull(*anyopaque, c.SDL_LoadFile_IO(
             self.value,
             &len,
-            close_io,
+            close_when_done,
         )))))[0..len :0];
     }
 
@@ -615,23 +615,23 @@ pub const Stream = struct {
         self: Stream,
         buf: []u8,
     ) !?[]u8 {
-        const ret = C.SDL_ReadIO(self.value, buf.ptr, buf.len);
+        const ret = c.SDL_ReadIO(self.value, buf.ptr, buf.len);
         if (ret == 0) {
-            const status = C.SDL_GetIOStatus(self.value);
+            const status = c.SDL_GetIOStatus(self.value);
             switch (status) {
-                C.SDL_IO_STATUS_ERROR => {
+                c.SDL_IO_STATUS_ERROR => {
                     errors.callErrorCallback();
                     return error.Err;
                 },
-                C.SDL_IO_STATUS_NOT_READY => {
+                c.SDL_IO_STATUS_NOT_READY => {
                     errors.callErrorCallback();
                     return error.NotReady;
                 },
-                C.SDL_IO_STATUS_READONLY => {
+                c.SDL_IO_STATUS_READONLY => {
                     errors.callErrorCallback();
                     return error.ReadOnly;
                 },
-                C.SDL_IO_STATUS_WRITEONLY => {
+                c.SDL_IO_STATUS_WRITEONLY => {
                     errors.callErrorCallback();
                     return error.WriteOnly;
                 },
@@ -658,21 +658,21 @@ pub const Stream = struct {
         self: Stream,
     ) !?i8 {
         var ret: i8 = undefined;
-        if (!C.SDL_ReadS8(self.value, &ret)) {
-            switch (C.SDL_GetIOStatus(self.value)) {
-                C.SDL_IO_STATUS_ERROR => {
+        if (!c.SDL_ReadS8(self.value, &ret)) {
+            switch (c.SDL_GetIOStatus(self.value)) {
+                c.SDL_IO_STATUS_ERROR => {
                     errors.callErrorCallback();
                     return error.Err;
                 },
-                C.SDL_IO_STATUS_NOT_READY => {
+                c.SDL_IO_STATUS_NOT_READY => {
                     errors.callErrorCallback();
                     return error.NotReady;
                 },
-                C.SDL_IO_STATUS_READONLY => {
+                c.SDL_IO_STATUS_READONLY => {
                     errors.callErrorCallback();
                     return error.ReadOnly;
                 },
-                C.SDL_IO_STATUS_WRITEONLY => {
+                c.SDL_IO_STATUS_WRITEONLY => {
                     errors.callErrorCallback();
                     return error.WriteOnly;
                 },
@@ -704,21 +704,21 @@ pub const Stream = struct {
         self: Stream,
     ) !?i16 {
         var ret: i16 = undefined;
-        if (!C.SDL_ReadS16BE(self.value, &ret)) {
-            switch (C.SDL_GetIOStatus(self.value)) {
-                C.SDL_IO_STATUS_ERROR => {
+        if (!c.SDL_ReadS16BE(self.value, &ret)) {
+            switch (c.SDL_GetIOStatus(self.value)) {
+                c.SDL_IO_STATUS_ERROR => {
                     errors.callErrorCallback();
                     return error.Err;
                 },
-                C.SDL_IO_STATUS_NOT_READY => {
+                c.SDL_IO_STATUS_NOT_READY => {
                     errors.callErrorCallback();
                     return error.NotReady;
                 },
-                C.SDL_IO_STATUS_READONLY => {
+                c.SDL_IO_STATUS_READONLY => {
                     errors.callErrorCallback();
                     return error.ReadOnly;
                 },
-                C.SDL_IO_STATUS_WRITEONLY => {
+                c.SDL_IO_STATUS_WRITEONLY => {
                     errors.callErrorCallback();
                     return error.WriteOnly;
                 },
@@ -750,21 +750,21 @@ pub const Stream = struct {
         self: Stream,
     ) !?i16 {
         var ret: i16 = undefined;
-        if (!C.SDL_ReadS16LE(self.value, &ret)) {
-            switch (C.SDL_GetIOStatus(self.value)) {
-                C.SDL_IO_STATUS_ERROR => {
+        if (!c.SDL_ReadS16LE(self.value, &ret)) {
+            switch (c.SDL_GetIOStatus(self.value)) {
+                c.SDL_IO_STATUS_ERROR => {
                     errors.callErrorCallback();
                     return error.Err;
                 },
-                C.SDL_IO_STATUS_NOT_READY => {
+                c.SDL_IO_STATUS_NOT_READY => {
                     errors.callErrorCallback();
                     return error.NotReady;
                 },
-                C.SDL_IO_STATUS_READONLY => {
+                c.SDL_IO_STATUS_READONLY => {
                     errors.callErrorCallback();
                     return error.ReadOnly;
                 },
-                C.SDL_IO_STATUS_WRITEONLY => {
+                c.SDL_IO_STATUS_WRITEONLY => {
                     errors.callErrorCallback();
                     return error.WriteOnly;
                 },
@@ -796,21 +796,21 @@ pub const Stream = struct {
         self: Stream,
     ) !?i32 {
         var ret: i32 = undefined;
-        if (!C.SDL_ReadS32BE(self.value, &ret)) {
-            switch (C.SDL_GetIOStatus(self.value)) {
-                C.SDL_IO_STATUS_ERROR => {
+        if (!c.SDL_ReadS32BE(self.value, &ret)) {
+            switch (c.SDL_GetIOStatus(self.value)) {
+                c.SDL_IO_STATUS_ERROR => {
                     errors.callErrorCallback();
                     return error.Err;
                 },
-                C.SDL_IO_STATUS_NOT_READY => {
+                c.SDL_IO_STATUS_NOT_READY => {
                     errors.callErrorCallback();
                     return error.NotReady;
                 },
-                C.SDL_IO_STATUS_READONLY => {
+                c.SDL_IO_STATUS_READONLY => {
                     errors.callErrorCallback();
                     return error.ReadOnly;
                 },
-                C.SDL_IO_STATUS_WRITEONLY => {
+                c.SDL_IO_STATUS_WRITEONLY => {
                     errors.callErrorCallback();
                     return error.WriteOnly;
                 },
@@ -842,21 +842,21 @@ pub const Stream = struct {
         self: Stream,
     ) !?i32 {
         var ret: i32 = undefined;
-        if (!C.SDL_ReadS32LE(self.value, &ret)) {
-            switch (C.SDL_GetIOStatus(self.value)) {
-                C.SDL_IO_STATUS_ERROR => {
+        if (!c.SDL_ReadS32LE(self.value, &ret)) {
+            switch (c.SDL_GetIOStatus(self.value)) {
+                c.SDL_IO_STATUS_ERROR => {
                     errors.callErrorCallback();
                     return error.Err;
                 },
-                C.SDL_IO_STATUS_NOT_READY => {
+                c.SDL_IO_STATUS_NOT_READY => {
                     errors.callErrorCallback();
                     return error.NotReady;
                 },
-                C.SDL_IO_STATUS_READONLY => {
+                c.SDL_IO_STATUS_READONLY => {
                     errors.callErrorCallback();
                     return error.ReadOnly;
                 },
-                C.SDL_IO_STATUS_WRITEONLY => {
+                c.SDL_IO_STATUS_WRITEONLY => {
                     errors.callErrorCallback();
                     return error.WriteOnly;
                 },
@@ -888,21 +888,21 @@ pub const Stream = struct {
         self: Stream,
     ) !?i64 {
         var ret: i64 = undefined;
-        if (!C.SDL_ReadS64BE(self.value, &ret)) {
-            switch (C.SDL_GetIOStatus(self.value)) {
-                C.SDL_IO_STATUS_ERROR => {
+        if (!c.SDL_ReadS64BE(self.value, &ret)) {
+            switch (c.SDL_GetIOStatus(self.value)) {
+                c.SDL_IO_STATUS_ERROR => {
                     errors.callErrorCallback();
                     return error.Err;
                 },
-                C.SDL_IO_STATUS_NOT_READY => {
+                c.SDL_IO_STATUS_NOT_READY => {
                     errors.callErrorCallback();
                     return error.NotReady;
                 },
-                C.SDL_IO_STATUS_READONLY => {
+                c.SDL_IO_STATUS_READONLY => {
                     errors.callErrorCallback();
                     return error.ReadOnly;
                 },
-                C.SDL_IO_STATUS_WRITEONLY => {
+                c.SDL_IO_STATUS_WRITEONLY => {
                     errors.callErrorCallback();
                     return error.WriteOnly;
                 },
@@ -934,21 +934,21 @@ pub const Stream = struct {
         self: Stream,
     ) !?i64 {
         var ret: i64 = undefined;
-        if (!C.SDL_ReadS64LE(self.value, &ret)) {
-            switch (C.SDL_GetIOStatus(self.value)) {
-                C.SDL_IO_STATUS_ERROR => {
+        if (!c.SDL_ReadS64LE(self.value, &ret)) {
+            switch (c.SDL_GetIOStatus(self.value)) {
+                c.SDL_IO_STATUS_ERROR => {
                     errors.callErrorCallback();
                     return error.Err;
                 },
-                C.SDL_IO_STATUS_NOT_READY => {
+                c.SDL_IO_STATUS_NOT_READY => {
                     errors.callErrorCallback();
                     return error.NotReady;
                 },
-                C.SDL_IO_STATUS_READONLY => {
+                c.SDL_IO_STATUS_READONLY => {
                     errors.callErrorCallback();
                     return error.ReadOnly;
                 },
-                C.SDL_IO_STATUS_WRITEONLY => {
+                c.SDL_IO_STATUS_WRITEONLY => {
                     errors.callErrorCallback();
                     return error.WriteOnly;
                 },
@@ -977,21 +977,21 @@ pub const Stream = struct {
         self: Stream,
     ) !?u8 {
         var ret: u8 = undefined;
-        if (!C.SDL_ReadU8(self.value, &ret)) {
-            switch (C.SDL_GetIOStatus(self.value)) {
-                C.SDL_IO_STATUS_ERROR => {
+        if (!c.SDL_ReadU8(self.value, &ret)) {
+            switch (c.SDL_GetIOStatus(self.value)) {
+                c.SDL_IO_STATUS_ERROR => {
                     errors.callErrorCallback();
                     return error.Err;
                 },
-                C.SDL_IO_STATUS_NOT_READY => {
+                c.SDL_IO_STATUS_NOT_READY => {
                     errors.callErrorCallback();
                     return error.NotReady;
                 },
-                C.SDL_IO_STATUS_READONLY => {
+                c.SDL_IO_STATUS_READONLY => {
                     errors.callErrorCallback();
                     return error.ReadOnly;
                 },
-                C.SDL_IO_STATUS_WRITEONLY => {
+                c.SDL_IO_STATUS_WRITEONLY => {
                     errors.callErrorCallback();
                     return error.WriteOnly;
                 },
@@ -1023,21 +1023,21 @@ pub const Stream = struct {
         self: Stream,
     ) !?u16 {
         var ret: u16 = undefined;
-        if (!C.SDL_ReadU16BE(self.value, &ret)) {
-            switch (C.SDL_GetIOStatus(self.value)) {
-                C.SDL_IO_STATUS_ERROR => {
+        if (!c.SDL_ReadU16BE(self.value, &ret)) {
+            switch (c.SDL_GetIOStatus(self.value)) {
+                c.SDL_IO_STATUS_ERROR => {
                     errors.callErrorCallback();
                     return error.Err;
                 },
-                C.SDL_IO_STATUS_NOT_READY => {
+                c.SDL_IO_STATUS_NOT_READY => {
                     errors.callErrorCallback();
                     return error.NotReady;
                 },
-                C.SDL_IO_STATUS_READONLY => {
+                c.SDL_IO_STATUS_READONLY => {
                     errors.callErrorCallback();
                     return error.ReadOnly;
                 },
-                C.SDL_IO_STATUS_WRITEONLY => {
+                c.SDL_IO_STATUS_WRITEONLY => {
                     errors.callErrorCallback();
                     return error.WriteOnly;
                 },
@@ -1069,21 +1069,21 @@ pub const Stream = struct {
         self: Stream,
     ) !?u16 {
         var ret: u16 = undefined;
-        if (!C.SDL_ReadU16LE(self.value, &ret)) {
-            switch (C.SDL_GetIOStatus(self.value)) {
-                C.SDL_IO_STATUS_ERROR => {
+        if (!c.SDL_ReadU16LE(self.value, &ret)) {
+            switch (c.SDL_GetIOStatus(self.value)) {
+                c.SDL_IO_STATUS_ERROR => {
                     errors.callErrorCallback();
                     return error.Err;
                 },
-                C.SDL_IO_STATUS_NOT_READY => {
+                c.SDL_IO_STATUS_NOT_READY => {
                     errors.callErrorCallback();
                     return error.NotReady;
                 },
-                C.SDL_IO_STATUS_READONLY => {
+                c.SDL_IO_STATUS_READONLY => {
                     errors.callErrorCallback();
                     return error.ReadOnly;
                 },
-                C.SDL_IO_STATUS_WRITEONLY => {
+                c.SDL_IO_STATUS_WRITEONLY => {
                     errors.callErrorCallback();
                     return error.WriteOnly;
                 },
@@ -1115,21 +1115,21 @@ pub const Stream = struct {
         self: Stream,
     ) !?u32 {
         var ret: u32 = undefined;
-        if (!C.SDL_ReadU32BE(self.value, &ret)) {
-            switch (C.SDL_GetIOStatus(self.value)) {
-                C.SDL_IO_STATUS_ERROR => {
+        if (!c.SDL_ReadU32BE(self.value, &ret)) {
+            switch (c.SDL_GetIOStatus(self.value)) {
+                c.SDL_IO_STATUS_ERROR => {
                     errors.callErrorCallback();
                     return error.Err;
                 },
-                C.SDL_IO_STATUS_NOT_READY => {
+                c.SDL_IO_STATUS_NOT_READY => {
                     errors.callErrorCallback();
                     return error.NotReady;
                 },
-                C.SDL_IO_STATUS_READONLY => {
+                c.SDL_IO_STATUS_READONLY => {
                     errors.callErrorCallback();
                     return error.ReadOnly;
                 },
-                C.SDL_IO_STATUS_WRITEONLY => {
+                c.SDL_IO_STATUS_WRITEONLY => {
                     errors.callErrorCallback();
                     return error.WriteOnly;
                 },
@@ -1161,21 +1161,21 @@ pub const Stream = struct {
         self: Stream,
     ) !?u32 {
         var ret: u32 = undefined;
-        if (!C.SDL_ReadU32LE(self.value, &ret)) {
-            switch (C.SDL_GetIOStatus(self.value)) {
-                C.SDL_IO_STATUS_ERROR => {
+        if (!c.SDL_ReadU32LE(self.value, &ret)) {
+            switch (c.SDL_GetIOStatus(self.value)) {
+                c.SDL_IO_STATUS_ERROR => {
                     errors.callErrorCallback();
                     return error.Err;
                 },
-                C.SDL_IO_STATUS_NOT_READY => {
+                c.SDL_IO_STATUS_NOT_READY => {
                     errors.callErrorCallback();
                     return error.NotReady;
                 },
-                C.SDL_IO_STATUS_READONLY => {
+                c.SDL_IO_STATUS_READONLY => {
                     errors.callErrorCallback();
                     return error.ReadOnly;
                 },
-                C.SDL_IO_STATUS_WRITEONLY => {
+                c.SDL_IO_STATUS_WRITEONLY => {
                     errors.callErrorCallback();
                     return error.WriteOnly;
                 },
@@ -1207,21 +1207,21 @@ pub const Stream = struct {
         self: Stream,
     ) !?u64 {
         var ret: u64 = undefined;
-        if (!C.SDL_ReadU64BE(self.value, &ret)) {
-            switch (C.SDL_GetIOStatus(self.value)) {
-                C.SDL_IO_STATUS_ERROR => {
+        if (!c.SDL_ReadU64BE(self.value, &ret)) {
+            switch (c.SDL_GetIOStatus(self.value)) {
+                c.SDL_IO_STATUS_ERROR => {
                     errors.callErrorCallback();
                     return error.Err;
                 },
-                C.SDL_IO_STATUS_NOT_READY => {
+                c.SDL_IO_STATUS_NOT_READY => {
                     errors.callErrorCallback();
                     return error.NotReady;
                 },
-                C.SDL_IO_STATUS_READONLY => {
+                c.SDL_IO_STATUS_READONLY => {
                     errors.callErrorCallback();
                     return error.ReadOnly;
                 },
-                C.SDL_IO_STATUS_WRITEONLY => {
+                c.SDL_IO_STATUS_WRITEONLY => {
                     errors.callErrorCallback();
                     return error.WriteOnly;
                 },
@@ -1253,21 +1253,21 @@ pub const Stream = struct {
         self: Stream,
     ) !?u64 {
         var ret: u64 = undefined;
-        if (!C.SDL_ReadU64LE(self.value, &ret)) {
-            switch (C.SDL_GetIOStatus(self.value)) {
-                C.SDL_IO_STATUS_ERROR => {
+        if (!c.SDL_ReadU64LE(self.value, &ret)) {
+            switch (c.SDL_GetIOStatus(self.value)) {
+                c.SDL_IO_STATUS_ERROR => {
                     errors.callErrorCallback();
                     return error.Err;
                 },
-                C.SDL_IO_STATUS_NOT_READY => {
+                c.SDL_IO_STATUS_NOT_READY => {
                     errors.callErrorCallback();
                     return error.NotReady;
                 },
-                C.SDL_IO_STATUS_READONLY => {
+                c.SDL_IO_STATUS_READONLY => {
                     errors.callErrorCallback();
                     return error.ReadOnly;
                 },
-                C.SDL_IO_STATUS_WRITEONLY => {
+                c.SDL_IO_STATUS_WRITEONLY => {
                     errors.callErrorCallback();
                     return error.WriteOnly;
                 },
@@ -1316,7 +1316,7 @@ pub const Stream = struct {
     /// ## Function Parameters
     /// * `self`: The stream to write all data to.
     /// * `data`: The data to be written.
-    /// * `close_io`: Close the stream before returning, even if an error occurs.
+    /// * `close_when_done`: Close the stream before returning, even if an error occurs.
     ///
     /// ## Thread Safety
     /// This function is not thread safe.
@@ -1326,13 +1326,13 @@ pub const Stream = struct {
     pub fn saveFile(
         self: Stream,
         data: []const u8,
-        close_io: bool,
+        close_when_done: bool,
     ) !void {
-        return errors.wrapCallBool(C.SDL_SaveFile_IO(
+        return errors.wrapCallBool(c.SDL_SaveFile_IO(
             self.value,
             data.ptr,
             data.len,
-            close_io,
+            close_when_done,
         ));
     }
 
@@ -1356,7 +1356,7 @@ pub const Stream = struct {
         offset: isize,
         whence: Whence,
     ) !usize {
-        return @intCast(try errors.wrapCall(i64, C.SDL_SeekIO(
+        return @intCast(try errors.wrapCall(i64, c.SDL_SeekIO(
             self.value,
             @intCast(offset),
             @intFromEnum(whence),
@@ -1367,7 +1367,7 @@ pub const Stream = struct {
         self: Stream,
         props: Properties,
     ) !void {
-        const val = try errors.wrapCall(C.SDL_PropertiesID, C.SDL_GetIOProperties(self.value), 0);
+        const val = try errors.wrapCall(c.SDL_PropertiesID, c.SDL_GetIOProperties(self.value), 0);
         const group = properties.Group{ .value = val };
         try props.setProperties(group);
     }
@@ -1392,7 +1392,7 @@ pub const Stream = struct {
     pub fn tell(
         self: Stream,
     ) !usize {
-        const ret = C.SDL_TellIO(
+        const ret = c.SDL_TellIO(
             self.value,
         );
         return @intCast(try errors.wrapCall(i64, ret, -1));
@@ -1421,14 +1421,14 @@ pub const Stream = struct {
         data: []const u8,
         size_written: ?*usize,
     ) !void {
-        const ret = C.SDL_WriteIO(self.value, data.ptr, data.len);
+        const ret = c.SDL_WriteIO(self.value, data.ptr, data.len);
         if (ret != data.len) {
-            const status = C.SDL_GetIOStatus(self.value);
+            const status = c.SDL_GetIOStatus(self.value);
             const err_val: ?Error = switch (status) {
-                C.SDL_IO_STATUS_ERROR => error.Err,
-                C.SDL_IO_STATUS_NOT_READY => error.NotReady,
-                C.SDL_IO_STATUS_READONLY => error.ReadOnly,
-                C.SDL_IO_STATUS_WRITEONLY => error.WriteOnly,
+                c.SDL_IO_STATUS_ERROR => error.Err,
+                c.SDL_IO_STATUS_NOT_READY => error.NotReady,
+                c.SDL_IO_STATUS_READONLY => error.ReadOnly,
+                c.SDL_IO_STATUS_WRITEONLY => error.WriteOnly,
                 else => null,
             };
             if (err_val) |err| {
@@ -1455,7 +1455,7 @@ pub const Stream = struct {
         self: Stream,
         value: i8,
     ) !void {
-        return errors.wrapCallBool(C.SDL_WriteS8(
+        return errors.wrapCallBool(c.SDL_WriteS8(
             self.value,
             value,
         ));
@@ -1479,7 +1479,7 @@ pub const Stream = struct {
         self: Stream,
         value: i16,
     ) !void {
-        return errors.wrapCallBool(C.SDL_WriteS16BE(
+        return errors.wrapCallBool(c.SDL_WriteS16BE(
             self.value,
             value,
         ));
@@ -1503,7 +1503,7 @@ pub const Stream = struct {
         self: Stream,
         value: i16,
     ) !void {
-        return errors.wrapCallBool(C.SDL_WriteS16LE(
+        return errors.wrapCallBool(c.SDL_WriteS16LE(
             self.value,
             value,
         ));
@@ -1527,7 +1527,7 @@ pub const Stream = struct {
         self: Stream,
         value: i32,
     ) !void {
-        return errors.wrapCallBool(C.SDL_WriteS32BE(
+        return errors.wrapCallBool(c.SDL_WriteS32BE(
             self.value,
             value,
         ));
@@ -1551,7 +1551,7 @@ pub const Stream = struct {
         self: Stream,
         value: i32,
     ) !void {
-        return errors.wrapCallBool(C.SDL_WriteS32LE(
+        return errors.wrapCallBool(c.SDL_WriteS32LE(
             self.value,
             value,
         ));
@@ -1575,7 +1575,7 @@ pub const Stream = struct {
         self: Stream,
         value: i64,
     ) !void {
-        return errors.wrapCallBool(C.SDL_WriteS64BE(
+        return errors.wrapCallBool(c.SDL_WriteS64BE(
             self.value,
             value,
         ));
@@ -1599,7 +1599,7 @@ pub const Stream = struct {
         self: Stream,
         value: i64,
     ) !void {
-        return errors.wrapCallBool(C.SDL_WriteS64LE(
+        return errors.wrapCallBool(c.SDL_WriteS64LE(
             self.value,
             value,
         ));
@@ -1620,7 +1620,7 @@ pub const Stream = struct {
         self: Stream,
         value: u8,
     ) !void {
-        return errors.wrapCallBool(C.SDL_WriteU8(
+        return errors.wrapCallBool(c.SDL_WriteU8(
             self.value,
             value,
         ));
@@ -1644,7 +1644,7 @@ pub const Stream = struct {
         self: Stream,
         value: u16,
     ) !void {
-        return errors.wrapCallBool(C.SDL_WriteU16BE(
+        return errors.wrapCallBool(c.SDL_WriteU16BE(
             self.value,
             value,
         ));
@@ -1668,7 +1668,7 @@ pub const Stream = struct {
         self: Stream,
         value: u16,
     ) !void {
-        return errors.wrapCallBool(C.SDL_WriteU16LE(
+        return errors.wrapCallBool(c.SDL_WriteU16LE(
             self.value,
             value,
         ));
@@ -1692,7 +1692,7 @@ pub const Stream = struct {
         self: Stream,
         value: u32,
     ) !void {
-        return errors.wrapCallBool(C.SDL_WriteU32BE(
+        return errors.wrapCallBool(c.SDL_WriteU32BE(
             self.value,
             value,
         ));
@@ -1716,7 +1716,7 @@ pub const Stream = struct {
         self: Stream,
         value: u32,
     ) !void {
-        return errors.wrapCallBool(C.SDL_WriteU32LE(
+        return errors.wrapCallBool(c.SDL_WriteU32LE(
             self.value,
             value,
         ));
@@ -1740,7 +1740,7 @@ pub const Stream = struct {
         self: Stream,
         value: u64,
     ) !void {
-        return errors.wrapCallBool(C.SDL_WriteU64BE(
+        return errors.wrapCallBool(c.SDL_WriteU64BE(
             self.value,
             value,
         ));
@@ -1764,7 +1764,7 @@ pub const Stream = struct {
         self: Stream,
         value: u64,
     ) !void {
-        return errors.wrapCallBool(C.SDL_WriteU64LE(
+        return errors.wrapCallBool(c.SDL_WriteU64LE(
             self.value,
             value,
         ));
@@ -1810,15 +1810,15 @@ pub const Stream = struct {
 /// This enum is available since SDL 3.2.0.
 pub const Whence = enum(c_uint) {
     /// Seek from the beginning of data.
-    set = C.SDL_IO_SEEK_SET,
+    set = c.SDL_IO_SEEK_SET,
     /// Seek relative to current read point.
-    cur = C.SDL_IO_SEEK_CUR,
+    cur = c.SDL_IO_SEEK_CUR,
     /// Seek relative to the end of data.
-    end = C.SDL_IO_SEEK_END,
+    end = c.SDL_IO_SEEK_END,
 };
 
-const stream_source_interface = C.SDL_IOStreamInterface{
-    .version = @sizeOf(C.SDL_IOStreamInterface),
+const stream_source_interface = c.SDL_IOStreamInterface{
+    .version = @sizeOf(c.SDL_IOStreamInterface),
     .size = streamSize,
     .seek = streamSeek,
     .read = streamRead,
@@ -1827,18 +1827,18 @@ const stream_source_interface = C.SDL_IOStreamInterface{
     .close = streamClose,
 };
 
-fn streamSize(data: ?*anyopaque) callconv(.C) i64 {
+fn streamSize(data: ?*anyopaque) callconv(.c) i64 {
     var stream: *std.io.StreamSource = @ptrCast(@alignCast(data.?));
     const end_pos = stream.getEndPos() catch return -1;
     return @intCast(end_pos);
 }
 
-fn streamSeek(data: ?*anyopaque, offset: i64, whence: c_uint) callconv(.C) i64 {
+fn streamSeek(data: ?*anyopaque, offset: i64, whence: c_uint) callconv(.c) i64 {
     var stream: *std.io.StreamSource = @ptrCast(@alignCast(data.?));
     switch (whence) {
-        C.SDL_IO_SEEK_CUR => stream.seekBy(offset) catch return -1,
-        C.SDL_IO_SEEK_SET => stream.seekTo(@intCast(offset)) catch return -1,
-        C.SDL_IO_SEEK_END => {
+        c.SDL_IO_SEEK_CUR => stream.seekBy(offset) catch return -1,
+        c.SDL_IO_SEEK_SET => stream.seekTo(@intCast(offset)) catch return -1,
+        c.SDL_IO_SEEK_END => {
             const end_pos = stream.getEndPos() catch return -1;
             if (offset > end_pos)
                 return -1;
@@ -1850,31 +1850,31 @@ fn streamSeek(data: ?*anyopaque, offset: i64, whence: c_uint) callconv(.C) i64 {
     return @as(i64, @intCast(pos));
 }
 
-fn streamRead(data: ?*anyopaque, ptr: ?*anyopaque, size: usize, status: [*c]c_uint) callconv(.C) usize {
+fn streamRead(data: ?*anyopaque, ptr: ?*anyopaque, size: usize, status: [*c]c_uint) callconv(.c) usize {
     var stream: *std.io.StreamSource = @ptrCast(@alignCast(data.?));
     var dest: [*]u8 = @ptrCast(ptr.?);
     return stream.read(dest[0..size]) catch blk: {
-        status.* = C.SDL_IO_STATUS_ERROR;
+        status.* = c.SDL_IO_STATUS_ERROR;
         break :blk 0;
     };
 }
 
-fn streamWrite(data: ?*anyopaque, ptr: ?*const anyopaque, size: usize, status: [*c]c_uint) callconv(.C) usize {
+fn streamWrite(data: ?*anyopaque, ptr: ?*const anyopaque, size: usize, status: [*c]c_uint) callconv(.c) usize {
     var stream: *std.io.StreamSource = @ptrCast(@alignCast(data.?));
     var src: [*]const u8 = @ptrCast(ptr.?);
     return stream.write(src[0..size]) catch blk: {
-        status.* = C.SDL_IO_STATUS_ERROR;
+        status.* = c.SDL_IO_STATUS_ERROR;
         break :blk 0;
     };
 }
 
-fn streamFlush(data: ?*anyopaque, status: [*c]c_uint) callconv(.C) bool {
+fn streamFlush(data: ?*anyopaque, status: [*c]c_uint) callconv(.c) bool {
     _ = data;
     _ = status;
     return true; // No flushing needed, idk.
 }
 
-fn streamClose(data: ?*anyopaque) callconv(.C) bool {
+fn streamClose(data: ?*anyopaque) callconv(.c) bool {
     _ = data;
     return true;
 }
@@ -1900,7 +1900,7 @@ pub fn loadFile(
     path: [:0]const u8,
 ) ![:0]u8 {
     var len: usize = undefined;
-    return @as([*:0]u8, @alignCast(@ptrCast(try errors.wrapNull(*anyopaque, C.SDL_LoadFile(
+    return @as([*:0]u8, @alignCast(@ptrCast(try errors.wrapNull(*anyopaque, c.SDL_LoadFile(
         path.ptr,
         &len,
     )))))[0..len :0];
@@ -1921,7 +1921,7 @@ pub fn saveFile(
     path: [:0]const u8,
     data: []const u8,
 ) !void {
-    return errors.wrapCallBool(C.SDL_SaveFile(
+    return errors.wrapCallBool(c.SDL_SaveFile(
         path.ptr,
         data.ptr,
         data.len,

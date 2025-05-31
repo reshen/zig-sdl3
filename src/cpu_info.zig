@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const std = @import("std");
 
 /// A guess for the cacheline size used for padding.
@@ -10,7 +10,7 @@ const std = @import("std");
 ///
 /// ## Version
 /// This macro is available since SDL 3.2.0.
-pub const cacheline_size = C.SDL_CACHELINE_SIZE;
+pub const cacheline_size = c.SDL_CACHELINE_SIZE;
 
 /// Determine the L1 cache line size of the CPU.
 ///
@@ -26,7 +26,7 @@ pub const cacheline_size = C.SDL_CACHELINE_SIZE;
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getCacheLineSize() usize {
-    return @intCast(C.SDL_GetCPUCacheLineSize());
+    return @intCast(c.SDL_GetCPUCacheLineSize());
 }
 
 /// Get the number of logical CPU cores available.
@@ -41,7 +41,7 @@ pub fn getCacheLineSize() usize {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getNumLogicalCores() usize {
-    return @intCast(C.SDL_GetNumLogicalCPUCores());
+    return @intCast(c.SDL_GetNumLogicalCPUCores());
 }
 
 /// Report the alignment this system needs for SIMD allocations.
@@ -62,7 +62,7 @@ pub fn getNumLogicalCores() usize {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getSimdAlignment() usize {
-    return C.SDL_GetSIMDAlignment();
+    return c.SDL_GetSIMDAlignment();
 }
 
 /// Get the amount of RAM configured in the system.
@@ -76,7 +76,7 @@ pub fn getSimdAlignment() usize {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getSystemRam() usize {
-    return @intCast(C.SDL_GetSystemRAM());
+    return @intCast(c.SDL_GetSystemRAM());
 }
 
 /// Determine whether the CPU has AltiVec features.
@@ -93,7 +93,7 @@ pub fn getSystemRam() usize {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn hasAltiVec() bool {
-    return C.SDL_HasAltiVec();
+    return c.SDL_HasAltiVec();
 }
 
 /// Determine whether the CPU has ARM SIMD (ARMv6) features.
@@ -112,7 +112,7 @@ pub fn hasAltiVec() bool {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn hasArmSimd() bool {
-    return C.SDL_HasARMSIMD();
+    return c.SDL_HasARMSIMD();
 }
 
 /// Determine whether the CPU has AVX features.
@@ -129,7 +129,7 @@ pub fn hasArmSimd() bool {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn hasAvx() bool {
-    return C.SDL_HasAVX();
+    return c.SDL_HasAVX();
 }
 
 /// Determine whether the CPU has AVX2 features.
@@ -146,7 +146,7 @@ pub fn hasAvx() bool {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn hasAvx2() bool {
-    return C.SDL_HasAVX2();
+    return c.SDL_HasAVX2();
 }
 
 /// Determine whether the CPU has AVX-512F (foundation) features.
@@ -163,7 +163,7 @@ pub fn hasAvx2() bool {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn hasAvx512F() bool {
-    return C.SDL_HasAVX512F();
+    return c.SDL_HasAVX512F();
 }
 
 /// Determine whether the CPU has LASX (LOONGARCH SIMD) features.
@@ -180,7 +180,7 @@ pub fn hasAvx512F() bool {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn hasLasx() bool {
-    return C.SDL_HasLASX();
+    return c.SDL_HasLASX();
 }
 
 /// Determine whether the CPU has LSX (LOONGARCH SIMD) features.
@@ -197,7 +197,7 @@ pub fn hasLasx() bool {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn hasLsx() bool {
-    return C.SDL_HasLSX();
+    return c.SDL_HasLSX();
 }
 
 /// Determine whether the CPU has MMX features.
@@ -214,7 +214,7 @@ pub fn hasLsx() bool {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn hasMmx() bool {
-    return C.SDL_HasMMX();
+    return c.SDL_HasMMX();
 }
 
 /// Determine whether the CPU has NEON (ARM SIMD) features.
@@ -231,7 +231,7 @@ pub fn hasMmx() bool {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn hasNeon() bool {
-    return C.SDL_HasNEON();
+    return c.SDL_HasNEON();
 }
 
 /// Determine whether the CPU has SSE features.
@@ -248,7 +248,7 @@ pub fn hasNeon() bool {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn hasSse() bool {
-    return C.SDL_HasSSE();
+    return c.SDL_HasSSE();
 }
 
 /// Determine whether the CPU has SSE2 features.
@@ -265,7 +265,7 @@ pub fn hasSse() bool {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn hasSse2() bool {
-    return C.SDL_HasSSE2();
+    return c.SDL_HasSSE2();
 }
 
 /// Determine whether the CPU has SSE3 features.
@@ -282,7 +282,7 @@ pub fn hasSse2() bool {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn hasSse3() bool {
-    return C.SDL_HasSSE3();
+    return c.SDL_HasSSE3();
 }
 
 /// Determine whether the CPU has SSE4.1 features.
@@ -299,7 +299,7 @@ pub fn hasSse3() bool {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn hasSse41() bool {
-    return C.SDL_HasSSE41();
+    return c.SDL_HasSSE41();
 }
 
 /// Determine whether the CPU has SSE4.2 features.
@@ -316,7 +316,7 @@ pub fn hasSse41() bool {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn hasSse42() bool {
-    return C.SDL_HasSSE42();
+    return c.SDL_HasSSE42();
 }
 
 // CPU testing.

@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const std = @import("std");
 const stdinc = @import("stdinc.zig");
@@ -9,11 +9,11 @@ const stdinc = @import("stdinc.zig");
 /// This enum is available since SDL 3.2.0.
 pub const DeviceType = enum(c_uint) {
     /// Touch screen with window-relative coordinates.
-    direct = C.SDL_TOUCH_DEVICE_DIRECT,
+    direct = c.SDL_TOUCH_DEVICE_DIRECT,
     /// Trackpad with absolute device coordinates.
-    indirect_absolute = C.SDL_TOUCH_DEVICE_INDIRECT_ABSOLUTE,
+    indirect_absolute = c.SDL_TOUCH_DEVICE_INDIRECT_ABSOLUTE,
     /// Trackpad with screen cursor-relative coordinates.
-    indirect_relative = C.SDL_TOUCH_DEVICE_INDIRECT_RELATIVE,
+    indirect_relative = c.SDL_TOUCH_DEVICE_INDIRECT_RELATIVE,
 };
 
 /// Data about a single finger in a multitouch event.
@@ -36,15 +36,15 @@ pub const Finger = extern struct {
 
     // Size tests.
     comptime {
-        std.debug.assert(@sizeOf(C.SDL_Finger) == @sizeOf(Finger));
-        std.debug.assert(@offsetOf(C.SDL_Finger, "id") == @offsetOf(Finger, "id"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_Finger, "id")) == @sizeOf(@FieldType(Finger, "id")));
-        std.debug.assert(@offsetOf(C.SDL_Finger, "x") == @offsetOf(Finger, "x"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_Finger, "x")) == @sizeOf(@FieldType(Finger, "x")));
-        std.debug.assert(@offsetOf(C.SDL_Finger, "y") == @offsetOf(Finger, "y"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_Finger, "y")) == @sizeOf(@FieldType(Finger, "y")));
-        std.debug.assert(@offsetOf(C.SDL_Finger, "pressure") == @offsetOf(Finger, "pressure"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_Finger, "pressure")) == @sizeOf(@FieldType(Finger, "pressure")));
+        std.debug.assert(@sizeOf(c.SDL_Finger) == @sizeOf(Finger));
+        std.debug.assert(@offsetOf(c.SDL_Finger, "id") == @offsetOf(Finger, "id"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_Finger, "id")) == @sizeOf(@FieldType(Finger, "id")));
+        std.debug.assert(@offsetOf(c.SDL_Finger, "x") == @offsetOf(Finger, "x"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_Finger, "x")) == @sizeOf(@FieldType(Finger, "x")));
+        std.debug.assert(@offsetOf(c.SDL_Finger, "y") == @offsetOf(Finger, "y"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_Finger, "y")) == @sizeOf(@FieldType(Finger, "y")));
+        std.debug.assert(@offsetOf(c.SDL_Finger, "pressure") == @offsetOf(Finger, "pressure"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_Finger, "pressure")) == @sizeOf(@FieldType(Finger, "pressure")));
     }
 };
 
@@ -57,7 +57,7 @@ pub const Finger = extern struct {
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
 pub const FingerID = packed struct {
-    value: C.SDL_FingerID,
+    value: c.SDL_FingerID,
 };
 
 /// A unique ID for a touch device.
@@ -68,24 +68,24 @@ pub const FingerID = packed struct {
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
 pub const ID = packed struct {
-    value: C.SDL_TouchID,
+    value: c.SDL_TouchID,
 
     // Size tests.
     comptime {
-        std.debug.assert(@sizeOf(C.SDL_TouchID) == @sizeOf(ID));
+        std.debug.assert(@sizeOf(c.SDL_TouchID) == @sizeOf(ID));
     }
 
     /// The touch ID for touch events simulated with mouse input.
     ///
     /// ## Version
     /// This constant is available since SDL 3.2.0.
-    pub const mouse = ID{ .value = C.SDL_MOUSE_TOUCHID };
+    pub const mouse = ID{ .value = c.SDL_MOUSE_TOUCHID };
 
     /// The touch ID for touch events simulated with pen input.
     ///
     /// ## Version
     /// This constant is available since SDL 3.2.0.
-    pub const pen = ID{ .value = C.SDL_PEN_TOUCHID };
+    pub const pen = ID{ .value = c.SDL_PEN_TOUCHID };
 
     /// Get a list of active fingers for a given touch device.
     ///
@@ -102,8 +102,8 @@ pub const ID = packed struct {
         self: ID,
     ) ![]*Finger {
         var count: c_int = undefined;
-        const val = C.SDL_GetTouchFingers(self.value, &count);
-        const ret: [*]*Finger = @ptrCast(try errors.wrapCallCPtr([*c]C.SDL_Finger, val));
+        const val = c.SDL_GetTouchFingers(self.value, &count);
+        const ret: [*]*Finger = @ptrCast(try errors.wrapCallCPtr([*c]c.SDL_Finger, val));
         return ret[0..@intCast(count)];
     }
 
@@ -120,7 +120,7 @@ pub const ID = packed struct {
     pub fn getName(
         self: ID,
     ) ![:0]const u8 {
-        return errors.wrapCallCString(C.SDL_GetTouchDeviceName(self.value));
+        return errors.wrapCallCString(c.SDL_GetTouchDeviceName(self.value));
     }
 
     /// Get the type of the given touch device.
@@ -136,8 +136,8 @@ pub const ID = packed struct {
     pub fn getType(
         self: ID,
     ) ?DeviceType {
-        const ret = C.SDL_GetTouchDeviceType(self.value);
-        if (ret == C.SDL_TOUCH_DEVICE_INVALID)
+        const ret = c.SDL_GetTouchDeviceType(self.value);
+        if (ret == c.SDL_TOUCH_DEVICE_INVALID)
             return null;
         return @enumFromInt(ret);
     }
@@ -158,8 +158,8 @@ pub const ID = packed struct {
 /// This function is available since SDL 3.2.0.
 pub fn getDevices() ![]ID {
     var count: c_int = undefined;
-    const val = C.SDL_GetTouchDevices(&count);
-    const ret: [*]ID = @ptrCast(try errors.wrapCallCPtr(C.SDL_TouchID, val));
+    const val = c.SDL_GetTouchDevices(&count);
+    const ret: [*]ID = @ptrCast(try errors.wrapCallCPtr(c.SDL_TouchID, val));
     return ret[0..@intCast(count)];
 }
 

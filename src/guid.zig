@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const std = @import("std");
 
 /// A `GUID` is a 128-bit identifier for an input device that identifies that device across runs of SDL programs on the same platform.
@@ -14,7 +14,7 @@ const std = @import("std");
 /// ## Version
 /// This struct is available since SDL 3.2.0.
 pub const GUID = struct {
-    value: C.SDL_GUID,
+    value: c.SDL_GUID,
 
     /// Convert a GUID string into a GUID structure.
     ///
@@ -36,7 +36,7 @@ pub const GUID = struct {
     pub fn fromString(
         str: [:0]const u8,
     ) GUID {
-        const ret = C.SDL_StringToGUID(
+        const ret = c.SDL_StringToGUID(
             str,
         );
         return GUID{ .value = ret };
@@ -57,7 +57,7 @@ pub const GUID = struct {
         self: GUID,
         str: *[33:0]u8,
     ) void {
-        const ret = C.SDL_GUIDToString(
+        const ret = c.SDL_GUIDToString(
             self.value,
             str,
             @intCast(str.len),

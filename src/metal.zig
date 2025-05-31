@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const init = @import("init.zig");
 const std = @import("std");
 const video = @import("video.zig");
@@ -20,7 +20,7 @@ pub const View = packed struct {
     pub fn deinit(
         self: View,
     ) void {
-        C.SDL_Metal_DestroyView(self.value);
+        c.SDL_Metal_DestroyView(self.value);
     }
 
     /// Get a pointer to the backing `CAMetalLayer` for the given view.
@@ -36,7 +36,7 @@ pub const View = packed struct {
     pub fn getLayer(
         self: View,
     ) ?*anyopaque {
-        return C.SDL_Metal_GetLayer(self.value);
+        return c.SDL_Metal_GetLayer(self.value);
     }
 
     /// Create a `CAMetalLayer`-backed `NSView`/`UIView` and attach it to the specified window.
@@ -58,7 +58,7 @@ pub const View = packed struct {
     pub fn init(
         window: video.Window,
     ) ?View {
-        return .{ .value = C.SDL_Metal_CreateView(window.value) orelse return null };
+        return .{ .value = c.SDL_Metal_CreateView(window.value) orelse return null };
     }
 };
 

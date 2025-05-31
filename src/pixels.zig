@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const std = @import("std");
 const surface = @import("surface.zig");
@@ -32,25 +32,25 @@ pub const alpha_transparent_float: f32 = 0;
 /// ## Version
 /// This enum is available since SDL 3.2.0.
 pub const ArrayOrder = enum(c_uint) {
-    rgb = C.SDL_ARRAYORDER_RGB,
-    rgba = C.SDL_ARRAYORDER_RGBA,
-    argb = C.SDL_ARRAYORDER_ARGB,
-    bgr = C.SDL_ARRAYORDER_BGR,
-    bgra = C.SDL_ARRAYORDER_BGRA,
-    abgr = C.SDL_ARRAYORDER_ABGR,
+    rgb = c.SDL_ARRAYORDER_RGB,
+    rgba = c.SDL_ARRAYORDER_RGBA,
+    argb = c.SDL_ARRAYORDER_ARGB,
+    bgr = c.SDL_ARRAYORDER_BGR,
+    bgra = c.SDL_ARRAYORDER_BGRA,
+    abgr = c.SDL_ARRAYORDER_ABGR,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_ArrayOrder) ?ArrayOrder {
-        if (value == C.SDL_ARRAYORDER_NONE)
+    pub fn fromSdl(value: c.SDL_ArrayOrder) ?ArrayOrder {
+        if (value == c.SDL_ARRAYORDER_NONE)
             return null;
         return @enumFromInt(value);
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: ?ArrayOrder) C.SDL_ArrayOrder {
+    pub fn toSdl(self: ?ArrayOrder) c.SDL_ArrayOrder {
         if (self) |val|
             return @intFromEnum(val);
-        return C.SDL_ARRAYORDER_NONE;
+        return c.SDL_ARRAYORDER_NONE;
     }
 };
 
@@ -59,21 +59,21 @@ pub const ArrayOrder = enum(c_uint) {
 /// ## Version
 /// This enum is available since SDL 3.2.0.
 pub const BitmapOrder = enum(c_uint) {
-    high_to_low = C.SDL_BITMAPORDER_4321,
-    low_to_high = C.SDL_BITMAPORDER_1234,
+    high_to_low = c.SDL_BITMAPORDER_4321,
+    low_to_high = c.SDL_BITMAPORDER_1234,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_BitmapOrder) ?BitmapOrder {
-        if (value == C.SDL_BITMAPORDER_NONE)
+    pub fn fromSdl(value: c.SDL_BitmapOrder) ?BitmapOrder {
+        if (value == c.SDL_BITMAPORDER_NONE)
             return null;
         return @enumFromInt(value);
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: ?BitmapOrder) C.SDL_BitmapOrder {
+    pub fn toSdl(self: ?BitmapOrder) c.SDL_BitmapOrder {
         if (self) |val|
             return @intFromEnum(val);
-        return C.SDL_BITMAPORDER_NONE;
+        return c.SDL_BITMAPORDER_NONE;
     }
 };
 
@@ -84,25 +84,25 @@ pub const BitmapOrder = enum(c_uint) {
 pub const ChromaLocation = enum(c_uint) {
     /// In MPEG-2, MPEG-4, and AVC, Cb and Cr are taken on midpoint of the left-edge of the 2x2 square.
     /// In other words, they have the same horizontal location as the top-left pixel, but is shifted one-half pixel down vertically.
-    left = C.SDL_CHROMA_LOCATION_LEFT,
+    left = c.SDL_CHROMA_LOCATION_LEFT,
     /// In JPEG/JFIF, H.261, and MPEG-1, Cb and Cr are taken at the center of the 2x2 square.
     /// In other words, they are offset one-half pixel to the right and one-half pixel down compared to the top-left pixel.
-    center = C.SDL_CHROMA_LOCATION_CENTER,
+    center = c.SDL_CHROMA_LOCATION_CENTER,
     /// In HEVC for BT.2020 and BT.2100 content (in particular on Blu-rays), Cb and Cr are sampled at the same location as the group's top-left Y pixel (co-sited, co-located).
-    top_left = C.SDL_CHROMA_LOCATION_TOPLEFT,
+    top_left = c.SDL_CHROMA_LOCATION_TOPLEFT,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_ChromaLocation) ?ChromaLocation {
-        if (value == C.SDL_CHROMA_LOCATION_NONE)
+    pub fn fromSdl(value: c.SDL_ChromaLocation) ?ChromaLocation {
+        if (value == c.SDL_CHROMA_LOCATION_NONE)
             return null;
         return @enumFromInt(value);
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: ?ChromaLocation) C.SDL_ChromaLocation {
+    pub fn toSdl(self: ?ChromaLocation) c.SDL_ChromaLocation {
         if (self) |val|
             return @intFromEnum(val);
-        return C.SDL_CHROMA_LOCATION_NONE;
+        return c.SDL_CHROMA_LOCATION_NONE;
     }
 };
 
@@ -114,7 +114,7 @@ pub const ChromaLocation = enum(c_uint) {
 ///
 /// ## Version
 /// This struct is available since SDL 3.2.0.
-pub const Color = C.SDL_Color;
+pub const Color = c.SDL_Color;
 
 /// Colorspace definitions.
 /// How these are formed can be seen at: https://wiki.libsdl.org/SDL3/SDL_Colorspace
@@ -128,30 +128,30 @@ pub const Color = C.SDL_Color;
 pub const Colorspace = struct {
     value: u32,
     /// sRGB is a gamma corrected colorspace, and the default colorspace for SDL rendering and 8-bit RGB surfaces.
-    pub const srgb = Colorspace{ .value = C.SDL_COLORSPACE_SRGB };
+    pub const srgb = Colorspace{ .value = c.SDL_COLORSPACE_SRGB };
     /// This is a linear colorspace and the default colorspace for floating point surfaces.
     /// On Windows this is the scRGB colorspace, and on Apple platforms this is `kCGColorSpaceExtendedLinearSRGB` for EDR content.
-    pub const srgb_linear = Colorspace{ .value = C.SDL_COLORSPACE_SRGB_LINEAR };
+    pub const srgb_linear = Colorspace{ .value = c.SDL_COLORSPACE_SRGB_LINEAR };
     /// HDR10 is a non-linear HDR colorspace and the default colorspace for 10-bit surfaces.
-    pub const hdr10 = Colorspace{ .value = C.SDL_COLORSPACE_HDR10 };
+    pub const hdr10 = Colorspace{ .value = c.SDL_COLORSPACE_HDR10 };
     /// Equivalent to `DXGI_COLOR_SPACE_YCBCR_FULL_G22_NONE_P709_X601`.
-    pub const jpeg = Colorspace{ .value = C.SDL_COLORSPACE_JPEG };
+    pub const jpeg = Colorspace{ .value = c.SDL_COLORSPACE_JPEG };
     /// Equivalent to `DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P601`.
-    pub const bt601_limited = Colorspace{ .value = C.SDL_COLORSPACE_BT601_LIMITED };
+    pub const bt601_limited = Colorspace{ .value = c.SDL_COLORSPACE_BT601_LIMITED };
     /// Equivalent to `DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P601`.
-    pub const bt601_full = Colorspace{ .value = C.SDL_COLORSPACE_BT601_FULL };
+    pub const bt601_full = Colorspace{ .value = c.SDL_COLORSPACE_BT601_FULL };
     /// Equivalent to `DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P709`.
-    pub const bt709_limited = Colorspace{ .value = C.SDL_COLORSPACE_BT709_LIMITED };
+    pub const bt709_limited = Colorspace{ .value = c.SDL_COLORSPACE_BT709_LIMITED };
     /// Equivalent to `DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P709`.
-    pub const bt709_full = Colorspace{ .value = C.SDL_COLORSPACE_BT709_FULL };
+    pub const bt709_full = Colorspace{ .value = c.SDL_COLORSPACE_BT709_FULL };
     /// Equivalent to `DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P2020`.
-    pub const bt2020_limited = Colorspace{ .value = C.SDL_COLORSPACE_BT2020_LIMITED };
+    pub const bt2020_limited = Colorspace{ .value = c.SDL_COLORSPACE_BT2020_LIMITED };
     /// Equivalent to `DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P2020`.
-    pub const bt2020_full = Colorspace{ .value = C.SDL_COLORSPACE_BT2020_FULL };
+    pub const bt2020_full = Colorspace{ .value = c.SDL_COLORSPACE_BT2020_FULL };
     /// The default colorspace for RGB surfaces if no colorspace is specified.
-    pub const rgb_default = Colorspace{ .value = C.SDL_COLORSPACE_RGB_DEFAULT };
+    pub const rgb_default = Colorspace{ .value = c.SDL_COLORSPACE_RGB_DEFAULT };
     /// The default colorspace for YUV surfaces if no colorspace is specified.
-    pub const yuv_default = Colorspace{ .value = C.SDL_COLORSPACE_YUV_DEFAULT };
+    pub const yuv_default = Colorspace{ .value = c.SDL_COLORSPACE_YUV_DEFAULT };
 
     /// Create a colorspace.
     ///
@@ -193,7 +193,7 @@ pub const Colorspace = struct {
         matrix: MatrixCoefficients,
         chroma: ?ChromaLocation,
     ) Colorspace {
-        const ret = C.SDL_DEFINE_COLORSPACE(
+        const ret = c.SDL_DEFINE_COLORSPACE(
             ColorType.toSdl(color_type),
             ColorRange.toSdl(range),
             ColorPrimaries.toSdl(primaries),
@@ -217,7 +217,7 @@ pub const Colorspace = struct {
     pub fn getChromaLocation(
         self: Colorspace,
     ) ?ChromaLocation {
-        const ret = C.SDL_COLORSPACECHROMA(
+        const ret = c.SDL_COLORSPACECHROMA(
             self.value,
         );
         return ChromaLocation.fromSdl(ret);
@@ -236,7 +236,7 @@ pub const Colorspace = struct {
     pub fn getColorPrimaries(
         self: Colorspace,
     ) ?ColorPrimaries {
-        const ret = C.SDL_COLORSPACEPRIMARIES(
+        const ret = c.SDL_COLORSPACEPRIMARIES(
             self.value,
         );
         return ColorPrimaries.fromSdl(ret);
@@ -258,7 +258,7 @@ pub const Colorspace = struct {
     pub fn getMatrix(
         self: Colorspace,
     ) MatrixCoefficients {
-        const ret = C.SDL_COLORSPACEMATRIX(
+        const ret = c.SDL_COLORSPACEMATRIX(
             self.value,
         );
         return @enumFromInt(ret);
@@ -280,7 +280,7 @@ pub const Colorspace = struct {
     pub fn getRange(
         self: Colorspace,
     ) ?ColorRange {
-        const ret = C.SDL_COLORSPACERANGE(
+        const ret = c.SDL_COLORSPACERANGE(
             self.value,
         );
         return ColorRange.fromSdl(ret);
@@ -302,7 +302,7 @@ pub const Colorspace = struct {
     pub fn getTransferCharacteristics(
         self: Colorspace,
     ) ?TransferCharacteristics {
-        const ret = C.SDL_COLORSPACETRANSFER(
+        const ret = c.SDL_COLORSPACETRANSFER(
             self.value,
         );
         return TransferCharacteristics.fromSdl(ret);
@@ -324,7 +324,7 @@ pub const Colorspace = struct {
     pub fn getType(
         self: Colorspace,
     ) ?ColorType {
-        const ret = C.SDL_COLORSPACETYPE(
+        const ret = c.SDL_COLORSPACETYPE(
             self.value,
         );
         return ColorType.fromSdl(ret);
@@ -346,7 +346,7 @@ pub const Colorspace = struct {
     pub fn isMatrixBt2020Ncl(
         self: Colorspace,
     ) bool {
-        const ret = C.SDL_ISCOLORSPACE_MATRIX_BT2020_NCL(
+        const ret = c.SDL_ISCOLORSPACE_MATRIX_BT2020_NCL(
             self.value,
         );
         return ret;
@@ -368,7 +368,7 @@ pub const Colorspace = struct {
     pub fn isMatrixBt601(
         self: Colorspace,
     ) bool {
-        const ret = C.SDL_ISCOLORSPACE_MATRIX_BT601(
+        const ret = c.SDL_ISCOLORSPACE_MATRIX_BT601(
             self.value,
         );
         return ret;
@@ -390,7 +390,7 @@ pub const Colorspace = struct {
     pub fn isMatrixBT709(
         self: Colorspace,
     ) bool {
-        const ret = C.SDL_ISCOLORSPACE_MATRIX_BT709(
+        const ret = c.SDL_ISCOLORSPACE_MATRIX_BT709(
             self.value,
         );
         return ret;
@@ -412,7 +412,7 @@ pub const Colorspace = struct {
     pub fn isFullRange(
         self: Colorspace,
     ) bool {
-        const ret = C.SDL_ISCOLORSPACE_FULL_RANGE(
+        const ret = c.SDL_ISCOLORSPACE_FULL_RANGE(
             self.value,
         );
         return ret;
@@ -434,7 +434,7 @@ pub const Colorspace = struct {
     pub fn isLimitedRange(
         self: Colorspace,
     ) bool {
-        const ret = C.SDL_ISCOLORSPACE_LIMITED_RANGE(
+        const ret = c.SDL_ISCOLORSPACE_LIMITED_RANGE(
             self.value,
         );
         return ret;
@@ -447,42 +447,42 @@ pub const Colorspace = struct {
 /// This enum is available since SDL 3.2.0.
 pub const ColorPrimaries = enum(c_uint) {
     /// ITU-R BT.709-6.
-    bt709 = C.SDL_COLOR_PRIMARIES_BT709,
-    unspecified = C.SDL_COLOR_PRIMARIES_UNSPECIFIED,
+    bt709 = c.SDL_COLOR_PRIMARIES_BT709,
+    unspecified = c.SDL_COLOR_PRIMARIES_UNSPECIFIED,
     /// ITU-R BT.470-6 System M.
-    bt470m = C.SDL_COLOR_PRIMARIES_BT470M,
+    bt470m = c.SDL_COLOR_PRIMARIES_BT470M,
     /// ITU-R BT.470-6 System B, G / ITU-R BT.601-7 625.
-    bt470bg = C.SDL_COLOR_PRIMARIES_BT470BG,
+    bt470bg = c.SDL_COLOR_PRIMARIES_BT470BG,
     /// ITU-R BT.601-7 525, SMPTE 170M.
-    bt601 = C.SDL_COLOR_PRIMARIES_BT601,
+    bt601 = c.SDL_COLOR_PRIMARIES_BT601,
     /// SMPTE 240M, functionally the same as SDL_COLOR_PRIMARIES_BT601.
-    smpte240 = C.SDL_COLOR_PRIMARIES_SMPTE240,
+    smpte240 = c.SDL_COLOR_PRIMARIES_SMPTE240,
     /// Generic film (color filters using Illuminant C).
-    generic_film = C.SDL_COLOR_PRIMARIES_GENERIC_FILM,
+    generic_film = c.SDL_COLOR_PRIMARIES_GENERIC_FILM,
     /// ITU-R BT.2020-2 / ITU-R BT.2100-0
-    bt2020 = C.SDL_COLOR_PRIMARIES_BT2020,
+    bt2020 = c.SDL_COLOR_PRIMARIES_BT2020,
     /// SMPTE ST 428-1SMPTE ST 428-1.
-    xyz = C.SDL_COLOR_PRIMARIES_XYZ,
+    xyz = c.SDL_COLOR_PRIMARIES_XYZ,
     /// SMPTE RP 431-2.
-    smpte431 = C.SDL_COLOR_PRIMARIES_SMPTE431,
+    smpte431 = c.SDL_COLOR_PRIMARIES_SMPTE431,
     /// SMPTE EG 432-1 / DCI P3.
-    smpte432 = C.SDL_COLOR_PRIMARIES_SMPTE432,
+    smpte432 = c.SDL_COLOR_PRIMARIES_SMPTE432,
     /// EBU Tech. 3213-E.
-    ebu3213 = C.SDL_COLOR_PRIMARIES_EBU3213,
-    custom = C.SDL_COLOR_PRIMARIES_CUSTOM,
+    ebu3213 = c.SDL_COLOR_PRIMARIES_EBU3213,
+    custom = c.SDL_COLOR_PRIMARIES_CUSTOM,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_ColorPrimaries) ?ColorPrimaries {
-        if (value == C.SDL_COLOR_PRIMARIES_UNKNOWN)
+    pub fn fromSdl(value: c.SDL_ColorPrimaries) ?ColorPrimaries {
+        if (value == c.SDL_COLOR_PRIMARIES_UNKNOWN)
             return null;
         return @enumFromInt(value);
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: ?ColorPrimaries) C.SDL_ColorPrimaries {
+    pub fn toSdl(self: ?ColorPrimaries) c.SDL_ColorPrimaries {
         if (self) |val|
             return @intFromEnum(val);
-        return C.SDL_COLOR_PRIMARIES_UNKNOWN;
+        return c.SDL_COLOR_PRIMARIES_UNKNOWN;
     }
 };
 
@@ -492,22 +492,22 @@ pub const ColorPrimaries = enum(c_uint) {
 /// This enum is available since SDL 3.2.0.
 pub const ColorRange = enum(c_uint) {
     /// Narrow range, e.g. 16-235 for 8-bit RGB and luma, and 16-240 for 8-bit chroma.
-    limited = C.SDL_COLOR_RANGE_LIMITED,
+    limited = c.SDL_COLOR_RANGE_LIMITED,
     /// Full range, e.g. 0-255 for 8-bit RGB and luma, and 1-255 for 8-bit chroma.
-    full = C.SDL_COLOR_RANGE_FULL,
+    full = c.SDL_COLOR_RANGE_FULL,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_ColorRange) ?ColorRange {
-        if (value == C.SDL_COLOR_RANGE_UNKNOWN)
+    pub fn fromSdl(value: c.SDL_ColorRange) ?ColorRange {
+        if (value == c.SDL_COLOR_RANGE_UNKNOWN)
             return null;
         return @enumFromInt(value);
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: ?ColorRange) C.SDL_ColorRange {
+    pub fn toSdl(self: ?ColorRange) c.SDL_ColorRange {
         if (self) |val|
             return @intFromEnum(val);
-        return C.SDL_COLOR_RANGE_UNKNOWN;
+        return c.SDL_COLOR_RANGE_UNKNOWN;
     }
 };
 
@@ -516,21 +516,21 @@ pub const ColorRange = enum(c_uint) {
 /// ## Version
 /// This enum is available since SDL 3.2.0.
 pub const ColorType = enum(c_uint) {
-    rgb = C.SDL_COLOR_TYPE_RGB,
-    ycbcr = C.SDL_COLOR_TYPE_YCBCR,
+    rgb = c.SDL_COLOR_TYPE_RGB,
+    ycbcr = c.SDL_COLOR_TYPE_YCBCR,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_ColorType) ?ColorType {
-        if (value == C.SDL_COLOR_TYPE_UNKNOWN)
+    pub fn fromSdl(value: c.SDL_ColorType) ?ColorType {
+        if (value == c.SDL_COLOR_TYPE_UNKNOWN)
             return null;
         return @enumFromInt(value);
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: ?ColorType) C.SDL_ColorType {
+    pub fn toSdl(self: ?ColorType) c.SDL_ColorType {
         if (self) |val|
             return @intFromEnum(val);
-        return C.SDL_COLOR_TYPE_UNKNOWN;
+        return c.SDL_COLOR_TYPE_UNKNOWN;
     }
 };
 
@@ -538,7 +538,7 @@ pub const ColorType = enum(c_uint) {
 ///
 /// ## Version
 /// This struct is available since SDL 3.2.0.
-pub const FColor = C.SDL_FColor;
+pub const FColor = c.SDL_FColor;
 
 /// Pixel format.
 ///
@@ -563,92 +563,92 @@ pub const FColor = C.SDL_FColor;
 /// ## Version
 /// This struct is available since SDL 3.2.0.
 pub const Format = struct {
-    value: C.SDL_PixelFormat,
-    pub const index_1_lsb = Format{ .value = C.SDL_PIXELFORMAT_INDEX1LSB };
-    pub const index_1_msb = Format{ .value = C.SDL_PIXELFORMAT_INDEX1MSB };
-    pub const index_2_lsb = Format{ .value = C.SDL_PIXELFORMAT_INDEX2LSB };
-    pub const index_2_msb = Format{ .value = C.SDL_PIXELFORMAT_INDEX2MSB };
-    pub const index_4_lsb = Format{ .value = C.SDL_PIXELFORMAT_INDEX4LSB };
-    pub const index_4_msb = Format{ .value = C.SDL_PIXELFORMAT_INDEX4MSB };
-    pub const index_8 = Format{ .value = C.SDL_PIXELFORMAT_INDEX8 };
-    pub const packed_rgb_3_3_2 = Format{ .value = C.SDL_PIXELFORMAT_RGB332 };
-    pub const packed_xrgb_4_4_4_4 = Format{ .value = C.SDL_PIXELFORMAT_XRGB4444 };
-    pub const packed_xbgr_4_4_4_4 = Format{ .value = C.SDL_PIXELFORMAT_XBGR4444 };
-    pub const packed_xrgb_1_5_5_5 = Format{ .value = C.SDL_PIXELFORMAT_XRGB1555 };
-    pub const packed_xbgr_1_5_5_5 = Format{ .value = C.SDL_PIXELFORMAT_XBGR1555 };
-    pub const packed_argb_4_4_4_4 = Format{ .value = C.SDL_PIXELFORMAT_ARGB4444 };
-    pub const packed_rgba_4_4_4_4 = Format{ .value = C.SDL_PIXELFORMAT_RGBA4444 };
-    pub const packed_abgr_4_4_4_4 = Format{ .value = C.SDL_PIXELFORMAT_ABGR4444 };
-    pub const packed_bgra_4_4_4_4 = Format{ .value = C.SDL_PIXELFORMAT_BGRA4444 };
-    pub const packed_argb_1_5_5_5 = Format{ .value = C.SDL_PIXELFORMAT_ARGB1555 };
-    pub const packed_rgba_5_5_5_1 = Format{ .value = C.SDL_PIXELFORMAT_RGBA5551 };
-    pub const packed_abgr_1_5_5_5 = Format{ .value = C.SDL_PIXELFORMAT_ABGR1555 };
-    pub const packed_bgra_5_5_5_1 = Format{ .value = C.SDL_PIXELFORMAT_BGRA5551 };
-    pub const packed_rgb_5_6_5 = Format{ .value = C.SDL_PIXELFORMAT_RGB565 };
-    pub const packed_bgr_5_6_5 = Format{ .value = C.SDL_PIXELFORMAT_BGR565 };
-    pub const array_rgb_24 = Format{ .value = C.SDL_PIXELFORMAT_RGB24 };
-    pub const array_bgr_24 = Format{ .value = C.SDL_PIXELFORMAT_BGR24 };
-    pub const packed_xrgb_8_8_8_8 = Format{ .value = C.SDL_PIXELFORMAT_XRGB8888 };
-    pub const packed_rgbx_8_8_8_8 = Format{ .value = C.SDL_PIXELFORMAT_RGBX8888 };
-    pub const packed_xbgr_8_8_8_8 = Format{ .value = C.SDL_PIXELFORMAT_XBGR8888 };
-    pub const packed_bgrx_8_8_8_8 = Format{ .value = C.SDL_PIXELFORMAT_BGRX8888 };
-    pub const packed_argb_8_8_8_8 = Format{ .value = C.SDL_PIXELFORMAT_ARGB8888 };
-    pub const packed_rgba_8_8_8_8 = Format{ .value = C.SDL_PIXELFORMAT_RGBA8888 };
-    pub const packed_abgr_8_8_8_8 = Format{ .value = C.SDL_PIXELFORMAT_ABGR8888 };
-    pub const packed_bgra_8_8_8_8 = Format{ .value = C.SDL_PIXELFORMAT_BGRA8888 };
-    pub const packed_xrgb_2_10_10_10 = Format{ .value = C.SDL_PIXELFORMAT_XRGB2101010 };
-    pub const packed_xbgr_2_10_10_10 = Format{ .value = C.SDL_PIXELFORMAT_XBGR2101010 };
-    pub const packed_argb_2_10_10_10 = Format{ .value = C.SDL_PIXELFORMAT_ARGB2101010 };
-    pub const packed_abgr_2_10_10_10 = Format{ .value = C.SDL_PIXELFORMAT_ABGR2101010 };
-    pub const array_rgb_48 = Format{ .value = C.SDL_PIXELFORMAT_RGB48 };
-    pub const array_bgr_48 = Format{ .value = C.SDL_PIXELFORMAT_BGR48 };
-    pub const array_rgba_64 = Format{ .value = C.SDL_PIXELFORMAT_RGBA64 };
-    pub const array_argb_64 = Format{ .value = C.SDL_PIXELFORMAT_ARGB64 };
-    pub const array_bgra_64 = Format{ .value = C.SDL_PIXELFORMAT_BGRA64 };
-    pub const array_abgr_64 = Format{ .value = C.SDL_PIXELFORMAT_ABGR64 };
-    pub const array_rgb_48_float = Format{ .value = C.SDL_PIXELFORMAT_RGB48_FLOAT };
-    pub const array_bgr_48_float = Format{ .value = C.SDL_PIXELFORMAT_BGR48_FLOAT };
-    pub const array_rgba_64_float = Format{ .value = C.SDL_PIXELFORMAT_RGBA64_FLOAT };
-    pub const array_argb_64_float = Format{ .value = C.SDL_PIXELFORMAT_ARGB64_FLOAT };
-    pub const array_bgra_64_float = Format{ .value = C.SDL_PIXELFORMAT_BGRA64_FLOAT };
-    pub const array_abgr_64_float = Format{ .value = C.SDL_PIXELFORMAT_ABGR64_FLOAT };
-    pub const array_rgb_96_float = Format{ .value = C.SDL_PIXELFORMAT_RGB96_FLOAT };
-    pub const array_bgr_96_float = Format{ .value = C.SDL_PIXELFORMAT_BGR96_FLOAT };
-    pub const array_rgba_128_float = Format{ .value = C.SDL_PIXELFORMAT_RGBA128_FLOAT };
-    pub const array_argb_128_float = Format{ .value = C.SDL_PIXELFORMAT_ARGB128_FLOAT };
-    pub const array_bgra_128_float = Format{ .value = C.SDL_PIXELFORMAT_BGRA128_FLOAT };
-    pub const array_abgr_128_float = Format{ .value = C.SDL_PIXELFORMAT_ABGR128_FLOAT };
-    pub const fourcc_yv12 = Format{ .value = C.SDL_PIXELFORMAT_YV12 };
-    pub const fourcc_iyuv = Format{ .value = C.SDL_PIXELFORMAT_IYUV };
-    pub const fourcc_yuy2 = Format{ .value = C.SDL_PIXELFORMAT_YUY2 };
-    pub const fourcc_uyvy = Format{ .value = C.SDL_PIXELFORMAT_UYVY };
-    pub const fourcc_yvyu = Format{ .value = C.SDL_PIXELFORMAT_YVYU };
-    pub const fourcc_nv12 = Format{ .value = C.SDL_PIXELFORMAT_NV12 };
-    pub const fourcc_nv21 = Format{ .value = C.SDL_PIXELFORMAT_NV21 };
-    pub const fourcc_p010 = Format{ .value = C.SDL_PIXELFORMAT_P010 };
-    pub const fourcc_oes = Format{ .value = C.SDL_PIXELFORMAT_EXTERNAL_OES };
+    value: c.SDL_PixelFormat,
+    pub const index_1_lsb = Format{ .value = c.SDL_PIXELFORMAT_INDEX1LSB };
+    pub const index_1_msb = Format{ .value = c.SDL_PIXELFORMAT_INDEX1MSB };
+    pub const index_2_lsb = Format{ .value = c.SDL_PIXELFORMAT_INDEX2LSB };
+    pub const index_2_msb = Format{ .value = c.SDL_PIXELFORMAT_INDEX2MSB };
+    pub const index_4_lsb = Format{ .value = c.SDL_PIXELFORMAT_INDEX4LSB };
+    pub const index_4_msb = Format{ .value = c.SDL_PIXELFORMAT_INDEX4MSB };
+    pub const index_8 = Format{ .value = c.SDL_PIXELFORMAT_INDEX8 };
+    pub const packed_rgb_3_3_2 = Format{ .value = c.SDL_PIXELFORMAT_RGB332 };
+    pub const packed_xrgb_4_4_4_4 = Format{ .value = c.SDL_PIXELFORMAT_XRGB4444 };
+    pub const packed_xbgr_4_4_4_4 = Format{ .value = c.SDL_PIXELFORMAT_XBGR4444 };
+    pub const packed_xrgb_1_5_5_5 = Format{ .value = c.SDL_PIXELFORMAT_XRGB1555 };
+    pub const packed_xbgr_1_5_5_5 = Format{ .value = c.SDL_PIXELFORMAT_XBGR1555 };
+    pub const packed_argb_4_4_4_4 = Format{ .value = c.SDL_PIXELFORMAT_ARGB4444 };
+    pub const packed_rgba_4_4_4_4 = Format{ .value = c.SDL_PIXELFORMAT_RGBA4444 };
+    pub const packed_abgr_4_4_4_4 = Format{ .value = c.SDL_PIXELFORMAT_ABGR4444 };
+    pub const packed_bgra_4_4_4_4 = Format{ .value = c.SDL_PIXELFORMAT_BGRA4444 };
+    pub const packed_argb_1_5_5_5 = Format{ .value = c.SDL_PIXELFORMAT_ARGB1555 };
+    pub const packed_rgba_5_5_5_1 = Format{ .value = c.SDL_PIXELFORMAT_RGBA5551 };
+    pub const packed_abgr_1_5_5_5 = Format{ .value = c.SDL_PIXELFORMAT_ABGR1555 };
+    pub const packed_bgra_5_5_5_1 = Format{ .value = c.SDL_PIXELFORMAT_BGRA5551 };
+    pub const packed_rgb_5_6_5 = Format{ .value = c.SDL_PIXELFORMAT_RGB565 };
+    pub const packed_bgr_5_6_5 = Format{ .value = c.SDL_PIXELFORMAT_BGR565 };
+    pub const array_rgb_24 = Format{ .value = c.SDL_PIXELFORMAT_RGB24 };
+    pub const array_bgr_24 = Format{ .value = c.SDL_PIXELFORMAT_BGR24 };
+    pub const packed_xrgb_8_8_8_8 = Format{ .value = c.SDL_PIXELFORMAT_XRGB8888 };
+    pub const packed_rgbx_8_8_8_8 = Format{ .value = c.SDL_PIXELFORMAT_RGBX8888 };
+    pub const packed_xbgr_8_8_8_8 = Format{ .value = c.SDL_PIXELFORMAT_XBGR8888 };
+    pub const packed_bgrx_8_8_8_8 = Format{ .value = c.SDL_PIXELFORMAT_BGRX8888 };
+    pub const packed_argb_8_8_8_8 = Format{ .value = c.SDL_PIXELFORMAT_ARGB8888 };
+    pub const packed_rgba_8_8_8_8 = Format{ .value = c.SDL_PIXELFORMAT_RGBA8888 };
+    pub const packed_abgr_8_8_8_8 = Format{ .value = c.SDL_PIXELFORMAT_ABGR8888 };
+    pub const packed_bgra_8_8_8_8 = Format{ .value = c.SDL_PIXELFORMAT_BGRA8888 };
+    pub const packed_xrgb_2_10_10_10 = Format{ .value = c.SDL_PIXELFORMAT_XRGB2101010 };
+    pub const packed_xbgr_2_10_10_10 = Format{ .value = c.SDL_PIXELFORMAT_XBGR2101010 };
+    pub const packed_argb_2_10_10_10 = Format{ .value = c.SDL_PIXELFORMAT_ARGB2101010 };
+    pub const packed_abgr_2_10_10_10 = Format{ .value = c.SDL_PIXELFORMAT_ABGR2101010 };
+    pub const array_rgb_48 = Format{ .value = c.SDL_PIXELFORMAT_RGB48 };
+    pub const array_bgr_48 = Format{ .value = c.SDL_PIXELFORMAT_BGR48 };
+    pub const array_rgba_64 = Format{ .value = c.SDL_PIXELFORMAT_RGBA64 };
+    pub const array_argb_64 = Format{ .value = c.SDL_PIXELFORMAT_ARGB64 };
+    pub const array_bgra_64 = Format{ .value = c.SDL_PIXELFORMAT_BGRA64 };
+    pub const array_abgr_64 = Format{ .value = c.SDL_PIXELFORMAT_ABGR64 };
+    pub const array_rgb_48_float = Format{ .value = c.SDL_PIXELFORMAT_RGB48_FLOAT };
+    pub const array_bgr_48_float = Format{ .value = c.SDL_PIXELFORMAT_BGR48_FLOAT };
+    pub const array_rgba_64_float = Format{ .value = c.SDL_PIXELFORMAT_RGBA64_FLOAT };
+    pub const array_argb_64_float = Format{ .value = c.SDL_PIXELFORMAT_ARGB64_FLOAT };
+    pub const array_bgra_64_float = Format{ .value = c.SDL_PIXELFORMAT_BGRA64_FLOAT };
+    pub const array_abgr_64_float = Format{ .value = c.SDL_PIXELFORMAT_ABGR64_FLOAT };
+    pub const array_rgb_96_float = Format{ .value = c.SDL_PIXELFORMAT_RGB96_FLOAT };
+    pub const array_bgr_96_float = Format{ .value = c.SDL_PIXELFORMAT_BGR96_FLOAT };
+    pub const array_rgba_128_float = Format{ .value = c.SDL_PIXELFORMAT_RGBA128_FLOAT };
+    pub const array_argb_128_float = Format{ .value = c.SDL_PIXELFORMAT_ARGB128_FLOAT };
+    pub const array_bgra_128_float = Format{ .value = c.SDL_PIXELFORMAT_BGRA128_FLOAT };
+    pub const array_abgr_128_float = Format{ .value = c.SDL_PIXELFORMAT_ABGR128_FLOAT };
+    pub const fourcc_yv12 = Format{ .value = c.SDL_PIXELFORMAT_YV12 };
+    pub const fourcc_iyuv = Format{ .value = c.SDL_PIXELFORMAT_IYUV };
+    pub const fourcc_yuy2 = Format{ .value = c.SDL_PIXELFORMAT_YUY2 };
+    pub const fourcc_uyvy = Format{ .value = c.SDL_PIXELFORMAT_UYVY };
+    pub const fourcc_yvyu = Format{ .value = c.SDL_PIXELFORMAT_YVYU };
+    pub const fourcc_nv12 = Format{ .value = c.SDL_PIXELFORMAT_NV12 };
+    pub const fourcc_nv21 = Format{ .value = c.SDL_PIXELFORMAT_NV21 };
+    pub const fourcc_p010 = Format{ .value = c.SDL_PIXELFORMAT_P010 };
+    pub const fourcc_oes = Format{ .value = c.SDL_PIXELFORMAT_EXTERNAL_OES };
     // MJPG is in SDL 3.4.0?
-    pub const array_rgba_32 = Format{ .value = C.SDL_PIXELFORMAT_RGBA32 };
-    pub const array_argb_32 = Format{ .value = C.SDL_PIXELFORMAT_ARGB32 };
-    pub const array_bgra_32 = Format{ .value = C.SDL_PIXELFORMAT_BGRA32 };
-    pub const array_abgr_32 = Format{ .value = C.SDL_PIXELFORMAT_ABGR32 };
-    pub const array_rgbx_32 = Format{ .value = C.SDL_PIXELFORMAT_RGBX32 };
-    pub const array_xrgb_32 = Format{ .value = C.SDL_PIXELFORMAT_XRGB32 };
-    pub const array_bgrx_32 = Format{ .value = C.SDL_PIXELFORMAT_BGRX32 };
-    pub const array_xbgr_32 = Format{ .value = C.SDL_PIXELFORMAT_XBGR32 };
+    pub const array_rgba_32 = Format{ .value = c.SDL_PIXELFORMAT_RGBA32 };
+    pub const array_argb_32 = Format{ .value = c.SDL_PIXELFORMAT_ARGB32 };
+    pub const array_bgra_32 = Format{ .value = c.SDL_PIXELFORMAT_BGRA32 };
+    pub const array_abgr_32 = Format{ .value = c.SDL_PIXELFORMAT_ABGR32 };
+    pub const array_rgbx_32 = Format{ .value = c.SDL_PIXELFORMAT_RGBX32 };
+    pub const array_xrgb_32 = Format{ .value = c.SDL_PIXELFORMAT_XRGB32 };
+    pub const array_bgrx_32 = Format{ .value = c.SDL_PIXELFORMAT_BGRX32 };
+    pub const array_xbgr_32 = Format{ .value = c.SDL_PIXELFORMAT_XBGR32 };
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_PixelFormat) ?Format {
-        if (value == C.SDL_PIXELFORMAT_UNKNOWN)
+    pub fn fromSdl(value: c.SDL_PixelFormat) ?Format {
+        if (value == c.SDL_PIXELFORMAT_UNKNOWN)
             return null;
         return .{ .value = value };
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: ?Format) C.SDL_PixelFormat {
+    pub fn toSdl(self: ?Format) c.SDL_PixelFormat {
         if (self) |val|
             return val.value;
-        return C.SDL_PIXELFORMAT_UNKNOWN;
+        return c.SDL_PIXELFORMAT_UNKNOWN;
     }
 
     /// Define a pixel format.
@@ -687,7 +687,7 @@ pub const Format = struct {
         bits: u8,
         bytes: u8,
     ) Format {
-        const ret = C.SDL_DEFINE_PIXELFORMAT(
+        const ret = c.SDL_DEFINE_PIXELFORMAT(
             @intFromEnum(pixel_type),
             @intFromEnum(order),
             PackedLayout.toSdl(layout),
@@ -700,10 +700,10 @@ pub const Format = struct {
     /// Define a format using 4 characters (Ex: YV12).
     ///
     /// ## Function Parameters
-    /// * `a`: The first character of the FourCC code.
-    /// * `b`: The second character of the FourCC code.
-    /// * `c`: The third character of the FourCC code.
-    /// * `d`: The fourth character of the FourCC code.
+    /// * `c1`: The first character of the FourCC code.
+    /// * `c2`: The second character of the FourCC code.
+    /// * `c3`: The third character of the FourCC code.
+    /// * `c4`: The fourth character of the FourCC code.
     ///
     /// ## Return Value
     /// Return a pixel format.
@@ -717,16 +717,16 @@ pub const Format = struct {
     /// ## Version
     /// This macro is available since SDL 3.2.0.
     pub fn define4CC(
-        a: u8,
-        b: u8,
-        c: u8,
-        d: u8,
+        c1: u8,
+        c2: u8,
+        c3: u8,
+        c4: u8,
     ) Format {
-        const ret = C.SDL_DEFINE_PIXELFOURCC(
-            @as(c_uint, @intCast(a)),
-            @as(c_uint, @intCast(b)),
-            @as(c_uint, @intCast(c)),
-            @as(c_uint, @intCast(d)),
+        const ret = c.SDL_DEFINE_PIXELFOURCC(
+            @as(c_uint, @intCast(c1)),
+            @as(c_uint, @intCast(c2)),
+            @as(c_uint, @intCast(c3)),
+            @as(c_uint, @intCast(c4)),
         );
         return Format{ .value = ret };
     }
@@ -767,7 +767,7 @@ pub const Format = struct {
         bits: u8,
         bytes: u8,
     ) Format {
-        const ret = C.SDL_DEFINE_PIXELFORMAT(
+        const ret = c.SDL_DEFINE_PIXELFORMAT(
             @as(c_int, @intCast(Type.toSdl(pixel_type))),
             @as(c_int, @intCast(order)),
             @as(c_int, @intCast(PackedLayout.toSdl(layout))),
@@ -801,7 +801,7 @@ pub const Format = struct {
         b_mask: u32,
         a_mask: u32,
     ) ?Format {
-        const ret = C.SDL_GetPixelFormatForMasks(
+        const ret = c.SDL_GetPixelFormatForMasks(
             @intCast(bpp),
             r_mask,
             g_mask,
@@ -830,7 +830,7 @@ pub const Format = struct {
     pub fn getBitsPerPixel(
         self: Format,
     ) u8 {
-        const ret = C.SDL_BITSPERPIXEL(
+        const ret = c.SDL_BITSPERPIXEL(
             @as(c_int, @intCast(self.value)),
         );
         return @intCast(ret);
@@ -855,7 +855,7 @@ pub const Format = struct {
     pub fn getBytesPerPixel(
         self: Format,
     ) u8 {
-        const ret = C.SDL_BYTESPERPIXEL(
+        const ret = c.SDL_BYTESPERPIXEL(
             @as(c_int, @intCast(self.value)),
         );
         return @intCast(ret);
@@ -877,10 +877,10 @@ pub const Format = struct {
     pub fn getDetails(
         self: Format,
     ) !FormatDetails {
-        const ret = try errors.wrapNull(*const C.SDL_PixelFormatDetails, C.SDL_GetPixelFormatDetails(
+        const ret = try errors.wrapNull(*const c.SDL_PixelFormatDetails, c.SDL_GetPixelFormatDetails(
             self.value,
         ));
-        return .{ .value = (try errors.wrapNull(*const C.SDL_PixelFormatDetails, ret)).* };
+        return .{ .value = (try errors.wrapNull(*const c.SDL_PixelFormatDetails, ret)).* };
     }
 
     /// If format was created by `define` rather than `define4CC`.
@@ -902,7 +902,7 @@ pub const Format = struct {
     pub fn getFlag(
         self: Format,
     ) bool {
-        const ret = C.SDL_PIXELFLAG(
+        const ret = c.SDL_PIXELFLAG(
             self.value,
         );
         return ret != 0;
@@ -924,7 +924,7 @@ pub const Format = struct {
     pub fn getLayout(
         self: Format,
     ) ?PackedLayout {
-        const ret = C.SDL_PIXELLAYOUT(
+        const ret = c.SDL_PIXELLAYOUT(
             self.value,
         );
         return PackedLayout.fromSdl(ret);
@@ -951,7 +951,7 @@ pub const Format = struct {
         var g_mask: u32 = undefined;
         var b_mask: u32 = undefined;
         var a_mask: u32 = undefined;
-        const ret = C.SDL_GetMasksForPixelFormat(
+        const ret = c.SDL_GetMasksForPixelFormat(
             self.value,
             &bpp,
             &r_mask,
@@ -979,7 +979,7 @@ pub const Format = struct {
     pub fn getName(
         self: Format,
     ) ?[:0]const u8 {
-        const ret = C.SDL_GetPixelFormatName(
+        const ret = c.SDL_GetPixelFormatName(
             self.value,
         );
         const converted_ret = std.mem.span(ret);
@@ -1001,7 +1001,7 @@ pub const Format = struct {
     pub fn getOrder(
         self: Format,
     ) c_uint {
-        const ret = C.SDL_PIXELORDER(
+        const ret = c.SDL_PIXELORDER(
             self.value,
         );
         return @bitCast(ret);
@@ -1023,7 +1023,7 @@ pub const Format = struct {
     pub fn getOrderTyped(
         self: Format,
     ) ?OrderType(self.getType().?) {
-        const ret = C.SDL_PIXELORDER(
+        const ret = c.SDL_PIXELORDER(
             self.value,
         );
         return OrderType(self.getType().?).fromSdl(ret);
@@ -1042,7 +1042,7 @@ pub const Format = struct {
     pub fn getType(
         self: Format,
     ) ?Type {
-        const ret = C.SDL_PIXELTYPE(
+        const ret = c.SDL_PIXELTYPE(
             self.value,
         );
         return Type.fromSdl(ret);
@@ -1085,7 +1085,7 @@ pub const Format = struct {
         self: Format,
     ) bool {
         const format = self.value;
-        return !(C.SDL_ISPIXELFORMAT_FOURCC(format)) and ((C.SDL_PIXELTYPE(format) == C.SDL_PIXELTYPE_PACKED32) and (C.SDL_PIXELLAYOUT(format) == C.SDL_PACKEDLAYOUT_2101010));
+        return !(c.SDL_ISPIXELFORMAT_FOURCC(format)) and ((c.SDL_PIXELTYPE(format) == c.SDL_PIXELTYPE_PACKED32) and (c.SDL_PIXELLAYOUT(format) == c.SDL_PACKEDLAYOUT_2101010));
     }
 
     /// If the format is 4cc.
@@ -1104,7 +1104,7 @@ pub const Format = struct {
     pub fn is4cc(
         self: Format,
     ) bool {
-        const ret = C.SDL_ISPIXELFORMAT_FOURCC(
+        const ret = c.SDL_ISPIXELFORMAT_FOURCC(
             self.value,
         );
         return ret;
@@ -1184,7 +1184,7 @@ pub const Format = struct {
 /// ## Version
 /// This struct is available since SDL 3.2.0.
 pub const FormatDetails = struct {
-    value: C.SDL_PixelFormatDetails,
+    value: c.SDL_PixelFormatDetails,
 
     /// Initialize the format details.
     ///
@@ -1261,7 +1261,7 @@ pub const FormatDetails = struct {
         var r: u8 = undefined;
         var g: u8 = undefined;
         var b: u8 = undefined;
-        C.SDL_GetRGB(
+        c.SDL_GetRGB(
             @intCast(pixel.value),
             &self.value,
             if (palette) |palette_val| palette_val.value else null,
@@ -1302,7 +1302,7 @@ pub const FormatDetails = struct {
         var g: u8 = undefined;
         var b: u8 = undefined;
         var a: u8 = undefined;
-        C.SDL_GetRGBA(
+        c.SDL_GetRGBA(
             @intCast(pixel.value),
             &self.value,
             if (palette) |palette_val| palette_val.value else null,
@@ -1393,7 +1393,7 @@ pub const FormatDetails = struct {
         g: u8,
         b: u8,
     ) Pixel {
-        const ret = C.SDL_MapRGB(
+        const ret = c.SDL_MapRGB(
             &self.value,
             if (palette) |palette_val| palette_val.value else null,
             r,
@@ -1439,7 +1439,7 @@ pub const FormatDetails = struct {
         b: u8,
         a: u8,
     ) Pixel {
-        const ret = C.SDL_MapRGBA(
+        const ret = c.SDL_MapRGBA(
             &self.value,
             if (palette) |palette_val| palette_val.value else null,
             r,
@@ -1459,30 +1459,30 @@ pub const FormatDetails = struct {
 /// ## Version
 /// This enum is available since SDL 3.2.0.
 pub const MatrixCoefficients = enum(c_uint) {
-    identity = C.SDL_MATRIX_COEFFICIENTS_IDENTITY,
+    identity = c.SDL_MATRIX_COEFFICIENTS_IDENTITY,
     /// ITU-R BT.709-6.
-    bt709 = C.SDL_MATRIX_COEFFICIENTS_BT709,
-    unspecified = C.SDL_MATRIX_COEFFICIENTS_UNSPECIFIED,
+    bt709 = c.SDL_MATRIX_COEFFICIENTS_BT709,
+    unspecified = c.SDL_MATRIX_COEFFICIENTS_UNSPECIFIED,
     /// US FCC Title 47.
-    fcc = C.SDL_MATRIX_COEFFICIENTS_FCC,
+    fcc = c.SDL_MATRIX_COEFFICIENTS_FCC,
     /// ITU-R BT.470-6 System B, G / ITU-R BT.601-7 625, functionally the same as SDL_MATRIX_COEFFICIENTS_BT601.
-    bt470bg = C.SDL_MATRIX_COEFFICIENTS_BT470BG,
+    bt470bg = c.SDL_MATRIX_COEFFICIENTS_BT470BG,
     /// ITU-R BT.601-7 525.
-    bt601 = C.SDL_MATRIX_COEFFICIENTS_BT601,
+    bt601 = c.SDL_MATRIX_COEFFICIENTS_BT601,
     /// SMPTE 240M.
-    smpte240 = C.SDL_MATRIX_COEFFICIENTS_SMPTE240,
-    ycgco = C.SDL_MATRIX_COEFFICIENTS_YCGCO,
+    smpte240 = c.SDL_MATRIX_COEFFICIENTS_SMPTE240,
+    ycgco = c.SDL_MATRIX_COEFFICIENTS_YCGCO,
     /// ITU-R BT.2020-2 non-constant luminance.
-    bt2020_ncl = C.SDL_MATRIX_COEFFICIENTS_BT2020_NCL,
+    bt2020_ncl = c.SDL_MATRIX_COEFFICIENTS_BT2020_NCL,
     /// ITU-R BT.2020-2 constant luminance.
-    bt2020_cl = C.SDL_MATRIX_COEFFICIENTS_BT2020_CL,
+    bt2020_cl = c.SDL_MATRIX_COEFFICIENTS_BT2020_CL,
     /// SMPTE ST 2085.
-    smpte2085 = C.SDL_MATRIX_COEFFICIENTS_SMPTE2085,
-    chroma_derived_ncl = C.SDL_MATRIX_COEFFICIENTS_CHROMA_DERIVED_NCL,
-    chroma_derived_cl = C.SDL_MATRIX_COEFFICIENTS_CHROMA_DERIVED_CL,
+    smpte2085 = c.SDL_MATRIX_COEFFICIENTS_SMPTE2085,
+    chroma_derived_ncl = c.SDL_MATRIX_COEFFICIENTS_CHROMA_DERIVED_NCL,
+    chroma_derived_cl = c.SDL_MATRIX_COEFFICIENTS_CHROMA_DERIVED_CL,
     /// ITU-R BT.2100-0 ICTCP.
-    ictcp = C.SDL_MATRIX_COEFFICIENTS_ICTCP,
-    custom = C.SDL_MATRIX_COEFFICIENTS_CUSTOM,
+    ictcp = c.SDL_MATRIX_COEFFICIENTS_ICTCP,
+    custom = c.SDL_MATRIX_COEFFICIENTS_CUSTOM,
 };
 
 /// Packed component layout.
@@ -1490,27 +1490,27 @@ pub const MatrixCoefficients = enum(c_uint) {
 /// ## Version
 /// This enum is available since SDL 3.2.0.
 pub const PackedLayout = enum(c_uint) {
-    bit_3_3_2 = C.SDL_PACKEDLAYOUT_332,
-    bit_4_4_4_4 = C.SDL_PACKEDLAYOUT_4444,
-    bit_1_5_5_5 = C.SDL_PACKEDLAYOUT_1555,
-    bit_5_5_5_1 = C.SDL_PACKEDLAYOUT_5551,
-    bit_5_6_5 = C.SDL_PACKEDLAYOUT_565,
-    bit_8_8_8_8 = C.SDL_PACKEDLAYOUT_8888,
-    bit_2_10_10_10 = C.SDL_PACKEDLAYOUT_2101010,
-    bit_10_10_10_2 = C.SDL_PACKEDLAYOUT_1010102,
+    bit_3_3_2 = c.SDL_PACKEDLAYOUT_332,
+    bit_4_4_4_4 = c.SDL_PACKEDLAYOUT_4444,
+    bit_1_5_5_5 = c.SDL_PACKEDLAYOUT_1555,
+    bit_5_5_5_1 = c.SDL_PACKEDLAYOUT_5551,
+    bit_5_6_5 = c.SDL_PACKEDLAYOUT_565,
+    bit_8_8_8_8 = c.SDL_PACKEDLAYOUT_8888,
+    bit_2_10_10_10 = c.SDL_PACKEDLAYOUT_2101010,
+    bit_10_10_10_2 = c.SDL_PACKEDLAYOUT_1010102,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_PackedLayout) ?PackedLayout {
-        if (value == C.SDL_PACKEDLAYOUT_NONE)
+    pub fn fromSdl(value: c.SDL_PackedLayout) ?PackedLayout {
+        if (value == c.SDL_PACKEDLAYOUT_NONE)
             return null;
         return @enumFromInt(value);
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: ?PackedLayout) C.SDL_PackedLayout {
+    pub fn toSdl(self: ?PackedLayout) c.SDL_PackedLayout {
         if (self) |val|
             return @intFromEnum(val);
-        return C.SDL_PACKEDLAYOUT_NONE;
+        return c.SDL_PACKEDLAYOUT_NONE;
     }
 };
 
@@ -1519,27 +1519,27 @@ pub const PackedLayout = enum(c_uint) {
 /// ## Version
 /// This enum is available since SDL 3.2.0.
 pub const PackedOrder = enum(c_uint) {
-    xrgb = C.SDL_PACKEDORDER_XRGB,
-    rgbx = C.SDL_PACKEDORDER_RGBX,
-    argb = C.SDL_PACKEDORDER_ARGB,
-    rgba = C.SDL_PACKEDORDER_RGBA,
-    xbgr = C.SDL_PACKEDORDER_XBGR,
-    bgrx = C.SDL_PACKEDORDER_BGRX,
-    abgr = C.SDL_PACKEDORDER_ABGR,
-    bgra = C.SDL_PACKEDORDER_BGRA,
+    xrgb = c.SDL_PACKEDORDER_XRGB,
+    rgbx = c.SDL_PACKEDORDER_RGBX,
+    argb = c.SDL_PACKEDORDER_ARGB,
+    rgba = c.SDL_PACKEDORDER_RGBA,
+    xbgr = c.SDL_PACKEDORDER_XBGR,
+    bgrx = c.SDL_PACKEDORDER_BGRX,
+    abgr = c.SDL_PACKEDORDER_ABGR,
+    bgra = c.SDL_PACKEDORDER_BGRA,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_PackedOrder) ?PackedOrder {
-        if (value == C.SDL_PACKEDORDER_NONE)
+    pub fn fromSdl(value: c.SDL_PackedOrder) ?PackedOrder {
+        if (value == c.SDL_PACKEDORDER_NONE)
             return null;
         return @enumFromInt(value);
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: ?PackedOrder) C.SDL_PackedOrder {
+    pub fn toSdl(self: ?PackedOrder) c.SDL_PackedOrder {
         if (self) |val|
             return @intFromEnum(val);
-        return C.SDL_PACKEDORDER_NONE;
+        return c.SDL_PACKEDORDER_NONE;
     }
 };
 
@@ -1548,7 +1548,7 @@ pub const PackedOrder = enum(c_uint) {
 /// ## Version
 /// This struct is available since SDL 3.2.0.
 pub const Palette = struct {
-    value: *C.SDL_Palette,
+    value: *c.SDL_Palette,
 
     /// Free a palette created earlier.
     ///
@@ -1563,7 +1563,7 @@ pub const Palette = struct {
     pub fn deinit(
         self: Palette,
     ) void {
-        C.SDL_DestroyPalette(
+        c.SDL_DestroyPalette(
             self.value,
         );
     }
@@ -1600,10 +1600,10 @@ pub const Palette = struct {
     pub fn init(
         num_colors: usize,
     ) !Palette {
-        const ret = C.SDL_CreatePalette(
+        const ret = c.SDL_CreatePalette(
             @intCast(num_colors),
         );
-        return Palette{ .value = try errors.wrapNull(*C.SDL_Palette, ret) };
+        return Palette{ .value = try errors.wrapNull(*c.SDL_Palette, ret) };
     }
 
     /// Set a range of colors in a palette.
@@ -1623,7 +1623,7 @@ pub const Palette = struct {
         colors: []const Color,
         first_color: usize,
     ) !void {
-        const ret = C.SDL_SetPaletteColors(
+        const ret = c.SDL_SetPaletteColors(
             self.value,
             colors.ptr,
             @intCast(first_color),
@@ -1650,49 +1650,49 @@ pub const Pixel = packed struct {
 /// This enum is available since SDL 3.2.0.
 pub const TransferCharacteristics = enum(c_uint) {
     /// Rec. ITU-R BT.709-6 / ITU-R BT1361.
-    bt709 = C.SDL_TRANSFER_CHARACTERISTICS_BT709,
-    unspecified = C.SDL_TRANSFER_CHARACTERISTICS_UNSPECIFIED,
+    bt709 = c.SDL_TRANSFER_CHARACTERISTICS_BT709,
+    unspecified = c.SDL_TRANSFER_CHARACTERISTICS_UNSPECIFIED,
     /// ITU-R BT.470-6 System M / ITU-R BT1700 625 PAL & SECAM.
-    gamma22 = C.SDL_TRANSFER_CHARACTERISTICS_GAMMA22,
+    gamma22 = c.SDL_TRANSFER_CHARACTERISTICS_GAMMA22,
     /// ITU-R BT.470-6 System B, G.
-    gamma28 = C.SDL_TRANSFER_CHARACTERISTICS_GAMMA28,
+    gamma28 = c.SDL_TRANSFER_CHARACTERISTICS_GAMMA28,
     /// SMPTE ST 170M / ITU-R BT.601-7 525 or 625.
-    bt601 = C.SDL_TRANSFER_CHARACTERISTICS_BT601,
+    bt601 = c.SDL_TRANSFER_CHARACTERISTICS_BT601,
     /// SMPTE ST 240M.
-    smpte240 = C.SDL_TRANSFER_CHARACTERISTICS_SMPTE240,
-    linear = C.SDL_TRANSFER_CHARACTERISTICS_LINEAR,
-    log100 = C.SDL_TRANSFER_CHARACTERISTICS_LOG100,
-    log100_sqrt10 = C.SDL_TRANSFER_CHARACTERISTICS_LOG100_SQRT10,
+    smpte240 = c.SDL_TRANSFER_CHARACTERISTICS_SMPTE240,
+    linear = c.SDL_TRANSFER_CHARACTERISTICS_LINEAR,
+    log100 = c.SDL_TRANSFER_CHARACTERISTICS_LOG100,
+    log100_sqrt10 = c.SDL_TRANSFER_CHARACTERISTICS_LOG100_SQRT10,
     /// IEC 61966-2-4.
-    iec61966 = C.SDL_TRANSFER_CHARACTERISTICS_IEC61966,
+    iec61966 = c.SDL_TRANSFER_CHARACTERISTICS_IEC61966,
     /// ITU-R BT1361 Extended Colour Gamut.
-    bt1361 = C.SDL_TRANSFER_CHARACTERISTICS_BT1361,
+    bt1361 = c.SDL_TRANSFER_CHARACTERISTICS_BT1361,
     /// IEC 61966-2-1 (sRGB or sYCC).
-    srgb = C.SDL_TRANSFER_CHARACTERISTICS_SRGB,
+    srgb = c.SDL_TRANSFER_CHARACTERISTICS_SRGB,
     /// ITU-R BT2020 for 10-bit system.
-    bt2020_10bit = C.SDL_TRANSFER_CHARACTERISTICS_BT2020_10BIT,
+    bt2020_10bit = c.SDL_TRANSFER_CHARACTERISTICS_BT2020_10BIT,
     /// ITU-R BT2020 for 12-bit system.
-    bt2020_12bit = C.SDL_TRANSFER_CHARACTERISTICS_BT2020_12BIT,
+    bt2020_12bit = c.SDL_TRANSFER_CHARACTERISTICS_BT2020_12BIT,
     /// SMPTE ST 2084 for 10-, 12-, 14- and 16-bit system.
-    pq = C.SDL_TRANSFER_CHARACTERISTICS_PQ,
+    pq = c.SDL_TRANSFER_CHARACTERISTICS_PQ,
     /// SMPTE ST 428-1.
-    smpte428 = C.SDL_TRANSFER_CHARACTERISTICS_SMPTE428,
+    smpte428 = c.SDL_TRANSFER_CHARACTERISTICS_SMPTE428,
     /// ARIB STD-B67, known as hybrid log-gamma (HLG).
-    hlg = C.SDL_TRANSFER_CHARACTERISTICS_HLG,
-    custom = C.SDL_TRANSFER_CHARACTERISTICS_CUSTOM,
+    hlg = c.SDL_TRANSFER_CHARACTERISTICS_HLG,
+    custom = c.SDL_TRANSFER_CHARACTERISTICS_CUSTOM,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_TransferCharacteristics) ?TransferCharacteristics {
-        if (value == C.SDL_TRANSFER_CHARACTERISTICS_UNKNOWN)
+    pub fn fromSdl(value: c.SDL_TransferCharacteristics) ?TransferCharacteristics {
+        if (value == c.SDL_TRANSFER_CHARACTERISTICS_UNKNOWN)
             return null;
         return @enumFromInt(value);
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: ?TransferCharacteristics) C.SDL_TransferCharacteristics {
+    pub fn toSdl(self: ?TransferCharacteristics) c.SDL_TransferCharacteristics {
         if (self) |val|
             return @intFromEnum(val);
-        return C.SDL_TRANSFER_CHARACTERISTICS_UNKNOWN;
+        return c.SDL_TRANSFER_CHARACTERISTICS_UNKNOWN;
     }
 };
 
@@ -1701,31 +1701,31 @@ pub const TransferCharacteristics = enum(c_uint) {
 /// ## Version
 /// This enum is available since SDL 3.2.0.
 pub const Type = enum(c_uint) {
-    index1 = C.SDL_PIXELTYPE_INDEX1,
-    index2 = C.SDL_PIXELTYPE_INDEX2,
-    index4 = C.SDL_PIXELTYPE_INDEX4,
-    index8 = C.SDL_PIXELTYPE_INDEX8,
-    packed8 = C.SDL_PIXELTYPE_PACKED8,
-    packed16 = C.SDL_PIXELTYPE_PACKED16,
-    packed32 = C.SDL_PIXELTYPE_PACKED32,
-    array_u8 = C.SDL_PIXELTYPE_ARRAYU8,
-    array_u16 = C.SDL_PIXELTYPE_ARRAYU16,
-    array_u32 = C.SDL_PIXELTYPE_ARRAYU32,
-    array_f16 = C.SDL_PIXELTYPE_ARRAYF16,
-    array_f32 = C.SDL_PIXELTYPE_ARRAYF32,
+    index1 = c.SDL_PIXELTYPE_INDEX1,
+    index2 = c.SDL_PIXELTYPE_INDEX2,
+    index4 = c.SDL_PIXELTYPE_INDEX4,
+    index8 = c.SDL_PIXELTYPE_INDEX8,
+    packed8 = c.SDL_PIXELTYPE_PACKED8,
+    packed16 = c.SDL_PIXELTYPE_PACKED16,
+    packed32 = c.SDL_PIXELTYPE_PACKED32,
+    array_u8 = c.SDL_PIXELTYPE_ARRAYU8,
+    array_u16 = c.SDL_PIXELTYPE_ARRAYU16,
+    array_u32 = c.SDL_PIXELTYPE_ARRAYU32,
+    array_f16 = c.SDL_PIXELTYPE_ARRAYF16,
+    array_f32 = c.SDL_PIXELTYPE_ARRAYF32,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: C.SDL_PixelType) ?Type {
-        if (value == C.SDL_PIXELTYPE_UNKNOWN)
+    pub fn fromSdl(value: c.SDL_PixelType) ?Type {
+        if (value == c.SDL_PIXELTYPE_UNKNOWN)
             return null;
         return @enumFromInt(value);
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: ?Type) C.SDL_PixelType {
+    pub fn toSdl(self: ?Type) c.SDL_PixelType {
         if (self) |val|
             return @intFromEnum(val);
-        return C.SDL_PIXELTYPE_UNKNOWN;
+        return c.SDL_PIXELTYPE_UNKNOWN;
     }
 };
 
@@ -1761,7 +1761,7 @@ pub fn mapSurfaceRgb(
     g: u8,
     b: u8,
 ) Pixel {
-    const ret = C.SDL_MapSurfaceRGB(
+    const ret = c.SDL_MapSurfaceRGB(
         surface_value.value,
         r,
         g,
@@ -1804,7 +1804,7 @@ pub fn mapSurfaceRgba(
     b: u8,
     a: u8,
 ) Pixel {
-    const ret = C.SDL_MapSurfaceRGBA(
+    const ret = c.SDL_MapSurfaceRGBA(
         surface_value.value,
         r,
         g,

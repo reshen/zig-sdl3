@@ -12,7 +12,7 @@ const State = struct {
 };
 
 // Called whenever a native dialog is shown.
-fn fileCallback(user_data: ?*anyopaque, file_list: [*c]const [*c]const u8, filter: c_int) callconv(.C) void {
+fn fileCallback(user_data: ?*anyopaque, file_list: [*c]const [*c]const u8, filter: c_int) callconv(.c) void {
     const data = sdl3.dialog.sanatizeFileCallback(State, user_data, file_list, filter) catch {
         if (user_data) |val| {
             const user: *State = @alignCast(@ptrCast(val));

@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const std = @import("std");
 
@@ -8,18 +8,18 @@ const std = @import("std");
 /// This enum is available since SDL 3.2.0.
 pub const BusType = enum(c_uint) {
     /// An unknown bus type.
-    unknown = C.SDL_HID_API_BUS_UNKNOWN,
+    unknown = c.SDL_HID_API_BUS_UNKNOWN,
     /// USB bus Specifications: https://usb.org/hid.
-    usb = C.SDL_HID_API_BUS_USB,
+    usb = c.SDL_HID_API_BUS_USB,
     /// Bluetooth or Bluetooth LE bus Specifications:
     /// https://www.bluetooth.com/specifications/specs/human-interface-device-profile-1-1-1/
     /// https://www.bluetooth.com/specifications/specs/hid-service-1-0/
     /// https://www.bluetooth.com/specifications/specs/hid-over-gatt-profile-1-0/
-    bluetooth = C.SDL_HID_API_BUS_BLUETOOTH,
+    bluetooth = c.SDL_HID_API_BUS_BLUETOOTH,
     /// I2C bus Specifications: https://docs.microsoft.com/previous-versions/windows/hardware/design/dn642101(v=vs.85)
-    i2c = C.SDL_HID_API_BUS_I2C,
+    i2c = c.SDL_HID_API_BUS_I2C,
     /// SPI bus Specifications: https://www.microsoft.com/download/details.aspx?id=103325
-    spi = C.SDL_HID_API_BUS_SPI,
+    spi = c.SDL_HID_API_BUS_SPI,
 };
 
 /// An opaque handle representing an open HID device.
@@ -27,7 +27,7 @@ pub const BusType = enum(c_uint) {
 /// ## Version
 /// This struct is available since SDL 3.2.0.
 pub const Device = struct {
-    value: *C.SDL_hid_device,
+    value: *c.SDL_hid_device,
 
     /// Close a HID device.
     ///
@@ -39,7 +39,7 @@ pub const Device = struct {
     pub fn deinit(
         self: Device,
     ) !void {
-        const ret = C.SDL_hid_close(self.value);
+        const ret = c.SDL_hid_close(self.value);
         if (ret != 0) {
             errors.callErrorCallback();
             return error.SdlError;
@@ -59,7 +59,7 @@ pub const Device = struct {
     pub fn getDeviceInfo(
         self: Device,
     ) !DeviceInfo {
-        return @as(*DeviceInfo, @ptrCast(try errors.wrapNull(*C.SDL_hid_device_info, C.SDL_hid_get_device_info(self.value)))).*;
+        return @as(*DeviceInfo, @ptrCast(try errors.wrapNull(*c.SDL_hid_device_info, c.SDL_hid_get_device_info(self.value)))).*;
     }
 
     /// Get a feature report from a HID device.
@@ -82,7 +82,7 @@ pub const Device = struct {
         self: Device,
         data: []u8,
     ) ![]u8 {
-        const ret: usize = @intCast(try errors.wrapCall(c_int, C.SDL_hid_get_feature_report(
+        const ret: usize = @intCast(try errors.wrapCall(c_int, c.SDL_hid_get_feature_report(
             self.value,
             data.ptr,
             data.len,
@@ -104,7 +104,7 @@ pub const Device = struct {
         index: c_int,
         buf: [:0]c_int,
     ) !void {
-        const ret = C.SDL_hid_get_indexed_string(self.value, index, buf.ptr, buf.len);
+        const ret = c.SDL_hid_get_indexed_string(self.value, index, buf.ptr, buf.len);
         if (ret != 0) {
             errors.callErrorCallback();
             return error.SdlError;
@@ -131,7 +131,7 @@ pub const Device = struct {
         self: Device,
         data: []u8,
     ) ![]u8 {
-        const ret: usize = @intCast(try errors.wrapCall(c_int, C.SDL_hid_get_input_report(
+        const ret: usize = @intCast(try errors.wrapCall(c_int, c.SDL_hid_get_input_report(
             self.value,
             data.ptr,
             data.len,
@@ -151,7 +151,7 @@ pub const Device = struct {
         self: Device,
         buf: [:0]c_int,
     ) !void {
-        const ret = C.SDL_hid_get_manufacturer_string(self.value, buf.ptr, buf.len);
+        const ret = c.SDL_hid_get_manufacturer_string(self.value, buf.ptr, buf.len);
         if (ret != 0) {
             errors.callErrorCallback();
             return error.SdlError;
@@ -170,7 +170,7 @@ pub const Device = struct {
         self: Device,
         buf: [:0]c_int,
     ) !void {
-        const ret = C.SDL_hid_get_product_string(self.value, buf.ptr, buf.len);
+        const ret = c.SDL_hid_get_product_string(self.value, buf.ptr, buf.len);
         if (ret != 0) {
             errors.callErrorCallback();
             return error.SdlError;
@@ -196,7 +196,7 @@ pub const Device = struct {
         self: Device,
         data: []u8,
     ) ![]u8 {
-        const ret: usize = @intCast(try errors.wrapCall(c_int, C.SDL_hid_get_report_descriptor(
+        const ret: usize = @intCast(try errors.wrapCall(c_int, c.SDL_hid_get_report_descriptor(
             self.value,
             data.ptr,
             data.len,
@@ -216,7 +216,7 @@ pub const Device = struct {
         self: Device,
         buf: [:0]c_int,
     ) !void {
-        const ret = C.SDL_hid_get_serial_number_string(self.value, buf.ptr, buf.len);
+        const ret = c.SDL_hid_get_serial_number_string(self.value, buf.ptr, buf.len);
         if (ret != 0) {
             errors.callErrorCallback();
             return error.SdlError;
@@ -244,7 +244,7 @@ pub const Device = struct {
         serial_num: ?[:0]c_int,
     ) !Device {
         return .{
-            .value = try errors.wrapNull(*C.SDL_hid_device, C.SDL_hid_open(vendor_id, product_id, if (serial_num) |val| val.ptr else null)),
+            .value = try errors.wrapNull(*c.SDL_hid_device, c.SDL_hid_open(vendor_id, product_id, if (serial_num) |val| val.ptr else null)),
         };
     }
 
@@ -265,7 +265,7 @@ pub const Device = struct {
         path: [:0]const u8,
     ) !Device {
         return .{
-            .value = try errors.wrapNull(*C.SDL_hid_device, C.SDL_hid_open_path(path.ptr)),
+            .value = try errors.wrapNull(*c.SDL_hid_device, c.SDL_hid_open_path(path.ptr)),
         };
     }
 
@@ -289,7 +289,7 @@ pub const Device = struct {
         self: Device,
         data: []u8,
     ) !?[]u8 {
-        const ret: usize = @intCast(try errors.wrapCall(c_int, C.SDL_hid_read(
+        const ret: usize = @intCast(try errors.wrapCall(c_int, c.SDL_hid_read(
             self.value,
             data.ptr,
             data.len,
@@ -321,7 +321,7 @@ pub const Device = struct {
         data: []u8,
         timeout_milliseconds: ?usize,
     ) !?[]u8 {
-        const ret: usize = @intCast(try errors.wrapCall(c_int, C.SDL_hid_read_timeout(
+        const ret: usize = @intCast(try errors.wrapCall(c_int, c.SDL_hid_read_timeout(
             self.value,
             data.ptr,
             data.len,
@@ -360,7 +360,7 @@ pub const Device = struct {
         self: Device,
         data: []const u8,
     ) !usize {
-        return @intCast(try errors.wrapCall(c_int, C.SDL_hid_send_feature_report(
+        return @intCast(try errors.wrapCall(c_int, c.SDL_hid_send_feature_report(
             self.value,
             data.ptr,
             data.len,
@@ -385,7 +385,7 @@ pub const Device = struct {
         self: Device,
         non_block: bool,
     ) !void {
-        const ret = C.SDL_hid_set_nonblocking(self.value, if (non_block) 1 else 0);
+        const ret = c.SDL_hid_set_nonblocking(self.value, if (non_block) 1 else 0);
         if (ret != 0) {
             errors.callErrorCallback();
             return error.SdlError;
@@ -419,7 +419,7 @@ pub const Device = struct {
         self: Device,
         data: []const u8,
     ) !usize {
-        return @intCast(try errors.wrapCall(c_int, C.SDL_hid_write(
+        return @intCast(try errors.wrapCall(c_int, c.SDL_hid_write(
             self.value,
             data.ptr,
             data.len,
@@ -466,7 +466,7 @@ pub const DeviceInfo = extern struct {
 
     // Size checks.
     comptime {
-        errors.assertStructsEqual(DeviceInfo, C.SDL_hid_device_info);
+        errors.assertStructsEqual(DeviceInfo, c.SDL_hid_device_info);
     }
 };
 
@@ -480,7 +480,7 @@ pub const DeviceInfo = extern struct {
 pub fn bleScan(
     active: bool,
 ) void {
-    C.SDL_hid_ble_scan(
+    c.SDL_hid_ble_scan(
         active,
     );
 }
@@ -494,7 +494,7 @@ pub fn bleScan(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn deinit() !void {
-    const ret = C.SDL_hid_exit();
+    const ret = c.SDL_hid_exit();
     if (ret != 0) {
         errors.callErrorCallback();
         return error.SdlError;
@@ -515,7 +515,7 @@ pub fn deinit() !void {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn deviceChangeCount() usize {
-    return @intCast(C.SDL_hid_device_change_count());
+    return @intCast(c.SDL_hid_device_change_count());
 }
 
 /// Enumerate the HID Devices.
@@ -543,7 +543,7 @@ pub fn enumerate(
     vendor_id: ?c_ushort,
     product_id: ?c_ushort,
 ) !*DeviceInfo {
-    return @ptrCast(try errors.wrapNull(*C.SDL_hid_device_info, C.SDL_hid_enumerate(
+    return @ptrCast(try errors.wrapNull(*c.SDL_hid_device_info, c.SDL_hid_enumerate(
         if (vendor_id) |val| val else 0,
         if (product_id) |val| val else 0,
     )));
@@ -562,7 +562,7 @@ pub fn enumerate(
 pub fn freeEnumeration(
     devs: *DeviceInfo,
 ) void {
-    C.SDL_hid_free_enumeration(@ptrCast(devs));
+    c.SDL_hid_free_enumeration(@ptrCast(devs));
 }
 
 /// Initialize the HIDAPI library.
@@ -577,7 +577,7 @@ pub fn freeEnumeration(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn init() !void {
-    const ret = C.SDL_hid_init();
+    const ret = c.SDL_hid_init();
     if (ret != 0) {
         errors.callErrorCallback();
         return error.SdlError;

@@ -1,4 +1,4 @@
-const C = @import("c.zig").C;
+const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const std = @import("std");
 const stdinc = @import("stdinc.zig");
@@ -21,11 +21,11 @@ pub const Locale = extern struct {
 
     // Size tests.
     comptime {
-        std.debug.assert(@sizeOf(C.SDL_Locale) == @sizeOf(Locale));
-        std.debug.assert(@offsetOf(C.SDL_Locale, "language") == @offsetOf(Locale, "language"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_Locale, "language")) == @sizeOf(@FieldType(Locale, "language")));
-        std.debug.assert(@offsetOf(C.SDL_Locale, "country") == @offsetOf(Locale, "country"));
-        std.debug.assert(@sizeOf(@FieldType(C.SDL_Locale, "country")) == @sizeOf(@FieldType(Locale, "country")));
+        std.debug.assert(@sizeOf(c.SDL_Locale) == @sizeOf(Locale));
+        std.debug.assert(@offsetOf(c.SDL_Locale, "language") == @offsetOf(Locale, "language"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_Locale, "language")) == @sizeOf(@FieldType(Locale, "language")));
+        std.debug.assert(@offsetOf(c.SDL_Locale, "country") == @offsetOf(Locale, "country"));
+        std.debug.assert(@sizeOf(@FieldType(c.SDL_Locale, "country")) == @sizeOf(@FieldType(Locale, "country")));
     }
 
     /// Report the user's preferred locale.
@@ -57,7 +57,7 @@ pub const Locale = extern struct {
     /// This function is available since SDL 3.2.0.
     pub fn getPreferred() ![]*Locale {
         var cnt: c_int = undefined;
-        const val = C.SDL_GetPreferredLocales(&cnt);
+        const val = c.SDL_GetPreferredLocales(&cnt);
         const ret = try errors.wrapCallCPtr(*Locale, @ptrCast(val));
         return ret[0..@intCast(cnt)];
     }
