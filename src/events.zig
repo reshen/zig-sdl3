@@ -410,17 +410,17 @@ pub const MouseMotion = struct {
     common: Common,
     /// Associated window if any.
     window_id: ?video.WindowID = null,
-    /// The mouse instance id in relative mode, .touch for touch events, or null
+    /// The mouse instance ID in relative mode, `mouse.ID.touch` for touch events, or `null`.
     which: ?mouse.ID = null,
-    /// The current button state
+    /// The current button state.
     state: mouse.ButtonFlags,
-    /// X coordinate, relative to window
+    /// X coordinate, relative to window.
     x: f32,
-    /// Y coordinate, relative to window
+    /// Y coordinate, relative to window.
     y: f32,
-    /// The relative motion in the X direction
+    /// The relative motion in the X direction.
     x_rel: f32,
-    /// The relative motion in the Y direction
+    /// The relative motion in the Y direction.
     y_rel: f32,
 };
 
@@ -443,7 +443,7 @@ pub const MouseButton = struct {
     common: Common,
     /// Associated window if any.
     window_id: ?video.WindowID = null,
-    /// The mouse instance id in relative mode, .touch for touch events, or null.
+    /// The mouse instance ID in relative mode, `mouse.ID.touch` for touch events, or `null`.
     which: ?mouse.ID = null,
     /// The mouse button index.
     button: mouse.Button,
@@ -466,17 +466,17 @@ pub const MouseWheel = struct {
     common: Common,
     /// Associated window if any.
     window_id: ?video.WindowID = null,
-    /// The mouse instance id in relative mode, .touch for touch events, or null
+    /// The mouse instance ID in relative mode, `mouse.ID.touch?` for touch events, or `null`.
     which: ?mouse.ID = null,
-    /// The amount scrolled horizontally, positive to the right and negative to the left
+    /// The amount scrolled horizontally, positive to the right and negative to the left.
     scroll_x: f32,
-    /// The amount scrolled vertically, positive away from the user and negative toward the user
+    /// The amount scrolled vertically, positive away from the user and negative toward the user.
     scroll_y: f32,
-    /// When .flipped, the values in X and Y will be opposite. Multiply by -1 to change them back
+    /// When .flipped, the values in X and Y will be opposite. Multiply by -1 to change them back.
     direction: mouse.WheelDirection,
-    /// X coordinate, relative to window
+    /// X coordinate, relative to window.
     x: f32,
-    /// Y coordinate, relative to window
+    /// Y coordinate, relative to window.
     y: f32,
 };
 
@@ -508,7 +508,7 @@ pub const Key = struct {
     common: Common,
     /// The window with keyboard focus, if any.
     window_id: ?video.WindowID = null,
-    /// The keyboard instance id, or null if unknown or virtual.
+    /// The keyboard instance ID, or `null` if unknown or virtual.
     which: ?keyboard.ID,
     /// SDL physical key code.
     scancode: ?scancode.Scancode,
