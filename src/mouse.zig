@@ -32,7 +32,7 @@ const video = @import("video.zig");
 pub const MotionTransformCallback = *const fn (user_data: ?*anyopaque, timestamp: u64, window: ?*c.SDL_Window, id: c.SDL_MouseID, x: ?*f32, y: ?*f32) callconv(.c) void;
 
 /// Enum identifying mouse buttons
-pub const Button = enum(c_int) {
+pub const Button = enum(u8) {
     left = c.SDL_BUTTON_LEFT,
     middle = c.SDL_BUTTON_MIDDLE,
     right = c.SDL_BUTTON_RIGHT,
