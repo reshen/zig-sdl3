@@ -18,8 +18,8 @@ pub fn update(ctx: common.Context) !void {
 pub fn draw(ctx: common.Context) !void {
 
     // Get command buffer and swapchain texture.
-    const cmd_buf = try ctx.device.aquireCommandBuffer();
-    var swapchain_texture = try cmd_buf.waitAndAquireSwapchainTexture(ctx.window);
+    const cmd_buf = try ctx.device.acquireCommandBuffer();
+    var swapchain_texture = try cmd_buf.waitAndAcquireSwapchainTexture(ctx.window);
     if (swapchain_texture.texture) |texture| {
 
         // Start a render pass if the swapchain texture is available. Make sure to clear it.
@@ -32,7 +32,7 @@ pub fn draw(ctx: common.Context) !void {
         }, null);
         defer render_pass.end();
     }
-    swapchain_texture = try cmd_buf.waitAndAquireSwapchainTexture(window);
+    swapchain_texture = try cmd_buf.waitAndAcquireSwapchainTexture(window);
     if (swapchain_texture.texture) |texture| {
 
         // Start a render pass if the swapchain texture is available. Make sure to clear it.

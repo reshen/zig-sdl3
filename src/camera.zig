@@ -401,7 +401,7 @@ pub const Camera = packed struct {
     /// ## Remarks
     /// Let the back-end re-use the internal buffer for camera.
     ///
-    /// This function must be called only on surface objects returned by `camera.Camera.aquireFrame()`.
+    /// This function must be called only on surface objects returned by `camera.Camera.acquireFrame()`.
     /// This function should be called as quickly as possible after acquisition, as SDL keeps a small FIFO queue of surfaces for video frames;
     /// if surfaces aren't released in a timely manner, SDL may drop upcoming video frames from the camera.
     ///
