@@ -500,7 +500,7 @@ pub const ColorTargetInfo = extern struct {
     store: StoreOperation = .store,
     /// The texture that will receive the results of a multisample resolve operation.
     /// Ignored if a `gpu.StoreOperation.resolve` for `store` is not used.
-    resolve_texture: Texture = .{ .value = undefined },
+    resolve_texture: Texture = .{ .value = null },
     /// The mip level of the resolve texture to use for the resolve operation.
     /// Ignored if a `gpu.StoreOperation.resolve` for `store` is not used.
     resolve_mip_level: u32 = 0,
@@ -1299,6 +1299,7 @@ pub const ComputePipelineCreateInfo = struct {
         return .{
             .code = self.code.ptr,
             .code_size = self.code.len,
+            .entrypoint = self.entry_point,
             .format = ShaderFormatFlags.toSdl(self.format),
             .num_samplers = self.num_samplers,
             .num_readonly_storage_textures = self.num_readonly_storage_textures,

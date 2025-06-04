@@ -31,6 +31,16 @@ const video = @import("video.zig");
 /// This datatype is available since SDL 3.2.6.
 pub const MotionTransformCallback = *const fn (user_data: ?*anyopaque, timestamp: u64, window: ?*c.SDL_Window, id: c.SDL_MouseID, x: ?*f32, y: ?*f32) callconv(.c) void;
 
+/// Enum identifying mouse buttons
+pub const Button = enum(c_int) {
+    left = c.SDL_BUTTON_LEFT,
+    middle = c.SDL_BUTTON_MIDDLE,
+    right = c.SDL_BUTTON_RIGHT,
+    x1 = c.SDL_BUTTON_X1,
+    x2 = c.SDL_BUTTON_X2,
+    _,
+};
+
 /// A bitmask of pressed mouse buttons, as reported by `mouse.getState()`, etc.
 ///
 /// ## Version
