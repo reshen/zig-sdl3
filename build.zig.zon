@@ -4,8 +4,8 @@
     .minimum_zig_version = "0.14.0",
     .dependencies = .{
         .sdl = .{
-            .url = "https://github.com/castholm/SDL/archive/refs/tags/v0.2.3+3.2.14.zip",
-            .hash = "sdl-0.2.3+3.2.14-7uIn9BR5fgHLSuR3NxLrwhUENvEQwoNBeV2-johgGda_",
+            .url = "git+https://github.com/castholm/SDL.git#3ed62e53aecd9ffb28e44b9d35b7c09a8739e823",
+            .hash = "sdl-0.2.4+3.2.16-7uIn9DPhfgH29yAIJqHLc69hNb4IW0q-AngtKCFoT92b",
         },
         .sdl_image = .{
             .url = "git+https://github.com/allyourcodebase/SDL_image.git#f6a7beaf014dbc3696f29513172cab498e527adc",

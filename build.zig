@@ -17,10 +17,52 @@ pub fn build(b: *std.Build) !void {
         },
     };
 
+    const c_sdl_preferred_linkage = b.option(
+        std.builtin.LinkMode,
+        "c_sdl_preferred_linkage",
+        "Prefer building statically or dynamically linked libraries (default: static)",
+    ) orelse .static;
+    const c_sdl_strip = b.option(
+        bool,
+        "c_sdl_strip",
+        "Strip debug symbols (default: varies)",
+    ) orelse (optimize == .ReleaseSmall);
+    const c_sdl_sanitize_c = b.option(
+        enum { off, trap, full }, // TODO: Change to std.zig.SanitizeC after 0.15
+        "c_sdl_sanitize_c",
+        "Detect C undefined behavior (default: varies)",
+    ) orelse switch (optimize) {
+        .Debug => .full,
+        .ReleaseSafe => .trap,
+        .ReleaseFast, .ReleaseSmall => .off,
+    };
+    const c_sdl_lto = b.option(
+        enum { none, full, thin }, // TODO: Change to std.zig.LtoMode after 0.15
+        "lto",
+        "Perform link time optimization (default: false)",
+    ) orelse .none;
+    const c_sdl_emscripten_pthreads = b.option(
+        bool,
+        "c_sdl_emscripten_pthreads",
+        "Build with pthreads support when targeting Emscripten (default: false)",
+    ) orelse false;
+    const c_sdl_install_build_config_h = b.option(
+        bool,
+        "c_sdl_install_build_config_h",
+        "Additionally install 'SDL_build_config.h' when installing SDL (default: false)",
+    ) orelse false;
+
     const sdl_dep = b.dependency("sdl", .{
         .target = target,
         .optimize = optimize,
+        .preferred_linkage = c_sdl_preferred_linkage,
+        .strip = c_sdl_strip,
+        .sanitize_c = c_sdl_sanitize_c,
+        .lto = c_sdl_lto,
+        .emscripten_pthreads = c_sdl_emscripten_pthreads,
+        .install_build_config_h = c_sdl_install_build_config_h,
     });
+
     const sdl_dep_lib = sdl_dep.artifact("SDL3");
 
     const sdl_image_dep = b.dependency("sdl_image", .{
