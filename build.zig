@@ -30,15 +30,11 @@ pub fn build(b: *std.Build) !void {
     const c_sdl_sanitize_c = b.option(
         enum { off, trap, full }, // TODO: Change to std.zig.SanitizeC after 0.15
         "c_sdl_sanitize_c",
-        "Detect C undefined behavior (default: varies)",
-    ) orelse switch (optimize) {
-        .Debug => .full,
-        .ReleaseSafe => .trap,
-        .ReleaseFast, .ReleaseSmall => .off,
-    };
+        "Detect C undefined behavior (default: trap)",
+    ) orelse .trap;
     const c_sdl_lto = b.option(
         enum { none, full, thin }, // TODO: Change to std.zig.LtoMode after 0.15
-        "lto",
+        "c_sdl_lto",
         "Perform link time optimization (default: false)",
     ) orelse .none;
     const c_sdl_emscripten_pthreads = b.option(

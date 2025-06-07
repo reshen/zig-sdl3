@@ -36,13 +36,13 @@ const sdl3 = b.dependency("sdl3", .{
     .callbacks = false,
     .ext_image = true,
 
-    // Options passed directly to https://github.com/castholm/SDL (SDL3 C Bindings)
-    //.preferred_linkage = .static,
-    //.strip = false,
-    //.sanitize_c = .off,
-    //.lto = .none,
-    //.emscripten_pthreads = false,
-    //.install_build_config_h = false,
+    // Options passed directly to https://github.com/castholm/SDL (SDL3 C Bindings):
+    //.c_sdl_preferred_linkage = .static,
+    //.c_sdl_strip = false,
+    //.c_sdl_sanitize_c = .off,
+    //.c_sdl_lto = .none,
+    //.c_sdl_emscripten_pthreads = false,
+    //.c_sdl_install_build_config_h = false,
 });
 ```
 Now add the modules and artifact to your target as you would normally:
