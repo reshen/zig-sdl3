@@ -237,7 +237,8 @@ pub const Type = enum(c.SDL_EventType) {
     // WindowHidden,
     // WindowExposed,
     // WindowMoved,
-    // WindowResized,
+    /// Window has been resized
+    window_resized,
     // WindowPixelSizeChanged,
     // WindowMetalViewResized,
     // WindowMinimized,
@@ -268,12 +269,14 @@ pub const Type = enum(c.SDL_EventType) {
     // KeyboardAdded,
     // KeyboardRemoved,
     // TextEditingCandidates,
-    // MouseMotion,
+    /// Mouse moved.
+    mouse_motion = c.SDL_EVENT_MOUSE_MOTION,
     /// Mouse button pressed.
     mouse_button_down = c.SDL_EVENT_MOUSE_BUTTON_DOWN,
     /// Mouse button released.
     mouse_button_up = c.SDL_EVENT_MOUSE_BUTTON_UP,
-    // MouseWheel,
+    /// Mouse wheel motion.
+    mouse_wheel = c.SDL_EVENT_MOUSE_WHEEL,
     // MouseAdded,
     // MouseRemoved,
     // JoystickAxisMotion,
@@ -398,6 +401,85 @@ pub const User = struct {
     data2: ?*anyopaque = null,
 };
 
+/// Mouse motion event structure (event.motion.*)
+///
+/// ## Version
+/// This struct is available since SDL 3.2.0.
+pub const MouseMotion = struct {
+    /// Common event information.
+    common: Common,
+    /// Associated window if any.
+    window_id: ?video.WindowID = null,
+    /// The mouse instance ID in relative mode, `mouse.ID.touch` for touch events, or `null`.
+    which: ?mouse.ID = null,
+    /// The current button state.
+    state: mouse.ButtonFlags,
+    /// X coordinate, relative to window.
+    x: f32,
+    /// Y coordinate, relative to window.
+    y: f32,
+    /// The relative motion in the X direction.
+    x_rel: f32,
+    /// The relative motion in the Y direction.
+    y_rel: f32,
+};
+
+/// Mouse button event structure (event.button.*)
+///
+/// ## Version
+/// This struct is available since SDL 3.2.0.
+///
+/// ## Code Examples
+/// ```zig
+///     const mouse_button = if (ev == .mouse_button_down) ev.mouse_button_down.button else break :event_handle;
+///     if (mouse_button == .left) {
+///         std.debug.print("left click\n", .{});
+///     } else if (mouse_button == .right) {
+///         std.debug.print("right click\n", .{});
+///     }
+/// ```
+pub const MouseButton = struct {
+    /// Common event information.
+    common: Common,
+    /// Associated window if any.
+    window_id: ?video.WindowID = null,
+    /// The mouse instance ID in relative mode, `mouse.ID.touch` for touch events, or `null`.
+    which: ?mouse.ID = null,
+    /// The mouse button index.
+    button: mouse.Button,
+    /// If the button is pressed.
+    down: bool,
+    /// 1 for single-click, 2 for double-click, etc.
+    clicks: u8,
+    /// X coordinate, relative to window.
+    x: f32,
+    /// Y coordinate, relative to window.
+    y: f32,
+};
+
+/// Mouse wheel event structure (event.wheel.*)
+///
+/// ## Version
+/// This struct is available since SDL 3.2.0.
+pub const MouseWheel = struct {
+    /// Common event information.
+    common: Common,
+    /// Associated window if any.
+    window_id: ?video.WindowID = null,
+    /// The mouse instance ID in relative mode, `mouse.ID.touch?` for touch events, or `null`.
+    which: ?mouse.ID = null,
+    /// The amount scrolled horizontally, positive to the right and negative to the left.
+    scroll_x: f32,
+    /// The amount scrolled vertically, positive away from the user and negative toward the user.
+    scroll_y: f32,
+    /// When .flipped, the values in X and Y will be opposite. Multiply by -1 to change them back.
+    direction: mouse.WheelDirection,
+    /// X coordinate, relative to window.
+    x: f32,
+    /// Y coordinate, relative to window.
+    y: f32,
+};
+
 /// Keyboard button event structure (event.key.*)
 ///
 /// ## Remarks
@@ -426,7 +508,7 @@ pub const Key = struct {
     common: Common,
     /// The window with keyboard focus, if any.
     window_id: ?video.WindowID = null,
-    /// The keyboard instance id, or null if unknown or virtual.
+    /// The keyboard instance ID, or `null` if unknown or virtual.
     which: ?keyboard.ID,
     /// SDL physical key code.
     scancode: ?scancode.Scancode,
@@ -442,40 +524,19 @@ pub const Key = struct {
     repeat: bool,
 };
 
-/// Mouse button event structure
+/// Window state change event data (event.window.*)
 ///
 /// ## Version
 /// This struct is available since SDL 3.2.0.
-///
-/// ## Code Examples
-/// ```zig
-///     const mouse_button =
-///     if (event.* == .mouse_button_down) event.mouse_button_down.button else return;
-///     if (mouse_button.left) {
-///         std.debug.print("left click\n", .{});
-///     } else if (mouse_button.right) {
-///         std.debug.print("right click\n", .{});
-///     }
-/// ```
-/// ## Remarks
-/// Only one button can be set to true per event
-pub const MouseButton = struct {
+pub const Window = struct {
     /// Common event information.
     common: Common,
-    /// The window with mouse focus, if any.
-    window_id: ?video.WindowID = null,
-    /// The mouse instance id in relative mode, or null.
-    which: ?mouse.ID,
-    /// The mouse button index.
-    button: mouse.ButtonFlags,
-    /// true if the button is pressed.
-    down: bool,
-    /// 1 for single-click, 2 for double-click, etc.
-    clicks: u8,
-    /// X coordinate, relative to window.
-    x: f32,
-    /// Y coordinate, relative to window.
-    y: f32,
+    /// Associated window.
+    window_id: video.WindowID,
+    /// Event dependent data 1.
+    data1: i32,
+    /// Event dependent data 2.
+    data2: i32,
 };
 
 /// The "quit requested" event.
@@ -502,16 +563,27 @@ pub const Event = union(Type) {
     quit: Quit,
     /// Application being terminated by the OS.
     terminating: Common,
+
+    /// A window resized event.
+    window_resized: Window,
+
     /// A key pressed event.
     key_down: Key,
     /// A key released event.
     key_up: Key,
-    /// A mouse pressed event.
+
+    /// A mouse moved event.
+    mouse_motion: MouseMotion,
+    /// A mouse button pressed event.
     mouse_button_down: MouseButton,
-    /// A mouse released event.
+    /// A mouse button released event.
     mouse_button_up: MouseButton,
+    /// A mouse wheel motion event.
+    mouse_wheel: MouseWheel,
+
     /// A user event.
     user: User,
+
     /// An unknown event.
     unknown: Unknown,
     // Padding to make union the same size of a `c.SDL_Event`.
@@ -541,6 +613,78 @@ pub const Event = union(Type) {
                 .common = Common.fromSdl(&event),
             } },
             c.SDL_EVENT_TERMINATING => .{ .terminating = Common.fromSdl(&event) },
+            c.SDL_EVENT_WINDOW_RESIZED => .{ .window_resized = .{
+                .common = Common.fromSdl(&event),
+                .window_id = event.window.windowID,
+                .data1 = event.window.data1,
+                .data2 = event.window.data2,
+            } },
+            c.SDL_EVENT_KEY_DOWN => .{ .key_down = .{
+                .common = Common.fromSdl(&event),
+                .window_id = if (event.key.windowID == 0) null else event.key.windowID,
+                .which = .{
+                    .value = event.key.which,
+                },
+                .scancode = @enumFromInt(event.key.scancode),
+                .key = @enumFromInt(event.key.key),
+                .mod = keycode.KeyModifier.fromSdl(event.key.mod),
+                .raw = event.key.raw,
+                .down = event.key.down,
+                .repeat = event.key.repeat,
+            } },
+            c.SDL_EVENT_KEY_UP => .{ .key_up = .{
+                .common = Common.fromSdl(&event),
+                .window_id = if (event.key.windowID == 0) null else event.key.windowID,
+                .which = .{
+                    .value = event.key.which,
+                },
+                .scancode = @enumFromInt(event.key.scancode),
+                .key = @enumFromInt(event.key.key),
+                .mod = keycode.KeyModifier.fromSdl(event.key.mod),
+                .raw = event.key.raw,
+                .down = event.key.down,
+                .repeat = event.key.repeat,
+            } },
+            c.SDL_EVENT_MOUSE_MOTION => .{ .mouse_motion = .{
+                .common = .fromSdl(&event),
+                .window_id = if (event.motion.windowID == 0) null else event.motion.windowID,
+                .which = .fromSdl(event.button.which),
+                .state = .fromSdl(event.motion.state),
+                .x = event.motion.x,
+                .y = event.motion.y,
+                .x_rel = event.motion.xrel,
+                .y_rel = event.motion.yrel,
+            } },
+            c.SDL_EVENT_MOUSE_BUTTON_DOWN => .{ .mouse_button_down = .{
+                .common = .fromSdl(&event),
+                .window_id = if (event.button.windowID == 0) null else event.button.windowID,
+                .which = .fromSdl(event.button.which),
+                .button = @enumFromInt(event.button.button),
+                .down = event.button.down,
+                .clicks = event.button.clicks,
+                .x = event.button.x,
+                .y = event.button.y,
+            } },
+            c.SDL_EVENT_MOUSE_BUTTON_UP => .{ .mouse_button_up = .{
+                .common = .fromSdl(&event),
+                .window_id = if (event.button.windowID == 0) null else event.button.windowID,
+                .which = .fromSdl(event.button.which),
+                .button = @enumFromInt(event.button.button),
+                .down = event.button.down,
+                .clicks = event.button.clicks,
+                .x = event.button.x,
+                .y = event.button.y,
+            } },
+            c.SDL_EVENT_MOUSE_WHEEL => .{ .mouse_wheel = .{
+                .common = .fromSdl(&event),
+                .window_id = if (event.button.windowID == 0) null else event.button.windowID,
+                .which = .fromSdl(event.button.which),
+                .scroll_x = event.wheel.x,
+                .scroll_y = event.wheel.y,
+                .direction = @enumFromInt(event.wheel.direction),
+                .x = event.wheel.mouse_x,
+                .y = event.wheel.mouse_y,
+            } },
             c.SDL_EVENT_USER...c.SDL_EVENT_LAST => .{ .user = .{
                 .common = Common.fromSdl(&event),
                 .event_type = event.type,
@@ -549,64 +693,6 @@ pub const Event = union(Type) {
                 .data1 = event.user.data1,
                 .data2 = event.user.data2,
             } },
-            c.SDL_EVENT_KEY_DOWN => .{
-                .key_down = .{
-                    .common = Common.fromSdl(&event),
-                    .window_id = if (event.key.windowID == 0) null else event.key.windowID,
-                    .which = .{
-                        .value = event.key.which,
-                    },
-                    .scancode = @enumFromInt(event.key.scancode),
-                    .key = @enumFromInt(event.key.key),
-                    .mod = keycode.KeyModifier.fromSdl(event.key.mod),
-                    .raw = event.key.raw,
-                    .down = event.key.down,
-                    .repeat = event.key.repeat,
-                },
-            },
-            c.SDL_EVENT_KEY_UP => .{
-                .key_up = .{
-                    .common = Common.fromSdl(&event),
-                    .window_id = if (event.key.windowID == 0) null else event.key.windowID,
-                    .which = .{
-                        .value = event.key.which,
-                    },
-                    .scancode = @enumFromInt(event.key.scancode),
-                    .key = @enumFromInt(event.key.key),
-                    .mod = keycode.KeyModifier.fromSdl(event.key.mod),
-                    .raw = event.key.raw,
-                    .down = event.key.down,
-                    .repeat = event.key.repeat,
-                },
-            },
-            c.SDL_EVENT_MOUSE_BUTTON_DOWN => .{
-                .mouse_button_down = .{
-                    .common = Common.fromSdl(&event),
-                    .window_id = if (event.button.windowID == 0) null else event.button.windowID,
-                    .which = if (event.button.which == 0) null else .{
-                        .value = event.button.which,
-                    },
-                    .button = mouse.ButtonFlags.fromSdl(event.button.button),
-                    .down = event.button.down,
-                    .clicks = event.button.clicks,
-                    .x = event.button.x,
-                    .y = event.button.y,
-                },
-            },
-            c.SDL_EVENT_MOUSE_BUTTON_UP => .{
-                .mouse_button_up = .{
-                    .common = Common.fromSdl(&event),
-                    .window_id = if (event.button.windowID == 0) null else event.button.windowID,
-                    .which = if (event.button.which == 0) null else .{
-                        .value = event.button.which,
-                    },
-                    .button = mouse.ButtonFlags.fromSdl(event.button.button),
-                    .down = event.button.down,
-                    .clicks = event.button.clicks,
-                    .x = event.button.x,
-                    .y = event.button.y,
-                },
-            },
             c.SDL_EVENT_ENUM_PADDING => .{
                 .padding = @splat(0),
             },
@@ -684,22 +770,14 @@ pub const Event = union(Type) {
                 .type = c.SDL_EVENT_TERMINATING,
                 .timestamp = val.timestamp,
             } },
-            .unknown => |val| .{ .common = .{
-                .type = val.event_type,
+            .window_resized => |val| .{ .window = .{
+                .type = c.SDL_EVENT_WINDOW_RESIZED,
                 .timestamp = val.common.timestamp,
-            } },
-            .user => |val| .{ .user = .{
-                .type = val.event_type,
-                .timestamp = val.common.timestamp,
-                .windowID = if (val.window_id) |id| id else 0,
-                .code = val.code,
-                .data1 = val.data1,
-                .data2 = val.data2,
             } },
             .key_up => |val| .{ .key = .{
                 .type = c.SDL_EVENT_KEY_UP,
                 .timestamp = val.common.timestamp,
-                .windowID = if (val.window_id) |id| id else 0,
+                .windowID = val.window_id orelse 0,
                 .which = if (val.which) |which| which.value else 0,
                 .scancode = if (val.scancode) |code| code.toSdl() else c.SDL_SCANCODE_UNKNOWN,
                 .key = keycode.Keycode.toSdl(val.key),
@@ -711,7 +789,7 @@ pub const Event = union(Type) {
             .key_down => |val| .{ .key = .{
                 .type = c.SDL_EVENT_KEY_DOWN,
                 .timestamp = val.common.timestamp,
-                .windowID = if (val.window_id) |id| id else 0,
+                .windowID = val.window_id orelse 0,
                 .which = if (val.which) |which| which.value else 0,
                 .scancode = if (val.scancode) |code| code.toSdl() else c.SDL_SCANCODE_UNKNOWN,
                 .key = keycode.Keycode.toSdl(val.key),
@@ -720,32 +798,62 @@ pub const Event = union(Type) {
                 .down = val.down,
                 .repeat = val.repeat,
             } },
-            .mouse_button_up => |val| .{
-                .button = .{
-                    .type = c.SDL_EVENT_MOUSE_BUTTON_UP,
-                    .timestamp = val.common.timestamp,
-                    .windowID = if (val.window_id) |id| id else 0,
-                    .which = mouse.ID.toSdl(val.which),
-                    .button = @intCast(val.button.toSdl()),
-                    .down = val.down,
-                    .clicks = val.clicks,
-                    .x = val.x,
-                    .y = val.y,
-                },
-            },
-            .mouse_button_down => |val| .{
-                .button = .{
-                    .type = c.SDL_EVENT_MOUSE_BUTTON_DOWN,
-                    .timestamp = val.common.timestamp,
-                    .windowID = if (val.window_id) |id| id else 0,
-                    .which = mouse.ID.toSdl(val.which),
-                    .button = @intCast(val.button.toSdl()),
-                    .down = val.down,
-                    .clicks = val.clicks,
-                    .x = val.x,
-                    .y = val.y,
-                },
-            },
+            .mouse_motion => |val| .{ .motion = .{
+                .type = c.SDL_EVENT_MOUSE_MOTION,
+                .timestamp = val.common.timestamp,
+                .windowID = val.window_id orelse 0,
+                .which = if (val.which) |which| which.value else 0,
+                .state = val.state.toSdl(),
+                .x = val.x,
+                .y = val.y,
+                .xrel = val.x_rel,
+                .yrel = val.y_rel,
+            } },
+            .mouse_button_up => |val| .{ .button = .{
+                .type = c.SDL_EVENT_MOUSE_BUTTON_UP,
+                .timestamp = val.common.timestamp,
+                .windowID = val.window_id orelse 0,
+                .which = mouse.ID.toSdl(val.which),
+                .button = @intFromEnum(val.button),
+                .down = val.down,
+                .clicks = val.clicks,
+                .x = val.x,
+                .y = val.y,
+            } },
+            .mouse_button_down => |val| .{ .button = .{
+                .type = c.SDL_EVENT_MOUSE_BUTTON_DOWN,
+                .timestamp = val.common.timestamp,
+                .windowID = val.window_id orelse 0,
+                .which = mouse.ID.toSdl(val.which),
+                .button = @intFromEnum(val.button),
+                .down = val.down,
+                .clicks = val.clicks,
+                .x = val.x,
+                .y = val.y,
+            } },
+            .mouse_wheel => |val| .{ .wheel = .{
+                .type = c.SDL_EVENT_MOUSE_WHEEL,
+                .timestamp = val.common.timestamp,
+                .windowID = val.window_id orelse 0,
+                .which = mouse.ID.toSdl(val.which),
+                .x = val.scroll_x,
+                .y = val.scroll_y,
+                .direction = @intFromEnum(val.direction),
+                .mouse_x = val.x,
+                .mouse_y = val.y,
+            } },
+            .user => |val| .{ .user = .{
+                .type = val.event_type,
+                .timestamp = val.common.timestamp,
+                .windowID = val.window_id orelse 0,
+                .code = val.code,
+                .data1 = val.data1,
+                .data2 = val.data2,
+            } },
+            .unknown => |val| .{ .common = .{
+                .type = val.event_type,
+                .timestamp = val.common.timestamp,
+            } },
             .padding => .{
                 .type = c.SDL_EVENT_ENUM_PADDING,
             },
