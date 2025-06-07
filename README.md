@@ -40,8 +40,7 @@ const sdl3 = b.dependency("sdl3", .{
     //.preferred_linkage = .static,
     //.strip = false,
     //.sanitize_c = .off,
-    //.pic = true,
-    //.lto = .false,
+    //.lto = .none,
     //.emscripten_pthreads = false,
     //.install_build_config_h = false,
 });

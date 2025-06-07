@@ -26,22 +26,21 @@ pub fn build(b: *std.Build) !void {
         bool,
         "c_sdl_strip",
         "Strip debug symbols (default: varies)",
-    ) orelse (optimize != .Debug);
+    ) orelse (optimize == .ReleaseSmall);
     const c_sdl_sanitize_c = b.option(
         enum { off, trap, full }, // TODO: Change to std.zig.SanitizeC after 0.15
         "c_sdl_sanitize_c",
         "Detect C undefined behavior (default: varies)",
-    ) orelse .off;
-    const c_sdl_pic = b.option(
-        bool,
-        "c_sdl_pic",
-        "Produce position-independent code (default: varies)",
-    ) orelse true;
+    ) orelse switch (optimize) {
+        .Debug => .full,
+        .ReleaseSafe => .trap,
+        .ReleaseFast, .ReleaseSmall => .off,
+    };
     const c_sdl_lto = b.option(
-        enum { true, false, none, full, thin }, // TODO: Change to std.zig.LtoMode after 0.15
+        enum { none, full, thin }, // TODO: Change to std.zig.LtoMode after 0.15
         "lto",
         "Perform link time optimization (default: false)",
-    ) orelse .false;
+    ) orelse .none;
     const c_sdl_emscripten_pthreads = b.option(
         bool,
         "c_sdl_emscripten_pthreads",
@@ -59,7 +58,6 @@ pub fn build(b: *std.Build) !void {
         .preferred_linkage = c_sdl_preferred_linkage,
         .strip = c_sdl_strip,
         .sanitize_c = c_sdl_sanitize_c,
-        .pic = if (c_sdl_preferred_linkage == .dynamic) true else c_sdl_pic,
         .lto = c_sdl_lto,
         .emscripten_pthreads = c_sdl_emscripten_pthreads,
         .install_build_config_h = c_sdl_install_build_config_h,
