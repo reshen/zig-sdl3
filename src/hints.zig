@@ -161,6 +161,24 @@ pub const Type = enum {
     /// This hint is available since SDL 3.2.0.
     AppleTvControllerUiEvents,
 
+    /// A variable that specifies a video backend to use.
+    ///
+    /// ## Remarks
+    /// By default, SDL will try all available video backends in a reasonable order
+    /// until it finds one that can work, but this hint allows the app or user to
+    /// force a specific target, such as "x11" if, say, you are on Wayland but want
+    /// to try talking to the X server instead.
+    ///
+    /// This hint accepts a comma-separated list of driver names, and each will be
+    /// tried in the order listed during init, until one succeeds or all of them
+    /// fail.
+    ///
+    /// This hint should be set before SDL is initialized.
+    ///
+    /// ## Version
+    /// This hint is available since SDL 3.2.0.
+    VideoDriver,
+
     // TODO: REST OF HINTS!!!
 
     /// Convert from an SDL string.
@@ -181,6 +199,8 @@ pub const Type = enum {
             return .AppName;
         if (std.mem.eql(u8, c.SDL_HINT_APPLE_TV_CONTROLLER_UI_EVENTS, val))
             return .AppleTvControllerUiEvents;
+        if (std.mem.eql(u8, c.SDL_HINT_VIDEO_DRIVER, val))
+            return .VideoDriver;
         return .AllowAltTabWhileGrabbed;
     }
 
@@ -195,6 +215,7 @@ pub const Type = enum {
             .AppID => c.SDL_HINT_APP_ID,
             .AppName => c.SDL_HINT_APP_NAME,
             .AppleTvControllerUiEvents => c.SDL_HINT_APPLE_TV_CONTROLLER_UI_EVENTS,
+            .VideoDriver => c.SDL_HINT_VIDEO_DRIVER,
         };
     }
 };
