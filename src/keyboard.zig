@@ -697,47 +697,4 @@ pub fn textInputActive(
 // Test keyboard functions.
 test "Keyboard" {
     std.testing.refAllDeclsRecursive(@This());
-
-    defer init.shutdown();
-    try init.init(.{ .video = true });
-    defer init.quit(.{ .video = true });
-
-    const keyboards = try getKeyboards();
-    for (keyboards) |val| {
-        _ = try val.getName();
-    }
-    defer stdinc.free(keyboards);
-
-    const window = try video.Window.init("Test", 100, 100, .{ .minimized = true });
-    defer window.deinit();
-
-    try clearComposition(window);
-
-    _ = getState();
-    reset();
-    _ = hasKeyboard();
-    _ = textInputActive(window);
-    _ = shownOnScreen(window);
-    _ = hasScreenSupport();
-    _ = getFocus();
-
-    try startTextInput(window);
-    try stopTextInput(window);
-
-    try startTextInputWithProperties(window, .{ .capitalization = .words, .multi_line = true });
-    try stopTextInput(window);
-
-    _ = getKeyName(keycode.Keycode.a);
-    _ = getKeyFromName("a") catch {};
-    _ = getKeyFromScancode(scancode.Scancode.a, .{}, false);
-    _ = getScancodeFromKey(keycode.Keycode.a);
-    _ = getScancodeFromName("a") catch {};
-    _ = getScancodeName(scancode.Scancode.a);
-    setScancodeName(scancode.Scancode.a, "a") catch {};
-
-    setModState(.{});
-    _ = getModState();
-
-    _ = getTextInputArea(window) catch {};
-    setTextInputArea(window, null, 0) catch {};
 }

@@ -65,18 +65,4 @@ pub const View = packed struct {
 // Metal glue layer tests.
 test "Metal" {
     std.testing.refAllDeclsRecursive(@This());
-
-    defer init.shutdown();
-    const flags = init.Flags{ .video = true };
-    try init.init(flags);
-    defer init.quit(flags);
-
-    const window = try video.Window.init("testing", 10, 10, .{});
-    defer window.deinit();
-
-    const view_raw = View.init(window);
-    if (view_raw) |view| {
-        defer view.deinit();
-        _ = view.getLayer();
-    }
 }

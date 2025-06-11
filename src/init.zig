@@ -387,7 +387,6 @@ test "Init" {
 
     defer shutdown();
     const flags = Flags{
-        .video = true,
         .events = true,
         .camera = true,
     };

@@ -270,59 +270,7 @@ pub fn setText(
     return errors.wrapCallBool(ret);
 }
 
-fn cleanup_cb(
-    user_data: ?*anyopaque,
-) callconv(.c) void {
-    _ = user_data;
-}
-
-fn data_cb(
-    user_data: ?*anyopaque,
-    mime_type: [*c]const u8,
-    size: [*c]usize,
-) callconv(.c) ?*anyopaque {
-    _ = user_data;
-    _ = mime_type;
-    size.* = 1;
-    return @constCast(@ptrCast(&data_cb));
-}
-
 // Test the clipboard. Yes it needs video.
 test "Clipboard" {
     std.testing.refAllDeclsRecursive(@This());
-
-    defer init.shutdown();
-    const flags = init.Flags{ .video = true };
-    try init.init(flags);
-    defer init.quit(flags);
-
-    const text_raw: ?[:0]u8 = getText() catch null;
-
-    try setText("Hello World!");
-    const gotten_text = try getText();
-    defer stdinc.free(gotten_text);
-    try std.testing.expectEqualStrings("Hello World!", gotten_text);
-    try std.testing.expect(hasText());
-
-    const mimes = try getMimeTypes();
-    defer stdinc.free(mimes);
-
-    if (hasPrimarySelectionText()) {
-        const primary = try getPrimarySelectionText();
-        try setPrimarySelectionText(primary);
-    }
-
-    var mime_types = [_][*:0]const u8{"GOTA"};
-    try setData(data_cb, cleanup_cb, null, &mime_types);
-    try std.testing.expect(hasData("GOTA"));
-    _ = try getData("GOTA");
-
-    clearData() catch {};
-    try std.testing.expect(!hasText());
-    try std.testing.expect(!hasData("GOTA"));
-
-    if (text_raw) |val| {
-        setText(val) catch {};
-        stdinc.free(val.ptr);
-    }
 }

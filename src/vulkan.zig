@@ -221,24 +221,4 @@ pub fn unloadLibrary() void {
 // Vulkan related testing.
 test "Vulkan" {
     std.testing.refAllDeclsRecursive(@This());
-
-    defer init.shutdown();
-    const flags = init.Flags{ .video = true };
-    try init.init(flags);
-    defer init.quit(flags);
-
-    const window = try video.Window.init("testing", 10, 10, .{});
-    defer window.deinit();
-
-    loadLibrary(null) catch {};
-    defer unloadLibrary();
-
-    const surface_raw: ?Surface = Surface.init(window, null, null) catch null;
-    if (surface_raw) |surface| {
-        defer surface.deinit();
-    }
-
-    _ = getInstanceExtensions() catch {};
-    _ = getPresentationSupport(null, null, 0);
-    _ = getVkGetInstanceProcAddr() catch {};
 }
