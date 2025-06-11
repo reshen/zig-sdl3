@@ -1,0 +1,64 @@
+name: docs
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+permissions:
+  contents: read
+env:
+  ZIG_VERSION: 0.14.0
+concurrency:
+  group: "test"
+  cancel-in-progress: false
+jobs:
+  test:
+    name: Testing
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mlugg/setup-zig@v1
+        with:
+          version: ${{ env.ZIG_VERSION }}
+      - name: Testing
+        run: zig build test
+  examples:
+    name: Build Examples
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mlugg/setup-zig@v1
+        with:
+          version: ${{ env.ZIG_VERSION }}
+      - name: Build Examples
+        run: zig build examples
+  template:
+    name: Build Template
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mlugg/setup-zig@v1
+        with:
+          version: ${{ env.ZIG_VERSION }}
+      - name: Build Template
+        run: cd template && zig build
+  gpu_examples:
+    name: Build GPU Examples
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mlugg/setup-zig@v1
+        with:
+          version: ${{ env.ZIG_VERSION }}
+      - name: Build Template
+        run: cd gpu_examples && zig build
+  docs:
+    name: Build documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mlugg/setup-zig@v1
+        with:
+          version: ${{ env.ZIG_VERSION }}
+      - name: Build documentation
+        run: zig build docs
