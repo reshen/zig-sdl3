@@ -103,7 +103,7 @@ fn sdlLog(
 /// Note: For most actual projects, you most likely want a callbacks setup.
 /// See the template for details.
 pub fn main() !void {
-h
+
     // Setup logging.
     sdl3.errors.error_callback = &sdlErr;
     sdl3.log.setAllPriorities(.info);
