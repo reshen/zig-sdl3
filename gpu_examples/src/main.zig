@@ -31,7 +31,7 @@ const examples = [_]Example{
 };
 
 /// Example index to start with.
-const starting_example = 3;
+const starting_example = 0;
 
 /// An example function to handle errors from SDL.
 ///
@@ -127,11 +127,24 @@ pub fn main() !void {
     var last_time: f32 = 0;
     const can_draw = true;
     while (!quit) {
+        ctx.left_pressed = false;
+        ctx.right_pressed = false;
+        ctx.down_pressed = false;
+        ctx.up_pressed = false;
 
         // Handle events.
         while (sdl3.events.poll()) |event| {
             switch (event) {
                 .quit, .terminating => quit = true,
+                .key_down => |val| if (val.key) |key| switch (key) {
+                    .d => goto_index = (example_index + 1) % examples.len,
+                    .a => goto_index = if (example_index == 0) examples.len - 1 else example_index - 1,
+                    .left => ctx.left_pressed = true,
+                    .right => ctx.right_pressed = true,
+                    .down => ctx.down_pressed = true,
+                    .up => ctx.up_pressed = true,
+                    else => {},
+                },
                 else => {},
             }
         }

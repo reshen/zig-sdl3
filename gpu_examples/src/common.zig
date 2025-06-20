@@ -10,6 +10,7 @@ pub const Context = struct {
     left_pressed: bool = false,
     right_pressed: bool = false,
     down_pressed: bool = false,
+    up_pressed: bool = false,
 };
 
 pub fn init(example_name: [:0]const u8, window_flags: sdl3.video.WindowFlags) !Context {
