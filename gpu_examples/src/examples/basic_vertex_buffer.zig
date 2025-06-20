@@ -91,16 +91,7 @@ pub fn init() !common.Context {
     });
     defer ctx.device.releaseTransferBuffer(transfer_buffer);
     const transfer_buffer_mapped = @as(
-        @Type(.{ .pointer = .{
-            .child = @TypeOf(vertex_data),
-            .size = .one,
-            .sentinel_ptr = null,
-            .address_space = .generic,
-            .is_const = false,
-            .is_volatile = false,
-            .is_allowzero = false,
-            .alignment = @alignOf(@TypeOf(&vertex_data)),
-        } }),
+        *@TypeOf(vertex_data),
         @alignCast(@ptrCast(try ctx.device.mapTransferBuffer(transfer_buffer, false))),
     );
     transfer_buffer_mapped.* = vertex_data;

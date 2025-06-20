@@ -1,4 +1,56 @@
+const attributes = @import("attributes.zig");
 const std = @import("std");
+
+/// Declare variables for a vertex shader.
+///
+/// ## Function Parameters
+/// * `src`: The shader name to look up in the attributes map.
+///
+/// ## Remarks
+/// The `vert_out_position` pointer is always available.
+///
+/// ## Return Value
+/// Returns a type that can be initiated at compile time to access vars for the variable shader.
+/// For example, if you have `constants.vert_in_position` as an attribute for `my_shader.vert`, then declare `const vars = declareVertexShaderVars("my_shader.vert")`.
+/// Then, you can access `vars.vert_in_position` as the vertex position.
+pub inline fn declareVertexShaderVars(
+    comptime src: []const u8,
+) type {
+    const attribs = attributes.vertex_buffer_attributes.get(src).?;
+
+    var ptrs: [attribs.len]*addrspace(.input) anyopaque = undefined;
+    inline for (attribs, 0..) |attrib, i| {
+        ptrs[i] = @extern(*addrspace(.input) attrib.typ, .{ .name = attrib.name });
+    }
+
+    var fields: [attribs.len + 1]std.builtin.Type.StructField = undefined;
+    inline for (attribs, 0..) |attrib, i| {
+        fields[i] = .{
+            .name = attrib.name,
+            .type = *addrspace(.input) attrib.typ,
+            .default_value_ptr = @ptrCast(&ptrs[i]),
+            .is_comptime = false,
+            .alignment = @alignOf(*addrspace(.input) attrib.typ),
+        };
+    }
+    const vert_out_position = @extern(*addrspace(.output) vert_out_position_type, .{ .name = "vert_out_position" });
+    fields[attribs.len] = .{
+        .name = "vert_out_position",
+        .type = *addrspace(.output) vert_out_position_type,
+        .default_value_ptr = @ptrCast(&vert_out_position),
+        .is_comptime = false,
+        .alignment = @alignOf(*addrspace(.output) vert_out_position_type),
+    };
+
+    return @Type(.{
+        .@"struct" = .{
+            .layout = .auto,
+            .fields = &fields,
+            .decls = &.{},
+            .is_tuple = false,
+        },
+    });
+}
 
 /// Stage of data for the attribute parameter.
 pub const AttributeStage = enum {
@@ -12,6 +64,8 @@ pub const AttributeStage = enum {
 
 /// GPU attribute structure.
 pub const Attribute = struct {
+    /// Name of the attribute.
+    name: [:0]const u8,
     /// Attribute location.
     /// This has to be unique among attributes for each stage type, but does not have to be unique across different stage types.
     loc: u32,
@@ -44,6 +98,7 @@ pub const Attribute = struct {
 
 /// Attribute to use for input vertex position.
 pub const vert_in_position = Attribute{
+    .name = "vert_in_position",
     .loc = 0,
     .typ = @Vector(3, f32),
     .stage = .vert_input,
@@ -51,6 +106,7 @@ pub const vert_in_position = Attribute{
 
 /// Attribute to use for input vertex color.
 pub const vert_in_color = Attribute{
+    .name = "vert_in_color",
     .loc = 1,
     .typ = @Vector(4, f32),
     .byte_normalize = true,
@@ -63,6 +119,7 @@ pub const vert_out_position_type = @Vector(4, f32);
 
 /// Attribute to use for vertex color outputs.
 pub const vert_out_frag_in_color = Attribute{
+    .name = "vert_out_frag_in_color",
     .loc = 0,
     .typ = @Vector(4, f32),
     .stage = .vert_output_frag_input,
@@ -74,6 +131,7 @@ pub const vert_out_frag_in_color = Attribute{
 /// The fragment output color location should just be 0.
 /// I don't know why, it's just expected to be at 0.
 pub const frag_out_color = Attribute{
+    .name = "frag_out_color",
     .loc = 0,
     .typ = @Vector(4, f32),
     .stage = .frag_output,
