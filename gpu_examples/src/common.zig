@@ -1,5 +1,5 @@
 const attributes = @import("shaders/attributes.zig");
-const constants = @import("shaders/constants.zig");
+const common = @import("shaders/common.zig");
 const sdl3 = @import("sdl3");
 const std = @import("std");
 
@@ -175,19 +175,58 @@ inline fn makeVertexAttribute(
 
 /// Get the SDL attribute format for a GPU attribute type.
 inline fn getAttributeFormat(
-    comptime attribute: constants.Attribute,
+    comptime attribute: common.Attribute,
 ) sdl3.gpu.VertexElementFormat {
     comptime {
-        if (attribute.byte_normalize) {
-            return switch (attribute.typ) {
-                @Vector(4, f32) => .u8x4_normalized,
-                else => @compileError(std.fmt.comptimePrint("Unable to get normalized attribute format for {s}", .{@typeName(attribute.typ)})),
+        if (attribute.cpu_type) |cpu_type| {
+            if (@typeInfo(attribute.type) != .vector)
+                @compileError(std.fmt.comptimePrint("GPU attribute for normalized field must be a vector for {s}", .{@typeName(attribute.type)}));
+            if (@typeInfo(cpu_type) != .vector)
+                @compileError(std.fmt.comptimePrint("CPU attribute for normalized field must be a vector for {s}", .{@typeName(attribute.type)}));
+            const type_info = @typeInfo(attribute.type).vector;
+            if (type_info.child != f32)
+                @compileError(std.fmt.comptimePrint("GPU vector child type for normalized field must be f32 for {s}", .{@typeName(attribute.type)}));
+            const cpu_type_info = @typeInfo(cpu_type).vector;
+            if (type_info.len != cpu_type_info.len)
+                @compileError(std.fmt.comptimePrint("CPU attribute has length {d} while normalized GPU attribute has length {d} for {s}", .{ cpu_type_info.len, type_info.len, @typeName(attribute.type) }));
+            return switch (cpu_type) {
+                @Vector(2, i8) => .i8x2_normalized,
+                @Vector(4, i8) => .i8x4_normalized,
+                @Vector(2, u8) => .u8x2_normalized,
+                @Vector(4, u8) => .u8x4_normalized,
+                @Vector(2, i16) => .i16x2_normalized,
+                @Vector(4, i16) => .i16x4_normalized,
+                @Vector(2, u16) => .u16x2_normalized,
+                @Vector(4, u16) => .u16x4_normalized,
+                else => @compileError(std.fmt.comptimePrint("Unable to get normalized attribute format for {s}", .{@typeName(attribute.type)})),
             };
         } else {
-            return switch (attribute.typ) {
+            return switch (attribute.type) {
+                i32 => .i32x1,
+                @Vector(1, i32) => .i32x1,
+                @Vector(2, i32) => .i32x2,
+                @Vector(3, i32) => .i32x3,
+                @Vector(4, i32) => .i32x4,
+                u32 => .u32x1,
+                @Vector(1, u32) => .u32x1,
+                @Vector(2, u32) => .u32x2,
+                @Vector(3, u32) => .u32x3,
+                @Vector(4, u32) => .u32x4,
+                f32 => .f32x1,
+                @Vector(1, f32) => .f32x1,
                 @Vector(2, f32) => .f32x2,
                 @Vector(3, f32) => .f32x3,
                 @Vector(4, f32) => .f32x4,
+                @Vector(2, i8) => .i8x2,
+                @Vector(4, i8) => .i8x4,
+                @Vector(2, u8) => .u8x2,
+                @Vector(4, u8) => .u8x4,
+                @Vector(2, i16) => .i16x2,
+                @Vector(4, i16) => .i16x4,
+                @Vector(2, u16) => .u16x2,
+                @Vector(4, u16) => .u16x4,
+                @Vector(2, f16) => .f16x2,
+                @Vector(4, f16) => .f16x4,
                 else => @compileError(std.fmt.comptimePrint("Unable to get attribute format for {s}", .{@typeName(attribute.typ)})),
             };
         }

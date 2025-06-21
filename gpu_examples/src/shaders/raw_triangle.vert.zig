@@ -1,35 +1,33 @@
-const constants = @import("constants.zig");
+const attributes = @import("attributes.zig");
+const common = @import("common.zig");
 const std = @import("std");
 
-// Provided by executor.
-extern var vert_index: u32 addrspace(.input);
+/// Get the name of this shader file (without `.zig`).
+fn shader_name() []const u8 {
+    return @src().file;
+}
 
-// Data to output.
-extern var vert_out_position: constants.vert_out_position_type addrspace(.output);
-extern var vert_out_color: constants.vert_out_frag_in_color.typ addrspace(.output);
+// Vertex shader variables.
+const vars = common.declareVertexShaderVars(shader_name()){};
 
 export fn main() callconv(.spirv_vertex) void {
 
-    // Vertex index and position are built-ins.
-    std.gpu.vertexIndex(&vert_index);
-    std.gpu.position(&vert_out_position);
-
-    // Export the color to a pre-selected slot.
-    std.gpu.location(&vert_out_color, constants.vert_out_frag_in_color.loc);
+    // Bind vertex shader variables to the current shader.
+    common.bindVertexShaderVars(vars, shader_name());
 
     // Since we are drawing 1 primitive triangle, the indices 0, 1, and 2 are the only vetices expected.
-    switch (vert_index) {
+    switch (vars.vert_in_index.*) {
         0 => {
-            vert_out_position = .{ -1, -1, 0, 1 };
-            vert_out_color = .{ 1, 0, 0, 1 };
+            vars.vert_out_position.* = .{ -1, -1, 0, 1 };
+            vars.vert_out_color.* = .{ 1, 0, 0, 1 };
         },
         1 => {
-            vert_out_position = .{ 1, -1, 0, 1 };
-            vert_out_color = .{ 0, 1, 0, 1 };
+            vars.vert_out_position.* = .{ 1, -1, 0, 1 };
+            vars.vert_out_color.* = .{ 0, 1, 0, 1 };
         },
         else => {
-            vert_out_position = .{ 0, 1, 0, 1 };
-            vert_out_color = .{ 0, 0, 1, 1 };
+            vars.vert_out_position.* = .{ 0, 1, 0, 1 };
+            vars.vert_out_color.* = .{ 0, 0, 1, 1 };
         },
     }
 }
