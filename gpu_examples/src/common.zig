@@ -75,6 +75,35 @@ pub const VertexInputStateBuffer = struct {
     instance_step_rate: u32 = 0,
 };
 
+/// Ensure a vertex shader and fragment shader are compatible with each other.
+///
+/// ## Remarks
+/// This assumes that each shader uses only attributes from the `attributes.zig` file
+/// and uses a function such as `const vars = common.declareVertexShaderVars(shader_name()){};` to declare the shader variables.
+/// Note that it is only important that the fragment shader's inputs are output by the vertex shader,
+/// the vertex shader is allowed to output attributes to the fragment shader that go unused.
+///
+/// ## Function Parameters
+/// * `vertex_shader_name`: The name of the vertex shader.
+/// * `fragment_shader_name`: The name of the fragment shader.
+pub inline fn ensureShadersCompatible(
+    comptime vertex_shader_name: []const u8,
+    comptime fragment_shader_name: []const u8,
+) void {
+    comptime {
+        const vert_out_attribs = attributes.vertex_out_fragment_in_attributes.get(vertex_shader_name).?;
+        const frag_in_attribs = attributes.vertex_out_fragment_in_attributes.get(fragment_shader_name).?;
+        for (frag_in_attribs) |frag_in_attrib| {
+            for (vert_out_attribs) |vert_out_attrib| {
+                if (std.meta.eql(frag_in_attrib, vert_out_attrib))
+                    break;
+            } else {
+                @compileError(std.fmt.comptimePrint("Fragment shader {s} expects input attribute {s}, but this was not output by vertex shader {s}", .{ fragment_shader_name, frag_in_attrib.name, vertex_shader_name }));
+            }
+        }
+    }
+}
+
 /// Make vertex buffer descriptions given buffers information.
 pub inline fn makeVertexBufferDescriptions(
     comptime buffers: []const VertexInputStateBuffer,

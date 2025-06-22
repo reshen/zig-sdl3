@@ -7,6 +7,10 @@ const frag_shader_name = "solid_color.frag";
 const vert_shader_bin = @embedFile(vert_shader_name ++ ".spv");
 const frag_shader_bin = @embedFile(frag_shader_name ++ ".spv");
 
+comptime {
+    common.ensureShadersCompatible(vert_shader_name, frag_shader_name);
+}
+
 var pipeline: sdl3.gpu.GraphicsPipeline = undefined;
 var vertex_buffer: sdl3.gpu.Buffer = undefined;
 

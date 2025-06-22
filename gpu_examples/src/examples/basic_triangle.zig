@@ -1,8 +1,14 @@
 const common = @import("../common.zig");
 const sdl3 = @import("sdl3");
 
-const vert_shader_bin = @embedFile("raw_triangle.vert.spv");
-const frag_shader_bin = @embedFile("solid_color.frag.spv");
+const vert_shader_name = "raw_triangle.vert";
+const frag_shader_name = "solid_color.frag";
+const vert_shader_bin = @embedFile(vert_shader_name ++ ".spv");
+const frag_shader_bin = @embedFile(frag_shader_name ++ ".spv");
+
+comptime {
+    common.ensureShadersCompatible(vert_shader_name, frag_shader_name);
+}
 
 var fill_pipeline: sdl3.gpu.GraphicsPipeline = undefined;
 var line_pipeline: sdl3.gpu.GraphicsPipeline = undefined;
