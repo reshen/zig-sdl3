@@ -7,11 +7,11 @@ const std = @import("std");
 /// * `src`: The shader name to look up in the attributes map.
 ///
 /// ## Remarks
-/// The `vert_out_position` pointer is always available.
+/// The `vert_in_index` and `vert_out_position` pointers are always available.
 ///
 /// ## Return Value
 /// Returns a type that can be initiated at compile time to access vars for the variable shader.
-/// For example, if you have `constants.vert_in_position` as an attribute for `my_shader.vert`, then declare `const vars = declareVertexShaderVars("my_shader.vert")`.
+/// For example, if you have `vert_in_position` as an attribute for `my_shader.vert.zig`, then declare `const vars = common.declareVertexShaderVars("my_shader.vert.zig"){}`.
 /// Then, you can access `vars.vert_in_position` as the vertex position.
 pub inline fn declareVertexShaderVars(
     comptime src: []const u8,
@@ -120,6 +120,94 @@ pub inline fn bindVertexShaderVars(
 
     // Output position always exists.
     std.gpu.position(vars.vert_out_position);
+}
+
+/// Declare variables for a fragment shader.
+///
+/// ## Function Parameters
+/// * `src`: The shader name to look up in the attributes map.
+///
+/// ## Remarks
+/// The `frag_out_color` pointer is always available.
+///
+/// ## Return Value
+/// Returns a type that can be initiated at compile time to access vars for the variable shader.
+/// For example, if you have `frag_in_color` as an attribute for `my_shader.frag.zig`, then declare `const vars = common.declareVertexShaderVars("my_shader.frag.zig"){}`.
+/// Then, you can access `vars.frag_in_color` as the input color.
+pub inline fn declareFragmentShaderVars(
+    comptime src: []const u8,
+) type {
+    comptime {
+
+        // Get vertex buffer attributes for the shader.
+        var curr_field: usize = 0;
+        const in_attribs = attributes.vertex_out_fragment_in_attributes.get(src[0 .. src.len - 4]).?; // Remove zig extension.
+        var fields: [in_attribs.len + 1]std.builtin.Type.StructField = undefined;
+
+        // Get extern pointers for each buffer attribute (so we can use as location later).
+        var in_ptrs: [in_attribs.len]*addrspace(.input) const anyopaque = undefined;
+        for (in_attribs, 0..) |attrib, i| {
+            in_ptrs[i] = @extern(*addrspace(.input) const attrib.type, .{ .name = attrib.name });
+        }
+
+        // Create fields in our return struct to use as our vertex attributes.
+        // Note we set the default value of each attribute to the corresponding extern pointer so we can access the buffer attribute data.
+        for (in_attribs, 0..) |attrib, i| {
+            if (attrib.stage != .vert_output_frag_input)
+                @compileLog(std.fmt.comptimePrint("Attribute stage for {s} for shader {s} is not a fragment input when needed to be one", .{ attrib.name, src }));
+            fields[curr_field] = .{
+                .name = "frag_in_" ++ attrib.name,
+                .type = *addrspace(.input) const attrib.type,
+                .default_value_ptr = @ptrCast(&in_ptrs[i]),
+                .is_comptime = false,
+                .alignment = @alignOf(*addrspace(.input) const attrib.type),
+            };
+            curr_field += 1;
+        }
+
+        // Fragment out color is always available and hardcoded in.
+        const frag_out_color = @extern(*addrspace(.output) attributes.frag_out_color.type, .{ .name = "frag_out_color" });
+        fields[curr_field] = .{
+            .name = "frag_out_color",
+            .type = *addrspace(.output) attributes.frag_out_color.type,
+            .default_value_ptr = @ptrCast(&frag_out_color),
+            .is_comptime = false,
+            .alignment = @alignOf(*addrspace(.output) attributes.frag_out_color.type),
+        };
+
+        return @Type(.{
+            .@"struct" = .{
+                .layout = .auto,
+                .fields = &fields,
+                .decls = &.{},
+                .is_tuple = false,
+            },
+        });
+    }
+}
+
+/// Bind fragment shader variables.
+///
+/// ## Function Parameters
+/// * `vars`: The fragment shader variables.
+/// * `src`: The name of the shader file.
+pub inline fn bindFragmentShaderVars(
+    comptime vars: anytype,
+    comptime src: []const u8,
+    comptime main: *const fn () callconv(.spirv_fragment) void,
+) void {
+    std.gpu.fragmentOrigin(main, .upper_left);
+
+    // Get vertex buffer attributes for the shader.
+    const in_attribs = runtimeAttributesFromCompileTimeAttributes(attributes.vertex_out_fragment_in_attributes.get(src[0 .. src.len - 4]).?); // Remove zig extension.
+
+    // Declare bindings for each field.
+    inline for (in_attribs) |attrib| {
+        std.gpu.location(@field(vars, "frag_in_" ++ attrib.name), attrib.loc);
+    }
+
+    // Fragment out color always exists.
+    std.gpu.location(vars.frag_out_color, attributes.frag_out_color.loc);
 }
 
 /// Stage of data for the attribute parameter.

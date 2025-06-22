@@ -49,6 +49,7 @@ pub const vert_out_frag_in_color = Attribute{
 
 /// The fragment output color location should just be 0.
 /// I don't know why, it's just expected to be at 0.
+/// This is hardcoded as an output for fragment shaders.
 pub const frag_out_color = Attribute{
     .name = "color",
     .loc = 0,

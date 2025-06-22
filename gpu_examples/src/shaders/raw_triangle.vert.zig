@@ -1,8 +1,7 @@
-const attributes = @import("attributes.zig");
 const common = @import("common.zig");
 const std = @import("std");
 
-/// Get the name of this shader file (without `.zig`).
+/// Get the name of this shader file.
 fn shader_name() []const u8 {
     return @src().file;
 }
