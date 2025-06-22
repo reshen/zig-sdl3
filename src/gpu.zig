@@ -4832,9 +4832,9 @@ pub const Viewport = struct {
     /// Viewport region.
     region: rect.FRect,
     /// The minimum depth of the viewport.
-    min_depth: f32,
+    min_depth: f32 = 0,
     /// The maximum depth of the viewport.
-    max_depth: f32,
+    max_depth: f32 = 0,
 
     /// Convert from an SDL value.
     pub fn fromSdl(value: c.SDL_GPUViewport) Viewport {

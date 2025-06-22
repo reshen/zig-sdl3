@@ -75,6 +75,44 @@ pub const VertexInputStateBuffer = struct {
     instance_step_rate: u32 = 0,
 };
 
+/// Ensure two used attributes do not share the same slot.
+/// If two do, this can possibly cause bugs.
+pub inline fn ensureNoDuplicateSlots() !void {
+    comptime {
+        var map = std.AutoHashMap(u32, [:0]const u8).init(std.heap.smp_allocator);
+        defer map.deinit();
+
+        // Scan vertex buffer attributes for duplicates.
+        for (attributes.vertex_buffer_attributes.keys()) |key| {
+            const attribs = attributes.vertex_buffer_attributes.get(key).?;
+            for (attribs) |attrib| {
+                if (map.get(attrib.loc)) |same_attrib_loc_name| {
+                    if (!std.mem.eql(u8, attrib.name, same_attrib_loc_name)) {
+                        @compileError(std.fmt.comptimePrint("Attributes {s} and {s} share the same location {d}", .{ attrib.name, same_attrib_loc_name, attrib.loc }));
+                    }
+                } else {
+                    try map.put(attrib.loc, attrib.name);
+                }
+            }
+        }
+        map.clearRetainingCapacity();
+
+        // Scan vertex shader out fragment shader in attributes for duplicates.
+        for (attributes.vertex_out_fragment_in_attributes.keys()) |key| {
+            const attribs = attributes.vertex_out_fragment_in_attributes.get(key).?;
+            for (attribs) |attrib| {
+                if (map.get(attrib.loc)) |same_attrib_loc_name| {
+                    if (!std.mem.eql(u8, attrib.name, same_attrib_loc_name)) {
+                        @compileError(std.fmt.comptimePrint("Attributes {s} and {s} share the same location {d}", .{ attrib.name, same_attrib_loc_name, attrib.loc }));
+                    }
+                } else {
+                    try map.put(attrib.loc, attrib.name);
+                }
+            }
+        }
+    }
+}
+
 /// Ensure a vertex shader and fragment shader are compatible with each other.
 ///
 /// ## Remarks

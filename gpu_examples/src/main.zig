@@ -2,6 +2,11 @@ const common = @import("common.zig");
 const sdl3 = @import("sdl3");
 const std = @import("std");
 
+// Attribute verification.
+comptime {
+    // common.ensureNoDuplicateSlots() catch |err| @compileError(std.fmt.comptimePrint("{e}", .{err}));
+}
+
 /// Example structure.
 const Example = struct {
     name: []const u8,
@@ -28,6 +33,7 @@ const examples = [_]Example{
     makeExample(@import("examples/clear_screen_multi.zig")),
     makeExample(@import("examples/basic_triangle.zig")),
     makeExample(@import("examples/basic_vertex_buffer.zig")),
+    makeExample(@import("examples/cull_mode.zig")),
 };
 
 /// Example index to start with.
