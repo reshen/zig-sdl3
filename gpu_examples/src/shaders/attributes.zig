@@ -15,6 +15,10 @@ const std = @import("std");
 /// This is a hardcoded input for the vertex stage.
 pub const vert_in_index_type = u32;
 
+/// Input type for vertex instance index.
+/// This is a hardcoded input for the vertex stage.
+pub const vert_in_instance_index_type = u32;
+
 /// Attribute to use for input vertex position.
 pub const vert_in_position = Attribute{
     .name = "position",
@@ -67,6 +71,13 @@ pub const vertex_buffer_attributes = std.StaticStringMap([]const Attribute).init
             vert_in_color,
         },
     },
+    .{
+        "position_color_instanced.vert",
+        &.{
+            vert_in_position,
+            vert_in_color,
+        },
+    },
     .{ "raw_triangle.vert", &[_]Attribute{} },
 });
 
@@ -75,6 +86,12 @@ pub const vertex_buffer_attributes = std.StaticStringMap([]const Attribute).init
 pub const vertex_out_fragment_in_attributes = std.StaticStringMap([]const Attribute).initComptime(&.{
     .{
         "position_color.vert",
+        &.{
+            vert_out_frag_in_color,
+        },
+    },
+    .{
+        "position_color_instanced.vert",
         &.{
             vert_out_frag_in_color,
         },

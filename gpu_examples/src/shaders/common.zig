@@ -7,7 +7,7 @@ const std = @import("std");
 /// * `src`: The shader name to look up in the attributes map.
 ///
 /// ## Remarks
-/// The `vert_in_index` and `vert_out_position` pointers are always available.
+/// The `vert_in_index`, `vert_in_instance_index`, and `vert_out_position` pointers are always available.
 ///
 /// ## Return Value
 /// Returns a type that can be initiated at compile time to access vars for the variable shader.
@@ -22,7 +22,7 @@ pub inline fn declareVertexShaderVars(
         var curr_field: usize = 0;
         const in_attribs = attributes.vertex_buffer_attributes.get(src[0 .. src.len - 4]).?; // Remove zig extension.
         const out_attribs = attributes.vertex_out_fragment_in_attributes.get(src[0 .. src.len - 4]).?; // Remove zig extension.
-        var fields: [in_attribs.len + out_attribs.len + 2]std.builtin.Type.StructField = undefined;
+        var fields: [in_attribs.len + out_attribs.len + 3]std.builtin.Type.StructField = undefined;
 
         // Get extern pointers for each buffer attribute (so we can use as location later).
         var in_ptrs: [in_attribs.len]*addrspace(.input) const anyopaque = undefined;
@@ -72,6 +72,17 @@ pub inline fn declareVertexShaderVars(
         };
         curr_field += 1;
 
+        // Vertex instance index is always available and hardcoded in.
+        const vert_in_instance_index = @extern(*addrspace(.input) attributes.vert_in_index_type, .{ .name = "vert_in_instance_index" });
+        fields[curr_field] = .{
+            .name = "vert_in_instance_index",
+            .type = *addrspace(.input) attributes.vert_in_instance_index_type,
+            .default_value_ptr = @ptrCast(&vert_in_instance_index),
+            .is_comptime = false,
+            .alignment = @alignOf(*addrspace(.input) attributes.vert_in_instance_index_type),
+        };
+        curr_field += 1;
+
         // Vertex out position is always available and hardcoded in.
         const vert_out_position = @extern(*addrspace(.output) attributes.vert_out_position_type, .{ .name = "vert_out_position" });
         fields[curr_field] = .{
@@ -117,6 +128,9 @@ pub inline fn bindVertexShaderVars(
 
     // Input index always exists.
     std.gpu.vertexIndex(vars.vert_in_index);
+
+    // Input instance index always exists.
+    std.gpu.instanceIndex(vars.vert_in_instance_index);
 
     // Output position always exists.
     std.gpu.position(vars.vert_out_position);

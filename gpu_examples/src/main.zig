@@ -35,6 +35,7 @@ const examples = [_]Example{
     makeExample(@import("examples/basic_vertex_buffer.zig")),
     makeExample(@import("examples/cull_mode.zig")),
     makeExample(@import("examples/basic_stencil.zig")),
+    makeExample(@import("examples/instanced_index.zig")),
 };
 
 /// Example index to start with.
