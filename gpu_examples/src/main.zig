@@ -34,10 +34,11 @@ const examples = [_]Example{
     makeExample(@import("examples/basic_triangle.zig")),
     makeExample(@import("examples/basic_vertex_buffer.zig")),
     makeExample(@import("examples/cull_mode.zig")),
+    makeExample(@import("examples/basic_stencil.zig")),
 };
 
 /// Example index to start with.
-const starting_example = 3;
+const starting_example = 0;
 
 /// An example function to handle errors from SDL.
 ///
