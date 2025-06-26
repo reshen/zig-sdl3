@@ -4470,9 +4470,9 @@ pub const TextureTransferInfo = struct {
     /// The starting byte of the image data in the transfer buffer.
     offset: u32,
     /// The number of pixels from one row to the next.
-    pixels_per_row: u32,
+    pixels_per_row: u32 = 0,
     /// The number of rows from one layer/depth-slice to the next.
-    rows_per_layer: u32,
+    rows_per_layer: u32 = 0,
 
     /// Convert from an SDL value.
     pub fn fromSdl(value: c.SDL_GPUTextureTransferInfo) TextureTransferInfo {
