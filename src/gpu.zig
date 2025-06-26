@@ -4334,15 +4334,15 @@ pub const TextureLocation = struct {
     /// The texture used in the copy operation.
     texture: Texture,
     /// The mip level index of the location.
-    mip_level: u32,
+    mip_level: u32 = 0,
     /// The layer index of the location.
-    layer: u32,
+    layer: u32 = 0,
     /// The left offset of the location.
-    x: u32,
+    x: u32 = 0,
     /// The top offset of the location.
-    y: u32,
+    y: u32 = 0,
     /// The front offset of the location.
-    z: u32,
+    z: u32 = 0,
 
     /// Convert from an SDL value.
     pub fn fromSdl(
@@ -4384,15 +4384,15 @@ pub const TextureRegion = struct {
     /// The texture used in the copy operation.
     texture: Texture,
     /// The mip level index to transfer.
-    mip_level: u32,
+    mip_level: u32 = 0,
     /// The layer index to transfer.
-    layer: u32,
+    layer: u32 = 0,
     /// The left offset of the region.
-    x: u32,
+    x: u32 = 0,
     /// The top offset of the region.
-    y: u32,
+    y: u32 = 0,
     /// The front offset of the region.
-    z: u32,
+    z: u32 = 0,
     /// The width of the region.
     width: u32,
     /// The height of the region.
