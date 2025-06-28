@@ -40,10 +40,10 @@ fn quit(user_data: ?*anyopaque, entry: ?*sdl3.c.SDL_TrayEntry) callconv(.c) void
 }
 
 pub fn main() !void {
-    defer sdl3.init.shutdown();
+    defer sdl3.shutdown();
 
-    try sdl3.init.init(.{ .video = true });
-    defer sdl3.init.quit(.{ .video = true });
+    try sdl3.init(.{ .video = true });
+    defer sdl3.quit(.{ .video = true });
 
     var prng = std.Random.DefaultPrng.init(@bitCast(std.time.microTimestamp()));
     var state = State{

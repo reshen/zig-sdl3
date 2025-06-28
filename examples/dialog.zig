@@ -124,10 +124,10 @@ pub fn main() !void {
     defer arena.deinit();
     const allocator = arena.allocator();
 
-    defer sdl3.init.shutdown();
+    defer sdl3.shutdown();
 
-    try sdl3.init.init(.{ .video = true });
-    defer sdl3.init.quit(.{ .video = false });
+    try sdl3.init(.{ .video = true });
+    defer sdl3.quit(.{ .video = false });
 
     const window = try sdl3.video.Window.init("Dialog Example Backing", 500, 300, .{
         .transparent = true,

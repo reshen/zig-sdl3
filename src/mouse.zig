@@ -1,6 +1,5 @@
 const c = @import("c.zig").c;
 const errors = @import("errors.zig");
-const init = @import("init.zig");
 const rect = @import("rect.zig");
 const std = @import("std");
 const stdinc = @import("stdinc.zig");

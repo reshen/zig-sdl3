@@ -5,11 +5,11 @@ const SCREEN_WIDTH = 640;
 const SCREEN_HEIGHT = 480;
 
 pub fn main() !void {
-    defer sdl3.init.shutdown();
+    defer sdl3.shutdown();
 
-    const init_flags = sdl3.init.Flags{ .video = true };
-    try sdl3.init.init(init_flags);
-    defer sdl3.init.quit(init_flags);
+    const init_flags = sdl3.Flags{ .video = true };
+    try sdl3.init(init_flags);
+    defer sdl3.quit(init_flags);
 
     const window = try sdl3.video.Window.init("Hello SDL3", SCREEN_WIDTH, SCREEN_HEIGHT, .{});
     defer window.deinit();
@@ -22,7 +22,7 @@ pub fn main() !void {
         switch ((try sdl3.events.wait(true)).?) {
             .quit => break,
             .terminating => break,
-            else => {}
+            else => {},
         }
     }
 }

@@ -1,5 +1,4 @@
 const c = @import("c.zig").c;
-const init = @import("init.zig");
 const std = @import("std");
 const video = @import("video.zig");
 

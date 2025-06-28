@@ -1,6 +1,6 @@
 const c = @import("c.zig").c;
 const errors = @import("errors.zig");
-const init = @import("init.zig");
+const sdl3 = @import("sdl3.zig");
 const std = @import("std");
 const video = @import("video.zig");
 const keyboard = @import("keyboard.zig");
@@ -1419,9 +1419,9 @@ fn dummyFilter(
 test "Events" {
     std.testing.refAllDeclsRecursive(@This());
 
-    defer init.shutdown();
-    try init.init(.{ .events = true });
-    defer init.quit(.{ .events = true });
+    defer sdl3.shutdown();
+    try sdl3.init(.{ .events = true });
+    defer sdl3.quit(.{ .events = true });
 
     setEnabled(.quit, true);
     try push(.{ .quit = .{ .common = .{ .timestamp = 27 } } });

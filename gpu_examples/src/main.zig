@@ -118,10 +118,10 @@ pub fn main() !void {
     sdl3.log.setLogOutputFunction(sdlLog, null);
 
     // Setup SDL3.
-    defer sdl3.init.shutdown();
-    const init_flags = sdl3.init.Flags{ .video = true, .gamepad = true };
-    try sdl3.init.init(init_flags);
-    defer sdl3.init.quit(init_flags);
+    defer sdl3.shutdown();
+    const init_flags = sdl3.Flags{ .video = true, .gamepad = true };
+    try sdl3.init(init_flags);
+    defer sdl3.quit(init_flags);
 
     // Setup initial example.
     var example_index: usize = starting_example;

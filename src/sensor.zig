@@ -1,7 +1,7 @@
 const c = @import("c.zig").c;
 const errors = @import("errors.zig");
-const init = @import("init.zig");
 const properties = @import("properties.zig");
+const sdl3 = @import("sdl3.zig");
 const std = @import("std");
 const stdinc = @import("stdinc.zig");
 
@@ -377,9 +377,9 @@ pub fn update() void {
 test "Sensor" {
     std.testing.refAllDeclsRecursive(@This());
 
-    defer init.shutdown();
-    try init.init(.{ .sensor = true });
-    defer init.quit(.{ .sensor = true });
+    defer sdl3.shutdown();
+    try sdl3.init(.{ .sensor = true });
+    defer sdl3.quit(.{ .sensor = true });
 
     update();
 

@@ -1,6 +1,5 @@
 const c = @import("c.zig").c;
 const errors = @import("errors.zig");
-const init = @import("init.zig");
 const keycode = @import("keycode.zig");
 const properties = @import("properties.zig");
 const rect = @import("rect.zig");
