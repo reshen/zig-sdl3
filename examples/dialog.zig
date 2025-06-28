@@ -126,8 +126,9 @@ pub fn main() !void {
 
     defer sdl3.shutdown();
 
-    try sdl3.init(.{ .video = true });
-    defer sdl3.quit(.{ .video = false });
+    const init_flags = sdl3.InitFlags{ .video = true };
+    try sdl3.init(init_flags);
+    defer sdl3.quit(init_flags);
 
     const window = try sdl3.video.Window.init("Dialog Example Backing", 500, 300, .{
         .transparent = true,

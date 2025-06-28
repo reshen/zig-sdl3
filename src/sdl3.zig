@@ -929,14 +929,14 @@ pub const AppMetadataProperty = enum {
     }
 };
 
-/// These are the flags which may be passed to `init.init()`.
+/// These are the flags which may be passed to `init()`.
 ///
 /// ## Remarks
 /// You should specify the subsystems which you will be using in your application.
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const Flags = struct {
+pub const InitFlags = struct {
     /// Implies `events`.
     audio: bool = false,
     /// Implies `events`, should be initialized on the main thread.
@@ -952,7 +952,7 @@ pub const Flags = struct {
     /// Implies `events`.
     camera: bool = false,
     /// Initializes all subsystems.
-    pub const everything = Flags{
+    pub const everything = InitFlags{
         .audio = true,
         .video = true,
         .joystick = true,
@@ -964,7 +964,7 @@ pub const Flags = struct {
     };
 
     /// Convert from an SDL value.
-    pub fn fromSdl(flags: c.SDL_InitFlags) Flags {
+    pub fn fromSdl(flags: c.SDL_InitFlags) InitFlags {
         return .{
             .audio = (flags & c.SDL_INIT_AUDIO) != 0,
             .video = (flags & c.SDL_INIT_VIDEO) != 0,
@@ -978,7 +978,7 @@ pub const Flags = struct {
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: Flags) c.SDL_InitFlags {
+    pub fn toSdl(self: InitFlags) c.SDL_InitFlags {
         return (if (self.audio) @as(c.SDL_InitFlags, c.SDL_INIT_AUDIO) else 0) |
             (if (self.video) @as(c.SDL_InitFlags, c.SDL_INIT_VIDEO) else 0) |
             (if (self.joystick) @as(c.SDL_InitFlags, c.SDL_INIT_JOYSTICK) else 0) |
@@ -1012,7 +1012,7 @@ pub const Flags = struct {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn init(
-    flags: Flags,
+    flags: InitFlags,
 ) !void {
     const ret = c.SDL_Init(
         flags.toSdl(),
@@ -1048,7 +1048,7 @@ pub fn isMainThread() bool {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn quit(
-    flags: Flags,
+    flags: InitFlags,
 ) void {
     c.SDL_QuitSubSystem(
         flags.toSdl(),
@@ -1212,12 +1212,12 @@ pub fn getAppMetadataProperty(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn wasInit(
-    flags: Flags,
-) Flags {
+    flags: InitFlags,
+) InitFlags {
     const ret = c.SDL_WasInit(
         flags.toSdl(),
     );
-    return Flags.fromSdl(ret);
+    return InitFlags.fromSdl(ret);
 }
 
 fn testRunOnMainThreadCb(user_data: ?*anyopaque) callconv(.c) void {
@@ -1230,7 +1230,7 @@ test {
     std.testing.refAllDecls(@This());
 
     defer shutdown();
-    const flags = Flags{
+    const flags = InitFlags{
         .events = true,
         .camera = true,
     };

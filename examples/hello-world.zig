@@ -7,7 +7,7 @@ const SCREEN_HEIGHT = 480;
 pub fn main() !void {
     defer sdl3.shutdown();
 
-    const init_flags = sdl3.Flags{ .video = true };
+    const init_flags = sdl3.InitFlags{ .video = true };
     try sdl3.init(init_flags);
     defer sdl3.quit(init_flags);
 

@@ -119,7 +119,7 @@ pub fn main() !void {
 
     // Setup SDL3.
     defer sdl3.shutdown();
-    const init_flags = sdl3.Flags{ .video = true, .gamepad = true };
+    const init_flags = sdl3.InitFlags{ .video = true, .gamepad = true };
     try sdl3.init(init_flags);
     defer sdl3.quit(init_flags);
 
