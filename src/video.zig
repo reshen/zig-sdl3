@@ -2278,9 +2278,9 @@ pub const Window = packed struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn getProperties(
-        self: Display,
+        self: Window,
     ) !Properties {
-        const ret = c.SDL_GetDisplayProperties(self.value);
+        const ret = c.SDL_GetWindowProperties(self.value);
         return Properties.fromSdl(properties.Group{ .value = try errors.wrapCall(c.SDL_PropertiesID, ret, 0) });
     }
 
