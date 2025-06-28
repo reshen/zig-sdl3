@@ -506,7 +506,7 @@ pub fn setAllPriorities(
 pub fn setLogOutputFunction(
     comptime UserData: type,
     comptime callback: ?LogOutputFunction(UserData),
-    user_data: ?*anyopaque,
+    user_data: ?*UserData,
 ) void {
     const Cb = struct {
         pub fn run(
@@ -642,5 +642,5 @@ test "Log" {
 
     resetAllPriorities();
     try std.testing.expectEqual(.info, Category.application.getPriority());
-    setLogOutputFunction(void, null, backup.user_data);
+    setLogOutputFunction(anyopaque, null, backup.user_data);
 }

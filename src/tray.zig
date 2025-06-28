@@ -222,7 +222,7 @@ pub const Entry = struct {
         self: Entry,
         comptime UserData: type,
         comptime callback: Callback(UserData),
-        user_data: ?*anyopaque,
+        user_data: ?*UserData,
     ) void {
         const Cb = struct {
             fn run(
