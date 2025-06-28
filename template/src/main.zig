@@ -256,18 +256,14 @@ fn sdlErr(
 /// * `category`: Which category SDL is logging under, for example "video".
 /// * `priority`: Which priority the log message is.
 /// * `message`: Actual message to log. This should not be `null`.
-///
-/// ## Remarks
-/// Since SDL's logging callbacks must be C-compatible, you may have to wrap the `category` and `priority` to managed types for convenience.
 fn sdlLog(
-    user_data: ?*anyopaque,
-    category: c_int,
-    priority: sdl3.c.SDL_LogPriority,
-    message: [*c]const u8,
-) callconv(.c) void {
+    user_data: ?*void,
+    category: ?sdl3.log.Category,
+    priority: ?sdl3.log.Priority,
+    message: [:0]const u8,
+) void {
     _ = user_data;
-    const category_managed = sdl3.log.Category.fromSdl(category);
-    const category_str: ?[]const u8 = if (category_managed) |val| switch (val.value) {
+    const category_str: ?[]const u8 = if (category) |val| switch (val.value) {
         sdl3.log.Category.application.value => "Application",
         sdl3.log.Category.errors.value => "Errors",
         sdl3.log.Category.assert.value => "Assert",
@@ -280,8 +276,7 @@ fn sdlLog(
         sdl3.log.Category.gpu.value => "Gpu",
         else => null,
     } else null;
-    const priority_managed = sdl3.log.Priority.fromSdl(priority);
-    const priority_str: [:0]const u8 = if (priority_managed) |val| switch (val) {
+    const priority_str: [:0]const u8 = if (priority) |val| switch (val) {
         .trace => "Trace",
         .verbose => "Verbose",
         .debug => "Debug",
@@ -293,7 +288,7 @@ fn sdlLog(
     if (category_str) |val| {
         std.debug.print("[{s}:{s}] {s}\n", .{ val, priority_str, message });
     } else {
-        std.debug.print("[Custom_{d}:{s}] {s}\n", .{ category, priority_str, message });
+        std.debug.print("[Custom_{d}:{s}] {s}\n", .{ category.?.value, priority_str, message });
     }
 }
 
@@ -320,7 +315,7 @@ fn init(
     // Setup logging.
     sdl3.errors.error_callback = &sdlErr;
     sdl3.log.setAllPriorities(.info);
-    sdl3.log.setLogOutputFunction(&sdlLog, null);
+    sdl3.log.setLogOutputFunction(void, &sdlLog, null);
 
     try log_app.logInfo("Starting application...", .{});
 

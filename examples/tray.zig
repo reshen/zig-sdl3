@@ -7,18 +7,16 @@ const State = struct {
     quit: bool = false,
 };
 
-fn switch_icon_color(user_data: ?*anyopaque, entry: ?*sdl3.c.SDL_TrayEntry) callconv(.c) void {
-    const button = sdl3.tray.Entry{ .value = entry.? };
-    const state: *State = @alignCast(@ptrCast(user_data));
+fn switch_icon_color(user_data: ?*State, entry: sdl3.tray.Entry) void {
+    const state = user_data.?;
     const color = sdl3.pixels.FColor{ .r = state.random.float(f32), .g = state.random.float(f32), .b = state.random.float(f32), .a = 1 };
     state.surface.clear(color) catch {};
-    button.getParent().getParentTray().?.setIcon(state.surface);
+    entry.getParent().getParentTray().?.setIcon(state.surface);
 }
 
-fn toggle_button(user_data: ?*anyopaque, entry: ?*sdl3.c.SDL_TrayEntry) callconv(.c) void {
+fn toggle_button(user_data: ?*State, entry: sdl3.tray.Entry) void {
     _ = user_data;
-    const checkbox = sdl3.tray.Entry{ .value = entry.? };
-    const sub_menu = checkbox.getParent();
+    const sub_menu = entry.getParent();
     const button = sub_menu.getEntries()[1];
     if (button.getEnabled()) {
         button.setEnabled(false);
@@ -33,9 +31,9 @@ fn toggle_button(user_data: ?*anyopaque, entry: ?*sdl3.c.SDL_TrayEntry) callconv
     tray.setTooltip("Toggled sub-menu checkbox");
 }
 
-fn quit(user_data: ?*anyopaque, entry: ?*sdl3.c.SDL_TrayEntry) callconv(.c) void {
+fn quit(user_data: ?*State, entry: sdl3.tray.Entry) void {
     _ = entry;
-    const state: *State = @alignCast(@ptrCast(user_data));
+    const state = user_data.?;
     state.quit = true;
 }
 
@@ -69,7 +67,7 @@ pub fn main() !void {
     checkbox.click();
     try std.testing.expect(!checkbox.getChecked());
     const change_color_button = menu.insertAt(0, "Change Color", .{ .entry = .{ .button = {} } }) orelse return error.SdlError;
-    change_color_button.setCallback(switch_icon_color, &state);
+    change_color_button.setCallback(State, switch_icon_color, &state);
     _ = menu.insertAt(null, null, .{ .entry = .{ .button = {} } }); // Separator.
     const delete_me = menu.insertAt(null, "DELETE ME", .{ .entry = .{ .button = {} } }).?;
     delete_me.remove();
@@ -79,11 +77,11 @@ pub fn main() !void {
     const quit_button = menu.insertAt(null, "Quit", .{
         .entry = .{ .button = {} },
     }).?;
-    quit_button.setCallback(quit, &state);
+    quit_button.setCallback(State, quit, &state);
 
     // Sub-menu.
     const enable_button = sub_menu_menu.insertAt(null, "Enable Button", .{ .entry = .{ .checkbox = false } }).?;
-    enable_button.setCallback(toggle_button, &state);
+    enable_button.setCallback(State, toggle_button, &state);
     _ = sub_menu_menu.insertAt(null, "Disabled", .{ .disabled = true, .entry = .{ .button = {} } });
 
     while (!state.quit) {

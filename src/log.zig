@@ -20,7 +20,30 @@ const max_log_message_stack = 1024;
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const LogOutputFunction = *const fn (
+pub fn LogOutputFunction(comptime UserData: type) type {
+    return *const fn (
+        user_data: ?*UserData,
+        category: ?Category,
+        priority: ?Priority,
+        message: [:0]const u8,
+    ) void;
+}
+
+/// The prototype for the log output callback function (C edition).
+///
+/// ## Function Parameters
+/// * `user_data`: What was passed as userdata to `log.setLogOutputFunction()`.
+/// * `category`: The category of the message.
+/// * `priority`: The priority of the message.
+/// * `message`: The message being output.
+///
+/// ## Thread Safety
+/// This function is called by SDL when there is new text to be logged.
+/// A mutex is held so that this function is never called by more than one thread at once.
+///
+/// ## Version
+/// This datatype is available since SDL 3.2.0.
+pub const LogOutputFunctionC = *const fn (
     user_data: ?*anyopaque,
     category: c_int,
     priority: c.SDL_LogPriority,
@@ -386,7 +409,7 @@ pub const Category = packed struct {
 ///
 /// ## Version
 /// This function is available since SDL 3.2.0.
-pub fn getDefaultLogOutputFunction() LogOutputFunction {
+pub fn getDefaultLogOutputFunction() LogOutputFunctionC {
     return c.SDL_GetDefaultLogOutputFunction().?;
 }
 
@@ -401,7 +424,7 @@ pub fn getDefaultLogOutputFunction() LogOutputFunction {
 ///
 /// ## Version
 /// This function is available since SDL 3.2.0.
-pub fn getLogOutputFunction() struct { callback: LogOutputFunction, user_data: ?*anyopaque } {
+pub fn getLogOutputFunction() struct { callback: LogOutputFunctionC, user_data: ?*anyopaque } {
     var callback: c.SDL_LogOutputFunction = undefined;
     var user_data: ?*anyopaque = undefined;
     c.SDL_GetLogOutputFunction(
@@ -471,7 +494,8 @@ pub fn setAllPriorities(
 /// Replace the default log output function with one of your own.
 ///
 /// ## Function Parameters
-/// * `callback`: A `log.LogOutputFunction` to call instead of the default.
+/// * `UserData`: User data type for the callback.
+/// * `callback`: A `log.LogOutputFunction` to call instead of the default, or `null` to restore to the default.
 /// * `user_data`: A pointer that is passed to `callback`.
 ///
 /// ## Thread Safety
@@ -480,7 +504,39 @@ pub fn setAllPriorities(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn setLogOutputFunction(
-    callback: LogOutputFunction,
+    comptime UserData: type,
+    comptime callback: ?LogOutputFunction(UserData),
+    user_data: ?*anyopaque,
+) void {
+    const Cb = struct {
+        pub fn run(
+            user_data_c: ?*anyopaque,
+            category_c: c_int,
+            priority_c: c.SDL_LogPriority,
+            message_c: [*c]const u8,
+        ) callconv(.c) void {
+            callback.?(@alignCast(@ptrCast(user_data_c)), Category.fromSdl(category_c), Priority.fromSdl(priority_c), std.mem.span(message_c));
+        }
+    };
+    c.SDL_SetLogOutputFunction(
+        if (callback) |_| Cb.run else getDefaultLogOutputFunction(),
+        user_data,
+    );
+}
+
+/// Replace the default log output function with one of your own (C edition).
+///
+/// ## Function Parameters
+/// * `callback`: A `log.LogOutputFunction` to call instead of the default.
+/// * `user_data`: A pointer that is passed to `callback`.
+///
+/// ## Thread Safety
+/// It is safe to call this function from any thread.
+///
+/// ## Version
+/// This function is available since SDL 3.2.0.
+pub fn setLogOutputFunctionC(
+    callback: LogOutputFunctionC,
     user_data: ?*anyopaque,
 ) void {
     c.SDL_SetLogOutputFunction(
@@ -496,12 +552,12 @@ const TestLogCallbackData = struct {
     last_priority: ?Priority = null,
 };
 
-fn testLogCallback(user_data: ?*anyopaque, category: c_int, priority: c.SDL_LogPriority, message: [*c]const u8) callconv(.c) void {
-    var data: *TestLogCallbackData = @ptrCast(@alignCast(user_data));
+fn testLogCallback(user_data: ?*TestLogCallbackData, category: ?Category, priority: ?Priority, message: [:0]const u8) void {
+    const data = user_data.?;
     data.last_str = data.buf.items.len;
-    data.last_category = Category.fromSdl(category);
-    data.last_priority = Priority.fromSdl(priority);
-    data.buf.appendSlice(std.mem.span(message)) catch {};
+    data.last_category = category.?;
+    data.last_priority = priority.?;
+    data.buf.appendSlice(message) catch {};
 }
 
 fn testGetLastMessage(data: TestLogCallbackData) []const u8 {
@@ -524,7 +580,7 @@ test "Log" {
         .buf = &log_out,
     };
 
-    setLogOutputFunction(testLogCallback, &data);
+    setLogOutputFunction(TestLogCallbackData, testLogCallback, &data);
     try log("Hello World {d}!", .{0});
     try std.testing.expectEqualStrings("Hello World 0!", testGetLastMessage(data));
     try std.testing.expectEqual(Category.application, data.last_category);
@@ -586,5 +642,5 @@ test "Log" {
 
     resetAllPriorities();
     try std.testing.expectEqual(.info, Category.application.getPriority());
-    setLogOutputFunction(backup.callback, backup.user_data);
+    setLogOutputFunction(void, null, backup.user_data);
 }

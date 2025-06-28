@@ -18,11 +18,36 @@ const std = @import("std");
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const Callback = *const fn (
-    user_data: ?*anyopaque,
-    name: [*c]const u8,
-    old_value: [*c]const u8,
-    new_value: [*c]const u8,
+pub fn Callback(comptime UserData: type) type {
+    return *const fn (
+        user_data: ?*UserData,
+        name: [:0]const u8,
+        old_value: ?[:0]const u8,
+        new_value: ?[:0]const u8,
+    ) void;
+}
+
+/// A callback used to send notifications of hint value changes (C edition).
+///
+/// ## Function Parameters
+/// * `user_data`: User-data passed to `hints.addCallback()`.
+/// * `name`: Hint name passed to `hints.addCallback()`. The type can be gathered with the `hints.Type.fromSdl()` function.
+/// * `old_value`: The previous hint value.
+/// * `new_value`: The new value hint is to be set to.
+///
+/// ## Remarks
+/// This is called an initial time during `hints.addCallback()` with the hint's current value, and then again each time the hint's value changes.
+///
+/// This callback is fired from whatever thread is setting a new hint value.
+/// SDL holds a lock on the hint subsystem when calling this callback.
+///
+/// ## Version
+/// This datatype is available since SDL 3.2.0.
+pub const CallbackC = *const fn (
+    user_data_c: ?*anyopaque,
+    name_c: [*c]const u8,
+    old_value_c: [*c]const u8,
+    new_value_c: [*c]const u8,
 ) callconv(.c) void;
 
 /// An enumeration of hint priorities.
@@ -224,6 +249,7 @@ pub const Type = enum {
 ///
 /// ## Function Parameters
 /// * `hint`: Hint to watch.
+/// * `UserData`: Type for callback user data.
 /// * `callback`: An `hints.Callback` function that will be called when the hint value changes.
 /// * `user_data`: A pointer to pass to the callback function.
 ///
@@ -237,15 +263,27 @@ pub const Type = enum {
 /// This function is available since SDL 3.2.0.
 pub fn addCallback(
     hint: Type,
-    callback: Callback,
-    user_data: ?*anyopaque,
-) !void {
+    comptime UserData: type,
+    comptime callback: Callback(UserData),
+    user_data: ?*UserData,
+) !CallbackC {
+    const Cb = struct {
+        fn run(
+            user_data_c: ?*anyopaque,
+            name_c: [*c]const u8,
+            old_value_c: [*c]const u8,
+            new_value_c: [*c]const u8,
+        ) callconv(.c) void {
+            callback(@alignCast(@ptrCast(user_data_c)), std.mem.span(name_c), if (old_value_c) |val| std.mem.span(val) else null, if (new_value_c) |val| std.mem.span(val) else null);
+        }
+    };
     const ret = c.SDL_AddHintCallback(
         hint.toSdl(),
-        callback,
+        Cb.run,
         user_data,
     );
-    return errors.wrapCallBool(ret);
+    try errors.wrapCallBool(ret);
+    return Cb.run;
 }
 
 /// Get the value of a hint.
@@ -312,7 +350,7 @@ pub fn getBoolean(
 /// This function is available since SDL 3.2.0.
 pub fn removeCallback(
     hint: Type,
-    callback: Callback,
+    callback: CallbackC,
     user_data: ?*anyopaque,
 ) void {
     c.SDL_RemoveHintCallback(
@@ -410,8 +448,8 @@ pub fn setWithPriority(
     return errors.wrapCallBool(ret);
 }
 
-fn testHintCb(user_data: ?*anyopaque, name: [*c]const u8, old_value: [*c]const u8, new_value: [*c]const u8) callconv(.c) void {
-    const ctr_ptr: *i32 = @ptrCast(@alignCast(user_data));
+fn testHintCb(user_data: ?*i32, name: [:0]const u8, old_value: ?[:0]const u8, new_value: ?[:0]const u8) void {
+    const ctr_ptr = user_data.?;
     _ = name;
     _ = old_value;
     _ = new_value;
@@ -421,7 +459,7 @@ fn testHintCb(user_data: ?*anyopaque, name: [*c]const u8, old_value: [*c]const u
 // Test hint functions.
 test "Hints" {
     var ctr: i32 = 0;
-    try addCallback(.AppName, testHintCb, &ctr);
+    const cb = try addCallback(.AppName, i32, testHintCb, &ctr);
     try std.testing.expectEqual(1, ctr);
     try std.testing.expectEqual(null, get(.AppName));
     try std.testing.expectEqual(null, getBoolean(.AppName));
@@ -438,7 +476,7 @@ test "Hints" {
     try std.testing.expectEqual(null, get(.AppName));
     try std.testing.expectEqual(null, getBoolean(.AppName));
     try set(.AppName, "Reset Again");
-    removeCallback(.AppName, testHintCb, &ctr);
+    removeCallback(.AppName, cb, &ctr);
     resetAll();
     try std.testing.expectEqual(5, ctr);
     try std.testing.expectEqual(null, get(.AppName));

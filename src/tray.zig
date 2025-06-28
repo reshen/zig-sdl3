@@ -10,7 +10,12 @@ const surface = @import("surface.zig");
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const Callback = *const fn (user_data: ?*anyopaque, entry: ?*c.SDL_TrayEntry) callconv(.c) void;
+pub fn Callback(comptime UserData: type) type {
+    return *const fn (
+        user_data: ?*UserData,
+        entry: Entry,
+    ) void;
+}
 
 /// An opaque handle representing an entry on a system tray object.
 ///
@@ -204,6 +209,7 @@ pub const Entry = struct {
     ///
     /// ## Function Parameters
     /// * `self`: The entry to be updated.
+    /// * `UserData`: Type of user data to be passed to the callback.
     /// * `callback`: A callback to be invoked when the entry is selected.
     /// * `user_data`: An optional pointer to pass extra data to the callback when it will be invoked.
     ///
@@ -214,10 +220,19 @@ pub const Entry = struct {
     /// This function is available since SDL 3.2.0.
     pub fn setCallback(
         self: Entry,
-        callback: Callback,
+        comptime UserData: type,
+        comptime callback: Callback(UserData),
         user_data: ?*anyopaque,
     ) void {
-        c.SDL_SetTrayEntryCallback(self.value, callback, user_data);
+        const Cb = struct {
+            fn run(
+                user_data_c: ?*anyopaque,
+                entry_c: ?*c.SDL_TrayEntry,
+            ) callconv(.c) void {
+                callback(@alignCast(@ptrCast(user_data_c)), .{ .value = entry_c.? });
+            }
+        };
+        c.SDL_SetTrayEntryCallback(self.value, Cb.run, user_data);
     }
 
     /// Sets whether or not an entry is checked.
