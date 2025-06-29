@@ -163,7 +163,13 @@ pub const Path = struct {
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const EnumerateDirectoryCallback = *const fn (user_data: ?*anyopaque, dir_name: [*c]const u8, name: [*c]const u8) callconv(.c) c.SDL_EnumerationResult;
+pub fn EnumerateDirectoryCallback(comptime UserData: type) type {
+    return *const fn (
+        user_data: ?*UserData,
+        dir_name: [:0]const u8,
+        name: [:0]const u8,
+    ) EnumerationResult;
+}
 
 /// Possible results from an enumeration callback.
 ///
@@ -385,6 +391,7 @@ pub fn createDirectory(
 ///
 /// ## Function Parameters
 /// * `path`: The path of the directory to enumerate.
+/// * `UserData`: Type representing user data.
 /// * `callback`: A function that is called for each entry in the directory.
 /// * `user_data`: A pointer that is passed to callback.
 ///
@@ -399,10 +406,20 @@ pub fn createDirectory(
 /// This function is available since SDL 3.2.0.
 pub fn enumerateDirectory(
     path: [:0]const u8,
-    callback: EnumerateDirectoryCallback,
-    user_data: ?*anyopaque,
+    comptime UserData: type,
+    comptime callback: EnumerateDirectoryCallback(UserData),
+    user_data: ?*UserData,
 ) !void {
-    return errors.wrapCallBool(c.SDL_EnumerateDirectory(path.ptr, callback, user_data));
+    const Cb = struct {
+        pub fn run(
+            user_data_c: ?*anyopaque,
+            dir_name_c: [*c]const u8,
+            name_c: [*c]const u8,
+        ) callconv(.c) c.SDL_EnumerationResult {
+            return @intFromEnum(callback(@alignCast(@ptrCast(user_data_c)), std.mem.span(dir_name_c), std.mem.span(name_c)));
+        }
+    };
+    return errors.wrapCallBool(c.SDL_EnumerateDirectory(path.ptr, Cb.run, user_data));
 }
 
 /// Data for getting all properties.
@@ -413,20 +430,19 @@ const GetAllData = struct {
 };
 
 /// Callback for getting all directory items.
-fn getAllDirectoryItemsCb(user_data: ?*anyopaque, dir_name: [*c]const u8, name: [*c]const u8) callconv(.c) c.SDL_EnumerationResult {
+fn getAllDirectoryItemsCb(user_data: ?*GetAllData, dir_name: [:0]const u8, name: [:0]const u8) EnumerationResult {
     _ = dir_name;
-    const data_ptr: *GetAllData = @ptrCast(@alignCast(user_data));
-    const name_str = std.mem.span(name);
-    const copy = data_ptr.allocator.allocSentinel(u8, name_str.len, 0) catch |err| {
+    const data_ptr: *GetAllData = user_data.?;
+    const copy = data_ptr.allocator.allocSentinel(u8, name.len, 0) catch |err| {
         data_ptr.err = err;
-        return c.SDL_ENUM_FAILURE;
+        return .failure;
     };
-    @memcpy(copy, name_str);
+    @memcpy(copy, name);
     data_ptr.arr.append(copy) catch |err| {
         data_ptr.err = err;
-        return c.SDL_ENUM_FAILURE;
+        return .failure;
     };
-    return c.SDL_ENUM_CONTINUE;
+    return .run;
 }
 
 /// Free all directory items obtained through `filesystem.getAllDirectoryItems()`.
@@ -469,7 +485,7 @@ pub fn getAllDirectoryItems(
         .arr = &arr,
         .err = null,
     };
-    try enumerateDirectory(path, getAllDirectoryItemsCb, &data);
+    try enumerateDirectory(path, GetAllData, getAllDirectoryItemsCb, &data);
     return arr;
 }
 

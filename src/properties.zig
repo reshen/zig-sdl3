@@ -21,16 +21,18 @@ const std = @import("std");
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const CleanupCallback = *const fn (
-    user_data: ?*anyopaque,
-    value: ?*anyopaque,
-) callconv(.c) void;
+pub fn CleanupCallback(comptime UserData: type, comptime ValueType: type) type {
+    return *const fn (
+        user_data: ?*UserData,
+        value: *ValueType,
+    ) void;
+}
 
 /// A callback used to enumerate all the properties in a group of properties.
 ///
 /// ## Function Parameters
 /// * `user_data`: An app-defined pointer passed to the callback.
-/// * `props`: The SDL_PropertiesID that is being enumerated.
+/// * `props`: The group that is being enumerated.
 /// * `name`: The next property name in the enumeration.
 ///
 /// ## Remarks
@@ -41,11 +43,15 @@ pub const CleanupCallback = *const fn (
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const EnumerateCallback = *const fn (
-    user_data: ?*anyopaque,
-    props: c.SDL_PropertiesID,
-    name: [*c]const u8,
-) callconv(.c) void;
+pub fn EnumerateCallback(
+    comptime UserData: type,
+) type {
+    return *const fn (
+        user_data: ?*UserData,
+        props: Group,
+        name: [:0]const u8,
+    ) void;
+}
 
 /// SDL properties type.
 ///
@@ -141,6 +147,7 @@ pub const Group = packed struct {
     ///
     /// ## Function Parameters
     /// * `self`: The properties group to iterate.
+    /// * `UserData`: Type of user data.
     /// * `callback`: Callback function to run for each property in the group.
     /// * `user_data`: User data to pass to the enumeration callback.
     ///
@@ -154,10 +161,16 @@ pub const Group = packed struct {
     /// This function is available since SDL 3.2.0.
     pub fn enumerateProperties(
         self: Group,
-        callback: EnumerateCallback,
-        user_data: ?*anyopaque,
+        comptime UserData: type,
+        comptime callback: EnumerateCallback(UserData),
+        user_data: ?*UserData,
     ) !void {
-        const ret = c.SDL_EnumerateProperties(self.value, callback, user_data);
+        const Cb = struct {
+            pub fn run(user_data_c: ?*anyopaque, props: c.SDL_PropertiesID, name: [*c]const u8) callconv(.c) void {
+                callback(@alignCast(@ptrCast(user_data_c)), Group{ .value = props }, std.mem.span(name));
+            }
+        };
+        const ret = c.SDL_EnumerateProperties(self.value, Cb.run, user_data);
         return errors.wrapCallBool(ret);
     }
 
@@ -196,12 +209,10 @@ pub const Group = packed struct {
     }
 
     /// Used for adding properties to a list.
-    fn getAllEnumerateCallback(user_data: ?*anyopaque, id: c.SDL_PropertiesID, name: [*c]const u8) callconv(.c) void {
-        const group = Group{ .value = id };
+    fn getAllEnumerateCallback(user_data: ?*GetAllData, props: Group, name: [:0]const u8) void {
         const data_ptr: *GetAllData = @ptrCast(@alignCast(user_data));
-        const spanned_name = std.mem.span(name);
-        if (group.get(spanned_name)) |val|
-            data_ptr.map.put(spanned_name, val) catch |err| {
+        if (props.get(name)) |val|
+            data_ptr.map.put(name, val) catch |err| {
                 data_ptr.err = err;
             };
     }
@@ -229,7 +240,7 @@ pub const Group = packed struct {
             .map = &map,
             .err = null,
         };
-        try self.enumerateProperties(getAllEnumerateCallback, &data);
+        try self.enumerateProperties(GetAllData, getAllEnumerateCallback, &data);
         if (data.err) |err|
             return err;
         return map;
@@ -359,8 +370,10 @@ pub const Group = packed struct {
     /// ## Function Parameters
     /// * `self`: The properties to modify.
     /// * `name`: The name of the property to modify.
+    /// * `ValueType`: Type of the property value.
     /// * `value`: The new value of the property, or `null` to delete the property.
-    /// * `cleanup`: The function to call when this property is deleted, or NULL if no cleanup is necessary.
+    /// * `UserData`: Type of user data for the callback.
+    /// * `cleanup`: The function to call when this property is deleted, or `null` if no cleanup is necessary.
     /// * `user_data`: A pointer that is passed to the cleanup function.
     ///
     /// ## Remarks
@@ -377,15 +390,22 @@ pub const Group = packed struct {
     pub fn setPointerPropertyWithCleanup(
         self: Group,
         name: [:0]const u8,
+        comptime ValueType: type,
         value: ?*anyopaque,
-        cleanup: CleanupCallback,
-        user_data: ?*anyopaque,
+        comptime UserData: type,
+        comptime cleanup: ?CleanupCallback(UserData, ValueType),
+        user_data: ?*UserData,
     ) !void {
+        const Cb = struct {
+            pub fn run(user_data_c: ?*anyopaque, value_c: ?*anyopaque) callconv(.c) void {
+                cleanup.?(@alignCast(@ptrCast(user_data_c)), @alignCast(@ptrCast(value_c)));
+            }
+        };
         const ret = c.SDL_SetPointerPropertyWithCleanup(
             self.value,
             name.ptr,
             value,
-            cleanup,
+            if (cleanup != null) Cb.run else null,
             user_data,
         );
         return errors.wrapCallBool(ret);
@@ -431,15 +451,14 @@ pub fn getGlobal() !Group {
     return Group{ .value = ret };
 }
 
-fn testPropertiesCleanupCb(user_data: ?*anyopaque, value: ?*anyopaque) callconv(.c) void {
+fn testPropertiesCleanupCb(user_data: ?*void, value: *std.ArrayList(u32)) void {
     _ = user_data;
-    const ptr: *std.ArrayList(u32) = @ptrCast(@alignCast(value));
-    ptr.deinit();
+    value.deinit();
 }
 
-fn testEnumeratePropertiesCb(user_data: ?*anyopaque, id: c.SDL_PropertiesID, name: [*c]const u8) callconv(.c) void {
+fn testEnumeratePropertiesCb(user_data: ?*void, props: Group, name: [:0]const u8) void {
     _ = user_data;
-    _ = id;
+    _ = props;
     _ = name;
 }
 
@@ -497,7 +516,7 @@ test "Properties" {
     try group.set("b", Property{ .boolean = false });
     var arr = std.ArrayList(u32).init(std.testing.allocator);
     try arr.append(8); // Ensure no memory leakage.
-    try group.setPointerPropertyWithCleanup("c", &arr, testPropertiesCleanupCb, null);
+    try group.setPointerPropertyWithCleanup("c", std.ArrayList(u32), &arr, void, testPropertiesCleanupCb, null);
 
     const copied = try Group.init();
     defer copied.deinit();
@@ -511,5 +530,5 @@ test "Properties" {
     try std.testing.expectEqual(Property{ .boolean = false }, map.get("b"));
     try std.testing.expectEqual(Property{ .pointer = &num }, map.get("trial"));
 
-    try group.enumerateProperties(testEnumeratePropertiesCb, null);
+    try group.enumerateProperties(void, testEnumeratePropertiesCb, null);
 }

@@ -253,6 +253,9 @@ pub const Type = enum {
 /// * `callback`: An `hints.Callback` function that will be called when the hint value changes.
 /// * `user_data`: A pointer to pass to the callback function.
 ///
+/// ## Return Value
+/// Returns the callback to be used later by `hints.removeCallback()` if desired.
+///
 /// ## Remarks
 /// The callback function is called *during* this function, to provide it an initial value, and again each time the hint's value changes.
 ///

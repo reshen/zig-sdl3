@@ -144,7 +144,16 @@ pub const Interface = struct {
     /// Returns whether the storage is currently ready for access.
     ready: ?*const fn (user_data: ?*anyopaque) callconv(.c) bool,
     /// Enumerate a directory, optional for write-only storage.
-    enumerate: ?*const fn (user_data: ?*anyopaque, path: [*c]const u8, callback: ?filesystem.EnumerateDirectoryCallback, callback_user_data: ?*anyopaque) callconv(.c) bool,
+    enumerate: ?*const fn (
+        user_data: ?*anyopaque,
+        path: [*c]const u8,
+        callback: ?*const fn (
+            user_data_c: ?*anyopaque,
+            dir_name_c: [*c]const u8,
+            name_c: [*c]const u8,
+        ) callconv(.c) c.SDL_EnumerationResult,
+        callback_user_data: ?*anyopaque,
+    ) callconv(.c) bool,
     /// Get path information, optional for write-only storage.
     info: ?*const fn (user_data: ?*anyopaque, path: [*c]const u8, info: [*c]c.SDL_PathInfo) callconv(.c) bool,
     /// Read a file from storage, optional for write-only storage.
@@ -327,6 +336,7 @@ pub const Storage = packed struct {
     /// ## Function Parameters
     /// * `self`: A storage container.
     /// * `path`: The path of the directory to enumerate or `null` for root.
+    /// * `UserData`: Type for user data.
     /// * `callback`: A function that is called for each entry in the directory.
     /// * `user_data`: A pointer that is passed to callback.
     ///
@@ -345,10 +355,20 @@ pub const Storage = packed struct {
     pub fn enumerateDirectory(
         storage: Storage,
         path: ?[:0]const u8,
-        callback: filesystem.EnumerateDirectoryCallback,
-        user_data: ?*anyopaque,
+        comptime UserData: type,
+        comptime callback: filesystem.EnumerateDirectoryCallback(UserData),
+        user_data: ?*UserData,
     ) !void {
-        return errors.wrapCallBool(c.SDL_EnumerateStorageDirectory(storage.value, if (path) |val| val.ptr else null, callback, user_data));
+        const Cb = struct {
+            pub fn run(
+                user_data_c: ?*anyopaque,
+                dir_name_c: [*c]const u8,
+                name_c: [*c]const u8,
+            ) callconv(.c) c.SDL_EnumerationResult {
+                return @intFromEnum(callback(@alignCast(@ptrCast(user_data_c)), std.mem.span(dir_name_c), std.mem.span(name_c)));
+            }
+        };
+        return errors.wrapCallBool(c.SDL_EnumerateStorageDirectory(storage.value, if (path) |val| val.ptr else null, Cb.run, user_data));
     }
 
     /// Data for getting all properties.
@@ -359,20 +379,19 @@ pub const Storage = packed struct {
     };
 
     /// Callback for getting all directory items.
-    fn getAllDirectoryItemsCb(user_data: ?*anyopaque, dir_name: [*c]const u8, name: [*c]const u8) callconv(.c) c.SDL_EnumerationResult {
+    fn getAllDirectoryItemsCb(user_data: ?*GetAllData, dir_name: [:0]const u8, name: [:0]const u8) filesystem.EnumerationResult {
         _ = dir_name;
         const data_ptr: *GetAllData = @ptrCast(@alignCast(user_data));
-        const name_str = std.mem.span(name);
-        const copy = data_ptr.allocator.allocSentinel(u8, name_str.len, 0) catch |err| {
+        const copy = data_ptr.allocator.allocSentinel(u8, name.len, 0) catch |err| {
             data_ptr.err = err;
-            return c.SDL_ENUM_FAILURE;
+            return .failure;
         };
-        @memcpy(copy, name_str);
+        @memcpy(copy, name);
         data_ptr.arr.append(copy) catch |err| {
             data_ptr.err = err;
-            return c.SDL_ENUM_FAILURE;
+            return .failure;
         };
-        return c.SDL_ENUM_CONTINUE;
+        return .run;
     }
 
     /// Free all directory items obtained through `filesystem.getAllDirectoryItems()`.
@@ -417,7 +436,7 @@ pub const Storage = packed struct {
             .arr = &arr,
             .err = null,
         };
-        try self.enumerateDirectory(path, getAllDirectoryItemsCb, &data);
+        try self.enumerateDirectory(path, GetAllData, getAllDirectoryItemsCb, &data);
         return arr;
     }
 

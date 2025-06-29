@@ -31,7 +31,9 @@ pub const Sandbox = enum(c_uint) {
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const X11EventHook = *const fn (user_data: ?*anyopaque, xevent: ?*c.XEvent) callconv(.c) bool;
+pub fn X11EventHook(comptime UserData: type) type {
+    return *const fn (user_data: ?*UserData, xevent: *c.XEvent) bool;
+}
 
 // getAndroidActivity
 // getAndroidExternalStoragePath
@@ -203,6 +205,7 @@ pub fn onApplicationWillTerminate() void {
 /// Set a callback for every X11 event.
 ///
 /// ## Function Parameters
+/// * `UserData`: Type for user data.
 /// * `callback`: The event hook function to call.
 /// * `user_data`: A pointer to pass to every iteration of `callback`.
 ///
@@ -212,10 +215,16 @@ pub fn onApplicationWillTerminate() void {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn setX11EventHook(
-    callback: X11EventHook,
-    user_data: ?*anyopaque,
+    comptime UserData: type,
+    comptime callback: X11EventHook(UserData),
+    user_data: ?*UserData,
 ) void {
-    c.SDL_SetX11EventHook(callback, user_data);
+    const Cb = struct {
+        pub fn run(user_data_c: ?*anyopaque, xevent_c: ?*c.XEvent) callconv(.c) bool {
+            return callback(@alignCast(@ptrCast(user_data_c)), xevent_c);
+        }
+    };
+    c.SDL_SetX11EventHook(Cb.run, user_data);
 }
 
 // showAndroidToast
