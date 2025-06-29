@@ -86,8 +86,8 @@ pub fn main() !void {
 
     while (!state.quit) {
         sdl3.tray.update();
-        const event = sdl3.events.waitTimeout(true, 200) orelse continue;
-        switch (event.event.?) {
+        const event = sdl3.events.waitAndPopTimeout(200) orelse continue;
+        switch (event) {
             .terminating => break,
             .quit => break,
             else => {},

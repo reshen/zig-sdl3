@@ -75,10 +75,10 @@ pub fn main() !void {
     try window.updateSurface();
 
     while (true) {
-        switch ((try sdl3.events.wait(true)).?) {
+        switch (try sdl3.events.waitAndPop()) {
             .quit => break,
             .terminating => break,
-            else => {}
+            else => {},
         }
     }
 }

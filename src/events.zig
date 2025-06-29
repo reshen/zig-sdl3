@@ -1333,15 +1333,25 @@ pub fn setFilter(
 
 /// Wait indefinitely for the next available event.
 ///
-/// ## Function Parameters
-/// * `pop_event`: If this is false, then only wait until an event is available. If true, return and pop the event from the queue.
+/// ## Remarks
+/// As this function may implicitly call `events.pump()`, you can only call this function in the thread that initialized the video subsystem.
+///
+/// ## Thread Safety
+/// This function should only be called on the main thread.
+///
+/// ## Version
+/// This function is available since SDL 3.2.0.
+pub fn wait() !void {
+    return errors.wrapCallBool(c.SDL_WaitEvent(null));
+}
+
+/// Wait indefinitely for the next available event and pop it from the event queue.
 ///
 /// ## Return Value
-/// Returns the event popped if `pop_event` is true, otherwise will return `null`.
-/// It is not possible to have `pop_event` be true and have this function return `null`.
+/// Returns the event popped.
 ///
 /// ## Remarks
-/// If `pop_event` is false, the next event is removed from the queue and returned.
+/// The next event is removed from the queue and returned.
 ///
 /// As this function may implicitly call `events.pump()`, you can only call this function in the thread that initialized the video subsystem.
 ///
@@ -1350,35 +1360,22 @@ pub fn setFilter(
 ///
 /// ## Version
 /// This function is available since SDL 3.2.0.
-pub fn wait(
-    pop_event: bool,
-) !?Event {
-    if (pop_event) {
-        var event: c.SDL_Event = undefined;
-        const ret = c.SDL_WaitEvent(&event);
-        try errors.wrapCallBool(ret);
-        return Event.fromSdl(event);
-    } else {
-        const ret = c.SDL_WaitEvent(null);
-        try errors.wrapCallBool(ret);
-        return null;
-    }
+pub fn waitAndPop() !Event {
+    var event: c.SDL_Event = undefined;
+    const ret = c.SDL_WaitEvent(&event);
+    try errors.wrapCallBool(ret);
+    return Event.fromSdl(event);
 }
 
 /// Wait until the specified timeout (in milliseconds) for the next available event.
 ///
 /// ## Function Parameters
-/// * `pop_event`: If this is false, then only wait until an event is available. If true, return and pop the event from the queue.
 /// * `timeout_millseconds`: The maximum number of milliseconds to wait for the next available event.
 ///
 /// ## Return Value
-/// If the call times out, then the whole struct returned is `null`.
-/// Returns the event popped if `pop_event` is true, otherwise will return `null` in the struct returned.
-/// It is not possible to have `pop_event` be true and have the event in the struct returned `null`.
+/// Returns true if an event appeared before the timeout.
 ///
 /// ## Remarks
-/// If `pop_event` is false, the next event is removed from the queue and returned.
-///
 /// As this function may implicitly call `events.pump()`, you can only call this function in the thread that initialized the video subsystem.
 ///
 /// The timeout is not guaranteed, the actual wait time could be longer due to system scheduling.
@@ -1389,21 +1386,40 @@ pub fn wait(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn waitTimeout(
-    pop_event: bool,
     timeout_milliseconds: u31,
-) ?struct { event: ?Event } {
-    if (pop_event) {
-        var event: c.SDL_Event = undefined;
-        const ret = c.SDL_WaitEventTimeout(&event, @intCast(timeout_milliseconds));
-        if (!ret)
-            return null;
-        return .{ .event = Event.fromSdl(event) };
-    } else {
-        const ret = c.SDL_WaitEventTimeout(null, @intCast(timeout_milliseconds));
-        if (!ret)
-            return null;
-        return .{ .event = null };
-    }
+) bool {
+    return c.SDL_WaitEventTimeout(null, @intCast(timeout_milliseconds));
+}
+
+/// Wait until the specified timeout (in milliseconds) for the next available event and pop it.
+///
+/// ## Function Parameters
+/// * `timeout_millseconds`: The maximum number of milliseconds to wait for the next available event.
+///
+/// ## Return Value
+/// If the call times out, then `null` is returned.
+/// Returns the event popped from the event queue if event has appeared before the timeout.
+///
+/// ## Remarks
+/// The next event is removed from the queue and returned.
+///
+/// As this function may implicitly call `events.pump()`, you can only call this function in the thread that initialized the video subsystem.
+///
+/// The timeout is not guaranteed, the actual wait time could be longer due to system scheduling.
+///
+/// ## Thread Safety
+/// This function should only be called on the main thread.
+///
+/// ## Version
+/// This function is available since SDL 3.2.0.
+pub fn waitAndPopTimeout(
+    timeout_milliseconds: u31,
+) ?Event {
+    var event: c.SDL_Event = undefined;
+    const ret = c.SDL_WaitEventTimeout(&event, @intCast(timeout_milliseconds));
+    if (!ret)
+        return null;
+    return Event.fromSdl(event);
 }
 
 fn dummyFilter(
@@ -1437,7 +1453,7 @@ test "Events" {
 
     try std.testing.expect(poll() != null);
     // _ = try wait(false); // This is not deterministic and may hang so don't.
-    _ = waitTimeout(false, 1);
+    _ = waitTimeout(1);
 
     flush(.quit);
     flushGroup(.all);

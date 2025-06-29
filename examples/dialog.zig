@@ -142,7 +142,7 @@ pub fn main() !void {
     try showMenu(&state);
 
     while (!state.quit) {
-        switch ((try sdl3.events.wait(true)).?) {
+        switch (try sdl3.events.waitAndPop()) {
             .terminating => break,
             .quit => break,
             else => {},
