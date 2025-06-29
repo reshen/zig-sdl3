@@ -10,17 +10,20 @@ const stdinc = @import("stdinc.zig");
 ///
 /// ## Version
 /// This function is available since SDL 3.2.0.
-pub const CleanupCallback = *const fn (user_data: ?*anyopaque) callconv(.c) void;
+pub fn CleanupCallback(
+    comptime UserData: type,
+) type {
+    return *const fn (user_data: ?*UserData) void;
+}
 
 /// Callback function that will be called when data for the specified mime-type is requested by the OS.
 ///
 /// ## Function Parameters
 /// * `user_data`: A pointer to provided user data.
 /// * `mime_type`: The requested mime-type.
-/// * `size`: A pointer filled in with the length of the returned data.
 ///
 /// ## Return Value
-/// Returns a pointer to the data for the provided mime-type.
+/// Returns a sluce to the data for the provided mime-type.
 /// Returning `null` or setting length to `0` will cause no data to be sent to the "receiver".
 /// It is up to the receiver to handle this.
 /// Essentially returning no data is more or less undefined behavior and may cause breakage in receiving applications.
@@ -32,7 +35,9 @@ pub const CleanupCallback = *const fn (user_data: ?*anyopaque) callconv(.c) void
 ///
 /// ## Version
 /// This function is available since SDL 3.2.0.
-pub const DataCallback = *const fn (user_data: ?*anyopaque, mime_type: [*c]const u8, size: [*c]usize) callconv(.c) ?*anyopaque;
+pub fn DataCallback(comptime UserData: type) type {
+    return *const fn (user_data: ?*UserData, mime_type: ?[:0]const u8) callconv(.c) ?[]u8;
+}
 
 /// Clear the clipboard data.
 ///
@@ -199,6 +204,7 @@ pub fn hasText() bool {
 /// Offer clipboard data to the OS.
 ///
 /// ## Function Parameters
+/// * `UserData`: Type of user data.
 /// * `callback`: A function pointer to the function that provides the clipboard data.
 /// * `cleanup`: A function pointer to the function that cleans up the clipboard data.
 /// * `user_data`: An opaque pointer that will be forwarded to the callbacks.
@@ -216,14 +222,29 @@ pub fn hasText() bool {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn setData(
-    callback: DataCallback,
-    cleanup: CleanupCallback,
-    user_data: ?*anyopaque,
+    comptime UserData: type,
+    comptime callback: DataCallback(UserData),
+    comptime cleanup: CleanupCallback(UserData),
+    user_data: ?*UserData,
     mime_types: [][*:0]const u8,
 ) !void {
+    const Cb = struct {
+        pub fn runCallback(user_data_c: ?*anyopaque, mime_type_c: [*c]const u8, size_c: [*c]usize) callconv(.c) ?*anyopaque {
+            const data = callback(@alignCast(@ptrCast(user_data_c)), if (mime_type_c) |val| std.mem.span(val) else null);
+            if (data) |val| {
+                size_c.* = val.len;
+                return val.ptr;
+            }
+            return null;
+        }
+
+        pub fn runCleanup(user_data_c: ?*anyopaque) callconv(.c) void {
+            cleanup(@alignCast(@ptrCast(user_data_c)));
+        }
+    };
     const ret = c.SDL_SetClipboardData(
-        callback,
-        cleanup,
+        Cb.runCallback,
+        Cb.runCleanup,
         user_data,
         @ptrCast(mime_types.ptr),
         @intCast(mime_types.len),

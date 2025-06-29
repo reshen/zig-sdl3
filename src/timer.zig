@@ -68,7 +68,15 @@ pub const nanoseconds_per_second: comptime_int = c.SDL_NS_PER_SECOND;
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const MillisecondsTimerCallback = *const fn (user_data: ?*anyopaque, timer: c.SDL_TimerID, interval_milliseconds: u32) callconv(.c) u32;
+pub fn MillisecondsTimerCallback(
+    comptime UserData: type,
+) type {
+    return *const fn (
+        user_data: ?*UserData,
+        timer: Timer,
+        interval_milliseconds: u32,
+    ) u32;
+}
 
 /// Function prototype for the nanosecond timer callback function.
 ///
@@ -91,7 +99,15 @@ pub const MillisecondsTimerCallback = *const fn (user_data: ?*anyopaque, timer: 
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const NanosecondsTimerCallback = *const fn (user_data: ?*anyopaque, timer: c.SDL_TimerID, interval_nanoseconds: u64) callconv(.c) u64;
+pub fn NanosecondsTimerCallback(
+    comptime UserData: type,
+) type {
+    return *const fn (
+        user_data: ?*UserData,
+        timer: Timer,
+        interval_nanoseconds: u64,
+    ) u64;
+}
 
 /// Wait a specified number of milliseconds before returning.
 ///
@@ -432,6 +448,7 @@ pub const Timer = struct {
     ///
     /// ## Function Parameters
     /// * `interval_milliseconds`: The timer delay, in milliseconds, passed to callback.
+    /// * `UserData`: Type of user data to use.
     /// * `callback`: The `timer.MillisecondsTimerCallback` function to call when the specified interval elapses.
     /// * `user_data`: A pointer that is passed to callback.
     ///
@@ -458,12 +475,18 @@ pub const Timer = struct {
     /// This function is available since SDL 3.2.0.
     pub fn initMilliseconds(
         interval_milliseconds: u32,
-        callback: MillisecondsTimerCallback,
-        user_data: ?*anyopaque,
+        comptime UserData: type,
+        comptime callback: MillisecondsTimerCallback(UserData),
+        user_data: ?*UserData,
     ) !Timer {
+        const Cb = struct {
+            pub fn run(user_data_c: ?*anyopaque, timer_c: c.SDL_TimerID, interval_milliseconds_c: u32) callconv(.c) u32 {
+                return callback(@alignCast(@ptrCast(user_data_c)), .{ .value = timer_c }, interval_milliseconds_c);
+            }
+        };
         const ret = c.SDL_AddTimer(
             @intCast(interval_milliseconds),
-            callback,
+            Cb.run,
             user_data,
         );
         return Timer{ .value = try errors.wrapCall(c.SDL_TimerID, ret, 0) };
@@ -473,6 +496,7 @@ pub const Timer = struct {
     ///
     /// ## Function Parameters
     /// * `interval_nanoseconds`: The timer delay, in nanoseconds, passed to callback.
+    /// * `UserData`: Type of user data to use.
     /// * `callback`: The `timer.NanosecondsTimerCallback` function to call when the specified interval elapses.
     /// * `user_data`: A pointer that is passed to callback.
     ///
@@ -499,12 +523,18 @@ pub const Timer = struct {
     /// This function is available since SDL 3.2.0.
     pub fn initNanoseconds(
         interval_nanoseconds: u64,
-        callback: NanosecondsTimerCallback,
-        user_data: ?*anyopaque,
+        comptime UserData: type,
+        comptime callback: NanosecondsTimerCallback(UserData),
+        user_data: ?*UserData,
     ) !Timer {
+        const Cb = struct {
+            pub fn run(user_data_c: ?*anyopaque, timer_c: c.SDL_TimerID, interval_nanoseconds_c: u64) callconv(.c) u64 {
+                return callback(@alignCast(@ptrCast(user_data_c)), .{ .value = timer_c }, interval_nanoseconds_c);
+            }
+        };
         const ret = c.SDL_AddTimerNS(
             @intCast(interval_nanoseconds),
-            callback,
+            Cb.run,
             user_data,
         );
         return Timer{ .value = try errors.wrapCall(c.SDL_TimerID, ret, 0) };
@@ -512,10 +542,10 @@ pub const Timer = struct {
 };
 
 fn dummyMsCallback(
-    user_data: ?*anyopaque,
-    timer: c.SDL_TimerID,
+    user_data: ?*void,
+    timer: Timer,
     interval_milliseconds: u32,
-) callconv(.c) u32 {
+) u32 {
     _ = user_data;
     _ = timer;
     _ = interval_milliseconds;
@@ -523,10 +553,10 @@ fn dummyMsCallback(
 }
 
 fn dummyNsCallback(
-    user_data: ?*anyopaque,
-    timer: c.SDL_TimerID,
+    user_data: ?*void,
+    timer: Timer,
     interval_nanoseconds: u64,
-) callconv(.c) u64 {
+) u64 {
     _ = user_data;
     _ = timer;
     _ = interval_nanoseconds;
@@ -555,7 +585,7 @@ test "Timer" {
     _ = getMillisecondsSinceInit();
     _ = getNanosecondsSinceInit();
 
-    _ = try Timer.initNanoseconds(3, dummyNsCallback, null);
-    const timer = try Timer.initMilliseconds(5000, dummyMsCallback, null);
+    _ = try Timer.initNanoseconds(3, void, dummyNsCallback, null);
+    const timer = try Timer.initMilliseconds(5000, void, dummyMsCallback, null);
     try timer.deinit();
 }

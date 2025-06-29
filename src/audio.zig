@@ -32,7 +32,13 @@ const std = @import("std");
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const PostmixCallback = *const fn (user_data: ?*anyopaque, spec: [*c]const c.SDL_AudioSpec, buffer: [*c]f32, buffer_len: c_int) callconv(.c) void;
+pub fn PostmixCallback(comptime UserData: type) type {
+    return *const fn (
+        user_data: ?*UserData,
+        spec: Spec,
+        buffer: []f32,
+    ) void;
+}
 
 /// A callback that fires when data passes through a `Stream`.
 ///
@@ -59,12 +65,21 @@ pub const PostmixCallback = *const fn (user_data: ?*anyopaque, spec: [*c]const c
 ///
 /// ## Thread Safety
 /// This callbacks may run from any thread, so if you need to protect shared data,
-/// you should use SDL_LockAudioStream to serialize access; this lock will be held before your callback is called,
+/// you should use `Stream.lock()` to serialize access; this lock will be held before your callback is called,
 /// so your callback does not need to manage the lock explicitly.
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const StreamCallback = *const fn (user_data: ?*anyopaque, stream: ?*c.SDL_AudioStream, additional_amount: c_int, total_amount: c_int) callconv(.c) void;
+pub fn StreamCallback(
+    comptime UserData: type,
+) type {
+    return *const fn (
+        user_data: ?*UserData,
+        stream: Stream,
+        additional_amount: usize,
+        total_amount: usize,
+    ) void;
+}
 
 /// Audio format.
 ///
@@ -756,6 +771,7 @@ pub const Device = packed struct {
     /// ## Function Parameters
     /// * `self`: The audio device to open.
     /// * `spec`: The audio stream's data format.
+    /// * `UserData`: User data type.
     /// * `callback`: A callback where the app will provide new data for playback, or receive new data for recording. Can be `null`, in which case the app will need to call `audio.Stream.putData()` or `audio.Stream.getData()` as necessary.
     /// * `user_data`: App-controlled pointer passed to callback.
     ///
@@ -797,14 +813,25 @@ pub const Device = packed struct {
     pub fn openStream(
         self: Device,
         spec: ?Spec,
-        callback: ?StreamCallback,
-        user_data: ?*anyopaque,
+        comptime UserData: type,
+        comptime callback: ?StreamCallback(UserData),
+        user_data: ?*UserData,
     ) !Stream {
+        const Cb = struct {
+            pub fn run(
+                user_data_c: ?*anyopaque,
+                stream_c: ?*c.SDL_AudioStream,
+                additional_amount_c: c_int,
+                total_amount_c: c_int,
+            ) callconv(.c) void {
+                callback.?(@alignCast(@ptrCast(user_data_c)), .{ .value = stream_c.? }, @intCast(additional_amount_c), @intCast(total_amount_c));
+            }
+        };
         const spec_sdl: c.SDL_AudioSpec = if (spec) |val| val.toSdl() else undefined;
         const ret = c.SDL_OpenAudioDeviceStream(
             self.value,
             if (spec != null) &spec_sdl else null,
-            callback orelse null,
+            if (callback != null) Cb.run else null,
             user_data,
         );
         return .{
@@ -912,6 +939,7 @@ pub const Device = packed struct {
     ///
     /// ## Function Parameters
     /// * `self`: The ID of an opened audio device.
+    /// * `UserData`: User data type.
     /// * `callback`: A callback function to be called, can be `null`.
     /// * `user_data`: App-controlled pointer passed to callback.
     ///
@@ -950,10 +978,16 @@ pub const Device = packed struct {
     /// This function is available since SDL 3.2.0.
     pub fn setPostmixCallback(
         self: Device,
-        callback: ?PostmixCallback,
-        user_data: ?*anyopaque,
+        comptime UserData: type,
+        comptime callback: ?PostmixCallback(UserData),
+        user_data: ?*UserData,
     ) !void {
-        return errors.wrapCallBool(c.SDL_SetAudioPostmixCallback(self.value, callback orelse null, user_data));
+        const Cb = struct {
+            pub fn run(user_data_c: ?*anyopaque, spec_c: [*c]const c.SDL_AudioSpec, buffer_c: [*c]f32, buffer_len_c: c_int) callconv(.c) void {
+                callback.?(@alignCast(@ptrCast(user_data_c)), Spec.fromSdl(spec_c.*), buffer_c[0..@intCast(buffer_len_c)]);
+            }
+        };
+        return errors.wrapCallBool(c.SDL_SetAudioPostmixCallback(self.value, Cb.run orelse null, user_data));
     }
 };
 
@@ -1521,6 +1555,7 @@ pub const Stream = packed struct {
     ///
     /// ## Function Parameters
     /// * `self`: The audio stream to set the new callback on.
+    /// * `UserData`: Type of user data.
     /// * `callback`: The new callback function to call when data is requested from the stream.
     /// * `user_data`: An opaque pointer provided to the callback for its own personal use.
     ///
@@ -1551,12 +1586,23 @@ pub const Stream = packed struct {
     /// This function is available since SDL 3.2.0.
     pub fn setGetCallback(
         self: Stream,
-        callback: ?StreamCallback,
-        user_data: ?*anyopaque,
+        comptime UserData: type,
+        comptime callback: ?StreamCallback(UserData),
+        user_data: ?*UserData,
     ) void {
+        const Cb = struct {
+            pub fn run(
+                user_data_c: ?*anyopaque,
+                stream_c: ?*c.SDL_AudioStream,
+                additional_amount_c: c_int,
+                total_amount_c: c_int,
+            ) callconv(.c) void {
+                callback.?(@alignCast(@ptrCast(user_data_c)), .{ .value = stream_c.? }, @intCast(additional_amount_c), @intCast(total_amount_c));
+            }
+        };
         _ = c.SDL_SetAudioStreamGetCallback(
             self.value,
-            if (callback) |val| val else null,
+            if (callback != null) Cb.run else null,
             user_data,
         );
     }
@@ -1654,6 +1700,7 @@ pub const Stream = packed struct {
     ///
     /// ## Function Parameters
     /// * `self`: The audio stream to set the new callback on.
+    /// * `UserData`: Type of user data.
     /// * `callback`: The new callback function to call when data is added to the stream.
     /// * `user_data`: An opaque pointer provided to the callback for its own personal use.
     ///
@@ -1688,12 +1735,23 @@ pub const Stream = packed struct {
     /// This function is available since SDL 3.2.0.
     pub fn setPutCallback(
         self: Stream,
-        callback: ?StreamCallback,
-        user_data: ?*anyopaque,
+        comptime UserData: type,
+        comptime callback: ?StreamCallback(UserData),
+        user_data: ?*UserData,
     ) void {
+        const Cb = struct {
+            pub fn run(
+                user_data_c: ?*anyopaque,
+                stream_c: ?*c.SDL_AudioStream,
+                additional_amount_c: c_int,
+                total_amount_c: c_int,
+            ) callconv(.c) void {
+                callback.?(@alignCast(@ptrCast(user_data_c)), .{ .value = stream_c.? }, @intCast(additional_amount_c), @intCast(total_amount_c));
+            }
+        };
         _ = c.SDL_SetAudioStreamPutCallback(
             self.value,
-            if (callback) |val| val else null,
+            if (callback != null) Cb.run else null,
             user_data,
         );
     }
