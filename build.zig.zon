@@ -8,7 +8,7 @@
             .hash = "sdl-0.2.4+3.2.16-7uIn9DPhfgH29yAIJqHLc69hNb4IW0q-AngtKCFoT92b",
         },
         .sdl_image = .{
-            .url = "https://github.com/allyourcodebase/SDL_image/archive/refs/heads/main.zip",
+            .url = "git+https://github.com/allyourcodebase/SDL_image.git#b4eea3007f965a17c946e31b3ce52196b94ce64b",
             .hash = "SDL_image-3.2.4--aJoHa0VAAC_C_du38OrOmZ4m23B5bCjXONc13NEpTYf",
         },
     },
