@@ -74,10 +74,11 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
     });
     const main_callbacks = b.option(bool, "callbacks", "Enable SDL callbacks rather than use a main function") orelse false;
-    if (main_callbacks) {
-        sdl3.addCSourceFile(.{ .file = b.path("main_callbacks.c") });
-    }
+    // if (main_callbacks) {
+    //     sdl3.addCSourceFile(.{ .file = b.path("main_callbacks.c") });
+    // }
     const extension_options = b.addOptions();
+    extension_options.addOption(bool, "callbacks", main_callbacks);
     const sdl3_main = b.option(bool, "main", "Enable SDL main") orelse false;
     extension_options.addOption(bool, "main", sdl3_main);
     const ext_image = b.option(bool, "ext_image", "Enable SDL_image extension") orelse false;

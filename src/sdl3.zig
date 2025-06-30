@@ -460,6 +460,9 @@ pub const Locale = @import("locale.zig").Locale;
 /// Each log call is atomic, so you won't see log messages cut off one another when logging from multiple threads.
 pub const log = @import("log.zig");
 
+/// Main callback functions when desired.
+pub const main_callbacks = if (extension_options.callbacks) @import("main_callbacks.zig") else void;
+
 /// Ability to call other main functions.
 ///
 /// SDL will take care of platform specific details on how it gets called.
