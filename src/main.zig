@@ -1,24 +1,27 @@
 const c = @import("c.zig").c;
+const events = @import("events.zig");
 const sdl3 = @import("sdl3.zig");
 const std = @import("std");
 
 /// The prototype for the application's `main()` function
 ///
 /// ## Function Parameters
-/// * `arg_count`: An ANSI-C style main function's argc.
-/// * `arg_values`: An ANSI-C style main function's argv.
+/// * `args`: Arguments to the main function.
 ///
 /// ## Return Value
 /// Returns an ANSI-C main return code; generally `0` is considered successful program completion, and small non-zero values are considered errors.
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const MainCallback = *const fn (arg_count: c_int, arg_values: [*c][*c]u8) callconv(.c) c_int;
+pub const MainCallback = *const fn (
+    args: [][*:0]u8,
+) anyerror!void;
 
 /// An entry point for SDL's use in main callbacks.
 ///
 /// ## Function Parameters
 /// * `args`: Application arguments.
+/// * `UserData`: Type for user data.
 /// * `app_init`: Application initialize function.
 /// * `app_iterate`: Application iterate function.
 /// * `app_event`: Application event function.
@@ -42,19 +45,66 @@ pub const MainCallback = *const fn (arg_count: c_int, arg_values: [*c][*c]u8) ca
 /// This function is available since SDL 3.2.0.
 pub fn enterAppMainCallbacks(
     args: [:null]?[*:0]u8,
-    app_init: sdl3.AppInitCallback,
-    app_iterate: sdl3.AppIterateCallback,
-    app_event: sdl3.AppEventCallback,
-    app_quit: sdl3.AppQuitCallback,
-) c_int {
-    return c.SDL_EnterAppMainCallbacks(
+    comptime UserData: type,
+    comptime app_init: ?sdl3.AppInitCallback(UserData),
+    comptime app_iterate: ?sdl3.AppIterateCallback(UserData),
+    comptime app_event: ?sdl3.AppEventCallback(UserData),
+    comptime app_quit: ?sdl3.AppQuitCallback(UserData),
+) u8 {
+    const Cb = struct {
+        pub fn init(app_state_c: [*c]?*anyopaque, arg_count_c: c_int, arg_values_c: [*c][*c]u8) callconv(.c) c_uint {
+            if (app_init) |cb| {
+                const ret = cb(@alignCast(@ptrCast(app_state_c)), @as([*][*:0]u8, @ptrCast(arg_values_c))[0..@intCast(arg_count_c)]) catch |err| {
+                    std.log.err("{s}", .{@errorName(err)});
+                    if (@errorReturnTrace()) |trace| {
+                        std.debug.dumpStackTrace(trace.*);
+                    }
+                    return c.SDL_APP_FAILURE;
+                };
+                return @intFromEnum(ret);
+            }
+            return c.SDL_APP_CONTINUE;
+        }
+        pub fn iterate(app_state_c: ?*anyopaque) callconv(.c) c_uint {
+            if (app_iterate) |cb| {
+                const ret = cb(@alignCast(@ptrCast(app_state_c))) catch |err| {
+                    std.log.err("{s}", .{@errorName(err)});
+                    if (@errorReturnTrace()) |trace| {
+                        std.debug.dumpStackTrace(trace.*);
+                    }
+                    return c.SDL_APP_FAILURE;
+                };
+                return @intFromEnum(ret);
+            }
+            return c.SDL_APP_CONTINUE;
+        }
+        pub fn event(app_state_c: ?*anyopaque, event_c: [*c]c.SDL_Event) callconv(.c) c_uint {
+            if (app_event) |cb| {
+                const ret = cb(@alignCast(@ptrCast(app_state_c)), events.Event.fromSdl(event_c.*)) catch |err| {
+                    std.log.err("{s}", .{@errorName(err)});
+                    if (@errorReturnTrace()) |trace| {
+                        std.debug.dumpStackTrace(trace.*);
+                    }
+                    return c.SDL_APP_FAILURE;
+                };
+                return @intFromEnum(ret);
+            }
+            return c.SDL_APP_CONTINUE;
+        }
+        pub fn quit(app_state_c: ?*anyopaque, result_c: c_uint) callconv(.c) void {
+            if (app_quit) |cb| {
+                cb(@alignCast(@ptrCast(app_state_c)), @enumFromInt(result_c));
+            }
+        }
+    };
+    return @intCast(c.SDL_EnterAppMainCallbacks(
         @intCast(args.len),
         @ptrCast(args.ptr),
-        app_init,
-        app_iterate,
-        app_event,
-        app_quit,
-    );
+        Cb.init,
+        Cb.iterate,
+        Cb.event,
+        Cb.quit,
+    ));
 }
 
 /// Callback from the application to let the suspend continue.
@@ -110,14 +160,26 @@ pub fn gdkSuspendComplete() void {
 /// This function is available since SDL 3.2.0.
 pub fn runApp(
     args: [:null]?[*:0]u8,
-    main_function: MainCallback,
-) c_int {
-    return c.SDL_RunApp(
+    comptime main_function: MainCallback,
+) u8 {
+    const Cb = struct {
+        fn run(arg_count_c: c_int, arg_values_c: [*c][*c]u8) callconv(.c) c_int {
+            main_function(@as([*][*:0]u8, @ptrCast(arg_values_c))[0..@intCast(arg_count_c)]) catch |err| {
+                std.log.err("{s}", .{@errorName(err)});
+                if (@errorReturnTrace()) |trace| {
+                    std.debug.dumpStackTrace(trace.*);
+                }
+                return 1;
+            };
+            return 0;
+        }
+    };
+    return @intCast(c.SDL_RunApp(
         @intCast(args.len),
         @ptrCast(args.ptr),
-        main_function,
+        Cb.run,
         null,
-    );
+    ));
 }
 
 /// Circumvent failure of `SDL_Init()` when not using `SDL_main()` as an entry point.
@@ -132,54 +194,47 @@ pub fn setMainReady() void {
 }
 
 fn dummyMain(
-    arg_count: c_int,
-    arg_values: [*c][*c]u8,
-) callconv(.c) c_int {
-    if (arg_count < 2)
-        return -1;
-    std.testing.expectEqualStrings("Hello", std.mem.span(arg_values[0])) catch return -1;
-    std.testing.expectEqualStrings("World", std.mem.span(arg_values[1])) catch return -1;
-    std.testing.expectEqual(null, arg_values[2]) catch return -1;
-    return arg_count;
+    args: [][*:0]u8,
+) !void {
+    try std.testing.expectEqualStrings("Hello", std.mem.span(args[0]));
+    try std.testing.expectEqualStrings("World", std.mem.span(args[1]));
 }
 
 fn dummyInit(
-    app_state: [*c]?*anyopaque,
-    arg_count: c_int,
-    arg_values: [*c][*c]u8,
-) callconv(.c) c_uint {
-    if (arg_count < 2)
-        return c.SDL_APP_FAILURE;
-    std.testing.expectEqualStrings("Hello", std.mem.span(arg_values[0])) catch return c.SDL_APP_FAILURE;
-    std.testing.expectEqualStrings("World", std.mem.span(arg_values[1])) catch return c.SDL_APP_FAILURE;
-    std.testing.expectEqual(null, arg_values[2]) catch return c.SDL_APP_FAILURE;
+    app_state: *?*anyopaque,
+    args: [][*:0]u8,
+) !sdl3.AppResult {
+    if (args.len < 2)
+        return .failure;
+    try std.testing.expectEqualStrings("Hello", std.mem.span(args[0]));
+    try std.testing.expectEqualStrings("World", std.mem.span(args[1]));
     app_state.* = @ptrFromInt(5);
-    return c.SDL_APP_CONTINUE;
+    return .run;
 }
 
 fn dummyIterate(
     app_state: ?*anyopaque,
-) callconv(.c) c_uint {
+) !sdl3.AppResult {
     if (app_state) |val| {
-        std.testing.expectEqual(5, @intFromPtr(val)) catch return c.SDL_APP_FAILURE;
-        return c.SDL_APP_SUCCESS;
+        std.testing.expectEqual(5, @intFromPtr(val)) catch return .failure;
+        return .success;
     }
-    return c.SDL_APP_FAILURE;
+    return .failure;
 }
 
 fn dummyEvent(
     app_state: ?*anyopaque,
-    event: [*c]c.SDL_Event,
-) callconv(.c) c_uint {
+    event: events.Event,
+) !sdl3.AppResult {
     _ = app_state;
     _ = event;
-    return c.SDL_APP_CONTINUE;
+    return .run;
 }
 
 fn dummyQuit(
     app_state: ?*anyopaque,
-    result: c_uint,
-) callconv(.c) void {
+    result: sdl3.AppResult,
+) void {
     _ = app_state;
     _ = result;
 }
@@ -191,17 +246,18 @@ test "Main" {
         @constCast("Hello"),
         @constCast("World"),
     };
-    try std.testing.expectEqual(@as(c_int, @intCast(args.len)), runApp(
+    setMainReady();
+    try std.testing.expectEqual(0, runApp(
         &args,
         dummyMain,
     ));
     try std.testing.expectEqual(0, enterAppMainCallbacks(
         &args,
+        anyopaque,
         dummyInit,
         dummyIterate,
         dummyEvent,
         dummyQuit,
     ));
     gdkSuspendComplete();
-    setMainReady();
 }

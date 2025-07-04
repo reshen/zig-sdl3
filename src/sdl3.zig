@@ -472,7 +472,7 @@ pub const main_callbacks = if (extension_options.callbacks) @import("main_callba
 ///
 /// For more information, see:
 /// [https://wiki.libsdl.org/SDL3/README/main-functions](https://wiki.libsdl.org/SDL3/README/main-functions).
-pub const main_funcs = if (extension_options.main) @import("main.zig") else void;
+pub const main_funcs = @import("main.zig");
 
 /// SDL offers a simple message box API, which is useful for simple alerts,
 /// such as informing the user when something fatal happens at startup without the need to build a UI for it (or informing the user before your UI is ready).
@@ -785,14 +785,14 @@ pub const AppResult = enum(c_uint) {
     failure = c.SDL_APP_FAILURE,
 };
 
-/// Function pointer typedef for `SDL_AppEvent()`.
+/// Function pointer for event callback.
 ///
 /// ## Function Parameters
 /// * `app_state`: An optional pointer, provided by the app in `SDL_AppInit()`.
 /// * `event`: The new event for the app to examine.
 ///
 /// ## Return Value
-/// Returns `sdl3.AppResult.failure` to terminate with an error, `sdl3.AppResult.success` to terminate with success, `sdl3.AppResult.run` to continue.
+/// Returns `AppResult.failure` to terminate with an error, `AppResult.success` to terminate with success, `AppResult.run` to continue.
 ///
 /// ## Remarks
 /// These are used by `main.enterAppMainCallbacks()`.
@@ -801,17 +801,23 @@ pub const AppResult = enum(c_uint) {
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const AppEventCallback = *const fn (app_state: ?*anyopaque, event: [*c]c.SDL_Event) callconv(.c) c_uint;
+pub fn AppEventCallback(
+    comptime UserData: type,
+) type {
+    return *const fn (
+        app_state: ?*UserData,
+        event: events.Event,
+    ) anyerror!AppResult;
+}
 
-/// Function pointer typedef for `SDL_AppInit()`.
+/// Function pointer typedef for init.
 ///
 /// ## Function Parameters
 /// * `app_state`: A place where the app can optionally store a pointer for future use.
-/// * `arg_count`: The standard ANSI C main's argc; number of elements in `arg_values`.
-/// * `arg_values`: The standard ANSI C main's argv; array of command line arguments.
+/// * `args`: Command line arguments for the app.
 ///
 /// ## Return Value
-/// Returns `sdl3.AppResult.failure` to terminate with an error, `sdl3.AppResult.success` to terminate with success, `sdl3.AppResult.run` to continue.
+/// Returns `AppResult.failure` to terminate with an error, `AppResult.success` to terminate with success, `AppResult.run` to continue.
 ///
 /// ## Remarks
 /// These are used by `main.enterAppMainCallbacks()`.
@@ -820,15 +826,22 @@ pub const AppEventCallback = *const fn (app_state: ?*anyopaque, event: [*c]c.SDL
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const AppInitCallback = *const fn (app_state: [*c]?*anyopaque, arg_count: c_int, arg_values: [*c][*c]u8) callconv(.c) c_uint;
+pub fn AppInitCallback(
+    comptime UserData: type,
+) type {
+    return *const fn (
+        app_state: *?*UserData,
+        args: [][*:0]u8,
+    ) anyerror!AppResult;
+}
 
-/// Function pointer typedef for `SDL_AppIterate()`.
+/// Function pointer typedef for an update loop.
 ///
 /// ## Function Parameters
 /// * `app_state`: An optional pointer, provided by the app in `SDL_AppInit()`.
 ///
 /// ## Return Value
-/// Returns `sdl3.AppResult.failure` to terminate with an error, `sdl3.AppResult.success` to terminate with success, `sdl3.AppResult.run` to continue.
+/// Returns `AppResult.failure` to terminate with an error, `AppResult.success` to terminate with success, `AppResult.run` to continue.
 ///
 /// ## Remarks
 /// These are used by `main.enterAppMainCallbacks()`.
@@ -837,9 +850,13 @@ pub const AppInitCallback = *const fn (app_state: [*c]?*anyopaque, arg_count: c_
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const AppIterateCallback = *const fn (app_state: ?*anyopaque) callconv(.c) c_uint;
+pub fn AppIterateCallback(comptime UserData: type) type {
+    return *const fn (
+        app_state: ?*UserData,
+    ) anyerror!AppResult;
+}
 
-/// Function pointer typedef for `SDL_AppQuit()`.
+/// Function pointer typedef for quitting.
 ///
 /// ## Function Parameters
 /// * `app_state`: An optional pointer, provided by the app in `SDL_AppInit()`.
@@ -852,7 +869,11 @@ pub const AppIterateCallback = *const fn (app_state: ?*anyopaque) callconv(.c) c
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const AppQuitCallback = *const fn (app_state: ?*anyopaque, result: c_uint) callconv(.c) void;
+pub fn AppQuitCallback(
+    comptime UserData: type,
+) type {
+    return *const fn (app_state: ?*UserData, result: AppResult) void;
+}
 
 /// Callback run on the main thread.
 ///
@@ -861,9 +882,13 @@ pub const AppQuitCallback = *const fn (app_state: ?*anyopaque, result: c_uint) c
 ///
 /// ## Versions
 /// This datatype is available since SDL 3.2.0.
-pub const MainThreadCallback = *const fn (
-    user_data: ?*anyopaque,
-) callconv(.c) void;
+pub fn MainThreadCallback(
+    comptime UserData: type,
+) type {
+    return *const fn (
+        user_data: ?*UserData,
+    ) void;
+}
 
 /// An app's metadata property to get or set.
 ///
@@ -1061,6 +1086,7 @@ pub fn quit(
 /// Call a function on the main thread during event processing.
 ///
 /// ## Function Parameters
+/// * `UserData`: Type of user data.
 /// * `callback`: The callback to call on the main thread.
 /// * `user_data`: A pointer that is passed to callback.
 /// * `wait_complete`: True to wait for the callback to complete, false to return immediately.
@@ -1078,11 +1104,17 @@ pub fn quit(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn runOnMainThread(
-    callback: MainThreadCallback,
-    user_data: ?*anyopaque,
+    comptime UserData: type,
+    comptime callback: MainThreadCallback(UserData),
+    user_data: ?*UserData,
     wait_complete: bool,
 ) !void {
-    const ret = c.SDL_RunOnMainThread(callback, user_data, wait_complete);
+    const Cb = struct {
+        fn run(user_data_c: ?*anyopaque) callconv(.c) void {
+            callback(@alignCast(@ptrCast(user_data_c)));
+        }
+    };
+    const ret = c.SDL_RunOnMainThread(Cb.run, user_data, wait_complete);
     return errors.wrapCallBool(ret);
 }
 
@@ -1223,9 +1255,8 @@ pub fn wasInit(
     return InitFlags.fromSdl(ret);
 }
 
-fn testRunOnMainThreadCb(user_data: ?*anyopaque) callconv(.c) void {
-    const ptr: *i32 = @ptrCast(@alignCast(user_data.?));
-    ptr.* = -1;
+fn testRunOnMainThreadCb(user_data: ?*i32) void {
+    user_data.?.* = -1;
 }
 
 // Add all tests from subsystems.
@@ -1242,7 +1273,7 @@ test {
     defer quit(flags);
     try std.testing.expect(isMainThread());
     var data: i32 = 1;
-    try runOnMainThread(testRunOnMainThreadCb, &data, true);
+    try runOnMainThread(i32, testRunOnMainThreadCb, &data, true);
     try std.testing.expectEqual(-1, data);
     try std.testing.expectEqual(flags, wasInit(flags));
     try std.testing.expectEqualStrings("SDL3 Test", getAppMetadataProperty(.name).?);

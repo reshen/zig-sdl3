@@ -54,8 +54,8 @@ lib.root_module.addImport("sdl3", sdl3.module("sdl3"));
 # Example
 
 ```zig
-const std = @import("std");
 const sdl3 = @import("sdl3");
+const std = @import("std");
 
 const SCREEN_WIDTH = 640;
 const SCREEN_HEIGHT = 480;
