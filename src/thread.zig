@@ -72,31 +72,43 @@ pub const Thread = packed struct {
 
     /// Properties to use for thread creation.
     ///
+    /// ## Type Parameters
+    /// * `UserData`: User data type.
+    /// * `entry_function`: A function that will be called at the start of the new thread's life.
+    ///
     /// ## Version
     /// This datatype is available since SDL 3.2.0.
-    pub const InitProperties = struct {
-        /// A function that will be called at the start of the new thread's life.
-        entry_function: ThreadFunction,
-        /// The name of the new thread, which might be available to debuggers.
-        name: ?[:0]const u8 = null,
-        /// An arbitrary app-defined pointer, which is passed to the entry function on the new thread, as its only parameter.
-        user_data: ?*anyopaque = null,
-        /// The size, in bytes, of the new thread's stack. Defaults to 0 (system-defined default).
-        stack_size: ?usize = null,
+    pub fn InitProperties(
+        comptime UserData: type,
+        comptime entry_function: ThreadFunction(UserData),
+    ) type {
+        return struct {
+            /// The name of the new thread, which might be available to debuggers.
+            name: ?[:0]const u8 = null,
+            /// An arbitrary app-defined pointer, which is passed to the entry function on the new thread, as its only parameter.
+            user_data: ?*anyopaque = null,
+            /// The size, in bytes, of the new thread's stack. Defaults to 0 (system-defined default).
+            stack_size: ?usize = null,
 
-        // Get properties, must free after.
-        pub fn toSdl(self: InitProperties) !properties.Group {
-            const ret = try properties.Group.init();
-            try ret.set(c.SDL_PROP_THREAD_CREATE_ENTRY_FUNCTION_POINTER, .{ .pointer = @constCast(self.entry_function) });
-            if (self.name) |val|
-                try ret.set(c.SDL_PROP_THREAD_CREATE_NAME_STRING, .{ .string = val });
-            if (self.user_data) |val|
-                try ret.set(c.SDL_PROP_THREAD_CREATE_USERDATA_POINTER, .{ .pointer = val });
-            if (self.stack_size) |val|
-                try ret.set(c.SDL_PROP_THREAD_CREATE_STACKSIZE_NUMBER, .{ .number = @intCast(val) });
-            return ret;
-        }
-    };
+            // Callback.
+            fn run(user_data_c: ?*anyopaque) callconv(.c) c_int {
+                return entry_function(@alignCast(@ptrCast(user_data_c)));
+            }
+
+            // Get properties, must free after.
+            pub fn toSdl(self: @This()) !properties.Group {
+                const ret = try properties.Group.init();
+                try ret.set(c.SDL_PROP_THREAD_CREATE_ENTRY_FUNCTION_POINTER, .{ .pointer = @constCast(&@This().run) });
+                if (self.name) |val|
+                    try ret.set(c.SDL_PROP_THREAD_CREATE_NAME_STRING, .{ .string = val });
+                if (self.user_data) |val|
+                    try ret.set(c.SDL_PROP_THREAD_CREATE_USERDATA_POINTER, .{ .pointer = val });
+                if (self.stack_size) |val|
+                    try ret.set(c.SDL_PROP_THREAD_CREATE_STACKSIZE_NUMBER, .{ .number = @intCast(val) });
+                return ret;
+            }
+        };
+    }
 
     /// Let a thread clean up on exit without intervention.
     ///
@@ -135,6 +147,7 @@ pub const Thread = packed struct {
     /// Create a new thread with a default stack size.
     ///
     /// ## Function Parameters
+    /// * `UserData`: Type of user data.
     /// * `func`: The function to call in the new thread.
     /// * `name`: The name of the thread.
     /// * `data`: A pointer that is passed to `func`.
@@ -157,16 +170,24 @@ pub const Thread = packed struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn init(
-        func: ThreadFunction,
+        comptime UserData: type,
+        comptime func: ThreadFunction(UserData),
         name: ?[:0]const u8,
         data: ?*anyopaque,
     ) !Thread {
-        return .{ .value = try errors.wrapNull(*c.SDL_Thread, c.SDL_CreateThread(func, if (name) |val| val.ptr else null, data)) };
+        const Cb = struct {
+            fn run(user_data_c: ?*anyopaque) callconv(.c) c_int {
+                return func(@alignCast(@ptrCast(user_data_c)));
+            }
+        };
+        return .{ .value = try errors.wrapNull(*c.SDL_Thread, c.SDL_CreateThread(Cb.run, if (name) |val| val.ptr else null, data)) };
     }
 
     /// Create a new thread with with the specified properties.
     ///
     /// ## Function Parameters
+    /// * `UserData`: User data type.
+    /// * `entry_function`: The thread entry function.
     /// * `props`: The properties to use.
     ///
     /// ## Return Value
@@ -202,7 +223,9 @@ pub const Thread = packed struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn initWithProperties(
-        props: InitProperties,
+        comptime UserData: type,
+        comptime entry_function: ThreadFunction(UserData),
+        props: InitProperties(UserData, entry_function),
     ) !Thread {
         const init_props = try props.toSdl();
         defer init_props.deinit();
@@ -310,7 +333,13 @@ pub const Thread = packed struct {
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const ThreadFunction = *const fn (user_data: ?*anyopaque) callconv(.c) c_int;
+pub fn ThreadFunction(
+    comptime UserData: type,
+) type {
+    return *const fn (
+        user_data: ?*UserData,
+    ) c_int;
+}
 
 /// The callback used to cleanup data passed to `thread.TLSID.set()`.
 ///
@@ -322,7 +351,13 @@ pub const ThreadFunction = *const fn (user_data: ?*anyopaque) callconv(.c) c_int
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const TlsDestructorCallback = *const fn (value: ?*anyopaque) callconv(.c) void;
+pub fn TlsDestructorCallback(
+    comptime ValueType: type,
+) type {
+    return *const fn (
+        value: ?*ValueType,
+    ) void;
+}
 
 /// Thread local storage ID.
 ///
@@ -389,10 +424,16 @@ pub const TLSID = struct {
     /// This function is available since SDL 3.2.0.
     pub fn set(
         self: *TLSID,
-        value: ?*const anyopaque,
-        destructor: ?TlsDestructorCallback,
+        comptime ValueType: type,
+        value: ?*const ValueType,
+        comptime destructor: ?TlsDestructorCallback(ValueType),
     ) !void {
-        return errors.wrapCallBool(c.SDL_SetTLS(&self.value, value, destructor));
+        const Cb = struct {
+            pub fn run(value_c: ?*anyopaque) callconv(.c) void {
+                destructor.?(@alignCast(@ptrCast(value_c)));
+            }
+        };
+        return errors.wrapCallBool(c.SDL_SetTLS(&self.value, value, if (destructor != null) Cb.run else null));
     }
 };
 
@@ -444,12 +485,12 @@ pub fn setCurrentPriority(
     return errors.wrapCallBool(c.SDL_SetCurrentThreadPriority(@intFromEnum(priority)));
 }
 
-fn threadFunc(user_data: ?*anyopaque) callconv(.c) c_int {
+fn threadFunc(user_data: ?*void) c_int {
     _ = user_data;
     return 3;
 }
 
-fn tlsDestructor(value: ?*anyopaque) callconv(.c) void {
+fn tlsDestructor(value: ?*void) void {
     _ = value;
 }
 
@@ -457,18 +498,18 @@ fn tlsDestructor(value: ?*anyopaque) callconv(.c) void {
 test "Thread" {
     std.testing.refAllDeclsRecursive(@This());
 
-    const t1 = try Thread.init(threadFunc, "Test", null);
+    const t1 = try Thread.init(void, threadFunc, "Test", null);
     try std.testing.expectEqualStrings("Test", t1.getName().?);
     _ = t1.getId();
     _ = t1.getState();
     try std.testing.expectEqual(3, t1.wait());
 
-    const t2 = try Thread.initWithProperties(.{ .entry_function = threadFunc });
+    const t2 = try Thread.initWithProperties(void, threadFunc, .{});
     t2.detach();
 
     var id = TLSID.init();
     _ = id.get() catch {};
-    id.set(null, null) catch {};
+    id.set(void, null, null) catch {};
 
     setCurrentPriority(.low) catch {};
     _ = getCurrentId();

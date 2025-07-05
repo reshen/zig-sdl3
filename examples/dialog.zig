@@ -25,15 +25,14 @@ fn fileCallback(user_data: ?*State, file_list: ?[]const [*:0]const u8, filter: ?
         showMenu(@alignCast(@ptrCast(user_data))) catch {};
         return;
     }
-    if (user_data) |user| {
-        if (user.is_file) {
-            user.last_file = std.fmt.allocPrintZ(user.allocator, "{s}", .{if (file_list) |val| val[0] else "[null]"}) catch "[allocation error]";
-            user.last_file_filter = filter;
-        } else {
-            user.last_folder = std.fmt.allocPrintZ(user.allocator, "{s}", .{if (file_list) |val| val[0] else "[null]"}) catch "[allocation error]";
-        }
+    const data = user_data.?;
+    if (data.is_file) {
+        data.last_file = std.fmt.allocPrintZ(data.allocator, "{s}", .{if (file_list) |val| val[0] else "[null]"}) catch "[allocation error]";
+        data.last_file_filter = filter;
+    } else {
+        data.last_folder = std.fmt.allocPrintZ(data.allocator, "{s}", .{if (file_list) |val| val[0] else "[null]"}) catch "[allocation error]";
     }
-    showMenu(user_data) catch {};
+    showMenu(data) catch {};
 }
 
 // Logic for showing the main menu popup.
