@@ -72,17 +72,17 @@ fn sdlLog(
     message: [:0]const u8,
 ) void {
     _ = user_data;
-    const category_str: ?[]const u8 = if (category) |val| switch (val.value) {
-        sdl3.log.Category.application.value => "Application",
-        sdl3.log.Category.errors.value => "Errors",
-        sdl3.log.Category.assert.value => "Assert",
-        sdl3.log.Category.system.value => "System",
-        sdl3.log.Category.audio.value => "Audio",
-        sdl3.log.Category.video.value => "Video",
-        sdl3.log.Category.render.value => "Render",
-        sdl3.log.Category.input.value => "Input",
-        sdl3.log.Category.testing.value => "Testing",
-        sdl3.log.Category.gpu.value => "Gpu",
+    const category_str: ?[]const u8 = if (category) |val| switch (val) {
+        .application => "Application",
+        .errors => "Errors",
+        .assert => "Assert",
+        .system => "System",
+        .audio => "Audio",
+        .video => "Video",
+        .render => "Render",
+        .input => "Input",
+        .testing => "Testing",
+        .gpu => "Gpu",
         else => null,
     } else null;
     const priority_str: [:0]const u8 = if (priority) |val| switch (val) {
@@ -96,8 +96,10 @@ fn sdlLog(
     } else "Unknown";
     if (category_str) |val| {
         std.debug.print("[{s}:{s}] {s}\n", .{ val, priority_str, message });
+    } else if (category) |val| {
+        std.debug.print("[Custom_{d}:{s}] {s}\n", .{ @intFromEnum(val), priority_str, message });
     } else {
-        std.debug.print("[Custom_{d}:{s}] {s}\n", .{ category.?.value, priority_str, message });
+        std.debug.print("Unknown:{s}] {s}\n", .{ priority_str, message });
     }
 }
 
