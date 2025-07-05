@@ -12,10 +12,9 @@ const State = struct {
 };
 
 // Called whenever a native dialog is shown.
-fn fileCallback(user_data: ?*anyopaque, file_list: [*c]const [*c]const u8, filter: c_int) callconv(.c) void {
-    const data = sdl3.dialog.sanatizeFileCallback(State, user_data, file_list, filter) catch {
-        if (user_data) |val| {
-            const user: *State = @alignCast(@ptrCast(val));
+fn fileCallback(user_data: ?*State, file_list: ?[]const [*:0]const u8, filter: ?usize, err: bool) void {
+    if (err) {
+        if (user_data) |user| {
             if (user.is_file) {
                 user.last_file = "[dialog error]";
                 user.last_file_filter = null;
@@ -25,16 +24,16 @@ fn fileCallback(user_data: ?*anyopaque, file_list: [*c]const [*c]const u8, filte
         }
         showMenu(@alignCast(@ptrCast(user_data))) catch {};
         return;
-    };
-    if (data.user_data) |user| {
+    }
+    if (user_data) |user| {
         if (user.is_file) {
-            user.last_file = std.fmt.allocPrintZ(user.allocator, "{s}", .{if (data.file_list) |val| val[0] else "[null]"}) catch "[allocation error]";
-            user.last_file_filter = data.filter;
+            user.last_file = std.fmt.allocPrintZ(user.allocator, "{s}", .{if (file_list) |val| val[0] else "[null]"}) catch "[allocation error]";
+            user.last_file_filter = filter;
         } else {
-            user.last_folder = std.fmt.allocPrintZ(user.allocator, "{s}", .{if (data.file_list) |val| val[0] else "[null]"}) catch "[allocation error]";
+            user.last_folder = std.fmt.allocPrintZ(user.allocator, "{s}", .{if (file_list) |val| val[0] else "[null]"}) catch "[allocation error]";
         }
     }
-    showMenu(@alignCast(@ptrCast(user_data))) catch {};
+    showMenu(user_data) catch {};
 }
 
 // Logic for showing the main menu popup.
@@ -80,7 +79,7 @@ fn showMenu(state: *State) !void {
         -1 => state.quit = true,
         0 => {
             state.is_file = true;
-            sdl3.dialog.showOpenFile(fileCallback, state, state.window, &.{
+            sdl3.dialog.showOpenFile(State, fileCallback, state, state.window, &.{
                 .{
                     .name = "PNG Images",
                     .pattern = "png",
@@ -93,11 +92,11 @@ fn showMenu(state: *State) !void {
         },
         1 => {
             state.is_file = false;
-            sdl3.dialog.showOpenFolder(fileCallback, state, state.window, state.last_folder, false);
+            sdl3.dialog.showOpenFolder(State, fileCallback, state, state.window, state.last_folder, false);
         },
         2 => {
             state.is_file = true;
-            sdl3.dialog.showSaveFile(fileCallback, state, state.window, &.{
+            sdl3.dialog.showSaveFile(State, fileCallback, state, state.window, &.{
                 .{
                     .name = "PNG Images",
                     .pattern = "png",
@@ -110,7 +109,7 @@ fn showMenu(state: *State) !void {
         },
         3 => {
             state.is_file = true;
-            const props = try sdl3.dialog.showWithProperties(.save_file, fileCallback, state, .{});
+            const props = try sdl3.dialog.showWithProperties(.save_file, State, fileCallback, state, .{});
             defer props.deinit();
         },
         else => {},

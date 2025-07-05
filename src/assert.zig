@@ -2,7 +2,58 @@ const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const std = @import("std");
 
+/// Information about an assertion failure.
+///
+/// ## Remarks
+/// This structure is filled in with information about a triggered assertion, used by the assertion handler, then added to the assertion report.
+/// This is returned as a linked list from `assert.getReport()`.
+///
+/// ## Version
+/// This struct is available since SDL 3.2.0.
+pub const AssertData = extern struct {
+    /// True if app should always continue when assertion is triggered.
+    always_ignore: bool = false,
+    /// Number of times this assertion has been triggered.
+    trigger_count: c_uint = 0,
+    /// A string of this assert's test code.
+    condition: ?[*:0]const u8 = null,
+    /// The source file where this assert lives.
+    filename: ?[*:0]const u8 = null,
+    /// The line in `filename` where this assert lives.
+    linenum: c_int = 0,
+    /// The name of the function where this assert lives.
+    function: ?[*:0]const u8 = null,
+    /// Next item in the linked list.
+    next: ?*const AssertData = null,
+
+    // Test equality.
+    comptime {
+        errors.assertStructsEqual(AssertData, c.SDL_AssertData);
+    }
+};
+
 /// A callback that fires when an SDL assertion fails.
+///
+/// ## Function Parameters
+/// * `assert_data`: Assert data structure corresponding to the current assertion.
+/// * `user_data`: What was passed as userdata to `assert.setHandler()`.
+///
+/// ## Return Value
+/// Returns an assertion state value indicating how to handle the failure.
+///
+/// ## Thread Safety
+/// This callback may be called from any thread that triggers an assert at any time.
+///
+/// ## Version
+/// This datatype is available since SDL 3.2.0.
+pub fn Handler(comptime UserData: type) type {
+    return *const fn (
+        assert_data: AssertData,
+        user_data: ?*UserData,
+    ) State;
+}
+
+/// A C callback that fires when an SDL assertion fails.
 ///
 /// ## Function Parameters
 /// * `assert_data`: A pointer to the `c.SDL_AssertData` structure corresponding to the current assertion.
@@ -16,7 +67,7 @@ const std = @import("std");
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const Handler = *const fn (
+pub const HandlerC = *const fn (
     assert_data: [*c]const c.SDL_AssertData,
     user_data: ?*anyopaque,
 ) callconv(.c) c.SDL_AssertState;
@@ -31,7 +82,7 @@ pub const Handler = *const fn (
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const State = enum(c_int) {
+pub const State = enum(c_uint) {
     /// Retry the assert immediately.
     retry = c.SDL_ASSERTION_RETRY,
     /// Make the debugger trigger a breakpoint.
@@ -58,7 +109,7 @@ pub const State = enum(c_int) {
 ///
 /// ## Version
 /// This function is available since SDL 3.2.0.
-pub fn getDefaultHandler() Handler {
+pub fn getDefaultHandler() HandlerC {
     return c.SDL_GetDefaultAssertionHandler().?;
 }
 
@@ -80,7 +131,7 @@ pub fn getDefaultHandler() Handler {
 ///
 /// ## Version
 /// This function is available since SDL 3.2.0.
-pub fn getHandler() struct { handler: Handler, user_data: ?*anyopaque } {
+pub fn getHandler() struct { handler: HandlerC, user_data: ?*anyopaque } {
     var user_data: ?*anyopaque = undefined;
     const handler = c.SDL_GetAssertionHandler(&user_data).?;
     return .{ .handler = handler, .user_data = user_data };
@@ -109,12 +160,15 @@ pub fn getHandler() struct { handler: Handler, user_data: ?*anyopaque } {
 /// ```
 ///
 /// ## Thread Safety
-/// This function is not thread safe. Other threads calling S`assert.resetReport()` simultaneously, may render the returned pointer invalid.
+/// This function is not thread safe. Other threads calling `assert.resetReport()` simultaneously, may render the returned pointer invalid.
 ///
 /// ## Version
 /// This function is available since SDL 3.2.0.
-pub fn getReport() ?*const c.SDL_AssertData {
-    return c.SDL_GetAssertionReport();
+pub fn getReport() ?AssertData {
+    const ret = c.SDL_GetAssertionReport();
+    if (ret) |val|
+        return @bitCast(val.*);
+    return null;
 }
 
 /// Report an assertion.
@@ -132,11 +186,11 @@ pub fn getReport() ?*const c.SDL_AssertData {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn report(
-    data: *c.SDL_AssertData,
+    data: *AssertData,
     location: std.builtin.SourceLocation,
 ) State {
     return @enumFromInt(c.SDL_ReportAssertion(
-        data,
+        @ptrCast(data),
         location.fn_name,
         location.file,
         @intCast(location.line),
@@ -163,6 +217,7 @@ pub fn resetReport() void {
 /// Set an application-defined assertion handler.
 ///
 /// ## Function Parameters
+/// * `UserData`: Type of user data.
 /// * `handler`: The `assert.Handler` function to call when an assertion fails or `null` for the default handler.
 /// * `user_data`: A pointer that is passed to handler.
 ///
@@ -180,20 +235,25 @@ pub fn resetReport() void {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn setHandler(
-    handler: ?Handler,
-    user_data: ?*anyopaque,
+    comptime UserData: type,
+    comptime handler: ?Handler(UserData),
+    user_data: ?*UserData,
 ) void {
-    c.SDL_SetAssertionHandler(handler, user_data);
+    const Cb = struct {
+        pub fn run(assert_data_c: [*c]const c.SDL_AssertData, user_data_c: ?*anyopaque) callconv(.c) c.SDL_AssertState {
+            return @intFromEnum(handler.?(@bitCast(assert_data_c.*), @alignCast(@ptrCast(user_data_c))));
+        }
+    };
+    c.SDL_SetAssertionHandler(if (handler != null) Cb.run else null, user_data);
 }
 
 const TestHandlerCallbackData = struct {
-    last_data: ?*const c.SDL_AssertData = null,
+    last_data: ?AssertData = null,
 };
 
-fn testAssertCallback(assert_data: [*c]const c.SDL_AssertData, user_data: ?*anyopaque) callconv(.c) c.SDL_AssertState {
-    var data: *TestHandlerCallbackData = @ptrCast(@alignCast(user_data));
-    data.last_data = assert_data;
-    return @intFromEnum(State.ignore);
+fn testAssertCallback(assert_data: AssertData, user_data: ?*TestHandlerCallbackData) State {
+    user_data.?.last_data = assert_data;
+    return .ignore;
 }
 
 // Test asserting functionality.
@@ -205,28 +265,28 @@ test "Assert" {
     try std.testing.expectEqual(null, handler.user_data);
 
     var data = TestHandlerCallbackData{};
-    setHandler(testAssertCallback, &data);
+    setHandler(TestHandlerCallbackData, testAssertCallback, &data);
 
     try std.testing.expectEqual(null, getReport());
 
-    var assert_data1 = c.SDL_AssertData{};
-    var assert_data2 = c.SDL_AssertData{};
+    var assert_data1 = AssertData{};
+    var assert_data2 = AssertData{};
     _ = report(&assert_data1, @src());
     _ = report(&assert_data2, @src());
 
-    const report2: *const c.SDL_AssertData = getReport().?;
-    const report1: *const c.SDL_AssertData = report2.next.?;
+    const report2 = getReport().?;
+    const report1 = report2.next.?;
     try std.testing.expectEqual(null, report1.next);
-    try std.testing.expectEqual(214, report1.linenum);
-    try std.testing.expectEqualStrings("test.Assert", std.mem.span(report1.function));
-    try std.testing.expectEqualStrings("assert.zig", std.mem.span(report1.filename));
-    try std.testing.expectEqual(215, report2.linenum);
-    try std.testing.expectEqualStrings("test.Assert", std.mem.span(report2.function));
-    try std.testing.expectEqualStrings("assert.zig", std.mem.span(report2.filename));
+    try std.testing.expectEqual(274, report1.linenum);
+    try std.testing.expectEqualStrings("test.Assert", std.mem.span(report1.function.?));
+    try std.testing.expectEqualStrings("assert.zig", std.mem.span(report1.filename.?));
+    try std.testing.expectEqual(275, report2.linenum);
+    try std.testing.expectEqualStrings("test.Assert", std.mem.span(report2.function.?));
+    try std.testing.expectEqualStrings("assert.zig", std.mem.span(report2.filename.?));
 
     resetReport();
     try std.testing.expectEqual(null, getReport());
 
-    setHandler(null, null);
+    setHandler(void, null, null);
     try std.testing.expectEqual(getDefaultHandler(), getHandler().handler);
 }

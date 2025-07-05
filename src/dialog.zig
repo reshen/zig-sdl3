@@ -10,19 +10,19 @@ const video = @import("video.zig");
 /// * `user_data`: An app provided pointer for callback's use.
 /// * `file_list`: The file(s) chosen by the user.
 /// * `filter`: Index of the selected filter.
+/// * `err`: If an error was encountered and everything else should be ignored.
 ///
 /// ## Remarks
 /// The specific usage is described in each function.
 ///
 /// If `file_list` is:
-/// * `null`, an error occurred. Details can be obtained with `errors.get()`.
-/// * A pointer to `null`, the user either didn't choose any file or canceled the dialog.
-/// * A pointer to non-`null`, the user chose one or more files. The argument is a null-terminated array of pointers to UTF-8 encoded strings, each containing a path.
+/// * If `null`, the user either didn't choose any file or canceled the dialog.
+/// * If non-`null`, the user chose one or more files. The argument is a null-terminated array of pointers to UTF-8 encoded strings, each containing a path.
 ///
 /// The `file_list` argument should not be freed; it will automatically be freed when the callback returns.
 ///
 /// The filter argument is the index of the filter that was selected,
-/// or `-1` if no filter was selected or if the platform or method doesn't support fetching the selected filter.
+/// or `null` if no filter was selected or if the platform or method doesn't support fetching the selected filter.
 ///
 /// In Android, the `file_list` are `content://` URIs.
 /// They should be opened using `io.fromFile()` with appropriate modes.
@@ -33,13 +33,22 @@ const video = @import("video.zig");
 ///
 /// ## Code Examples
 /// TODO!!!
-pub const FileCallback = *const fn (user_data: ?*anyopaque, file_list: [*c]const [*c]const u8, filter: c_int) callconv(.c) void;
+pub fn FileCallback(
+    comptime UserData: type,
+) type {
+    return *const fn (
+        user_data: ?*UserData,
+        file_list: ?[]const [*:0]const u8,
+        filter: ?usize,
+        err: bool,
+    ) void;
+}
 
 /// Data for a file callback.
 ///
 /// ## Version
 /// This struct is provided by zig-sdl3.
-pub fn FileCallbackData(comptime UserData: type) type {
+fn FileCallbackData(comptime UserData: type) type {
     return struct {
         /// User data structure.
         user_data: ?*UserData,
@@ -47,6 +56,8 @@ pub fn FileCallbackData(comptime UserData: type) type {
         file_list: ?[]const [*:0]const u8,
         /// Filter index if used and supported, `null` otherwise.
         filter: ?usize,
+        /// If an error state was encountered.
+        err: bool,
     };
 }
 
@@ -76,11 +87,7 @@ pub const FileFilter = extern struct {
 
     // Size tests.
     comptime {
-        std.debug.assert(@sizeOf(c.SDL_DialogFileFilter) == @sizeOf(FileFilter));
-        std.debug.assert(@offsetOf(c.SDL_DialogFileFilter, "name") == @offsetOf(FileFilter, "name"));
-        std.debug.assert(@sizeOf(@FieldType(c.SDL_DialogFileFilter, "name")) == @sizeOf(@FieldType(FileFilter, "name")));
-        std.debug.assert(@offsetOf(c.SDL_DialogFileFilter, "pattern") == @offsetOf(FileFilter, "pattern"));
-        std.debug.assert(@sizeOf(@FieldType(c.SDL_DialogFileFilter, "pattern")) == @sizeOf(@FieldType(FileFilter, "pattern")));
+        errors.assertStructsEqual(FileFilter, c.SDL_DialogFileFilter);
     }
 };
 
@@ -160,25 +167,28 @@ pub const Type = enum(c_uint) {
 ///
 /// ## Version
 /// This function is provided by zig-sdl3.
-pub fn sanatizeFileCallback(
+fn sanatizeFileCallback(
     comptime UserData: type,
     user_data: ?*anyopaque,
     file_list: [*c]const [*c]const u8,
     filter: c_int,
-) !FileCallbackData(UserData) {
+) FileCallbackData(UserData) {
     var list: ?[]const [*:0]const u8 = null;
+    var err: bool = false;
     if (file_list != null) {
         if (file_list.* != null) {
             const items = std.mem.span(@as([*c]const usize, @ptrCast(file_list)));
             list = @as([*]const [*:0]const u8, @ptrCast(items.ptr))[0..items.len];
         }
     } else {
-        return errors.wrapNull(FileCallbackData(UserData), null);
+        err = true;
+        _ = errors.wrapNull(FileCallbackData(UserData), null) catch {};
     }
     return .{
         .user_data = @alignCast(@ptrCast(user_data)),
         .file_list = list,
         .filter = if (filter < 0) null else @intCast(filter),
+        .err = err,
     };
 }
 
@@ -212,15 +222,22 @@ pub fn sanatizeFileCallback(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn showOpenFile(
-    callback: FileCallback,
-    user_data: ?*anyopaque,
+    comptime UserData: type,
+    comptime callback: FileCallback(UserData),
+    user_data: ?*UserData,
     window: ?video.Window,
     filters: ?[]const FileFilter,
     default_location: ?[:0]const u8,
     allow_many: bool,
 ) void {
+    const Cb = struct {
+        fn run(user_data_c: ?*anyopaque, file_list_c: [*c]const [*c]const u8, filter_c: c_int) callconv(.c) void {
+            const data = sanatizeFileCallback(UserData, user_data_c, file_list_c, filter_c);
+            callback(data.user_data, data.file_list, data.filter, data.err);
+        }
+    };
     c.SDL_ShowOpenFileDialog(
-        callback,
+        Cb.run,
         user_data,
         if (window) |val| val.value else null,
         if (filters) |val| @ptrCast(val.ptr) else null,
@@ -233,6 +250,7 @@ pub fn showOpenFile(
 /// Displays a dialog that lets the user select a folder on their filesystem.
 ///
 /// ## Function Parameters
+/// * `UserData`: User data type.
 /// * `callback`: A function pointer to be invoked when the user selects a file and accepts, or cancels the dialog, or an error occurs.
 /// * `user_data`: An optional pointer to pass extra data to the callback when it will be invoked.
 /// * `window`: The window that the dialog should be modal for, may be `null`. Not all platforms support this option.
@@ -259,14 +277,21 @@ pub fn showOpenFile(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn showOpenFolder(
-    callback: FileCallback,
-    user_data: ?*anyopaque,
+    comptime UserData: type,
+    comptime callback: FileCallback(UserData),
+    user_data: ?*UserData,
     window: ?video.Window,
     default_location: ?[:0]const u8,
     allow_many: bool,
 ) void {
+    const Cb = struct {
+        fn run(user_data_c: ?*anyopaque, file_list_c: [*c]const [*c]const u8, filter_c: c_int) callconv(.c) void {
+            const data = sanatizeFileCallback(UserData, user_data_c, file_list_c, filter_c);
+            callback(data.user_data, data.file_list, data.filter, data.err);
+        }
+    };
     c.SDL_ShowOpenFolderDialog(
-        callback,
+        Cb.run,
         user_data,
         if (window) |val| val.value else null,
         if (default_location) |val| val.ptr else null,
@@ -277,6 +302,7 @@ pub fn showOpenFolder(
 /// Displays a dialog that lets the user choose a new or existing file on their filesystem.
 ///
 /// ## Function Parameters
+/// * `UserData`: User data type.
 /// * `callback`: A function pointer to be invoked when the user selects a file and accepts, or cancels the dialog, or an error occurs.
 /// * `user_data`: An optional pointer to pass extra data to the callback when it will be invoked.
 /// * `window`: The window that the dialog should be modal for, may be `null`. Not all platforms support this option.
@@ -303,14 +329,21 @@ pub fn showOpenFolder(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn showSaveFile(
-    callback: FileCallback,
-    user_data: ?*anyopaque,
+    comptime UserData: type,
+    comptime callback: FileCallback(UserData),
+    user_data: ?*UserData,
     window: ?video.Window,
     filters: ?[]const FileFilter,
     default_location: ?[:0]const u8,
 ) void {
+    const Cb = struct {
+        fn run(user_data_c: ?*anyopaque, file_list_c: [*c]const [*c]const u8, filter_c: c_int) callconv(.c) void {
+            const data = sanatizeFileCallback(UserData, user_data_c, file_list_c, filter_c);
+            callback(data.user_data, data.file_list, data.filter, data.err);
+        }
+    };
     c.SDL_ShowSaveFileDialog(
-        callback,
+        Cb.run,
         user_data,
         if (window) |val| val.value else null,
         if (filters) |val| @ptrCast(val.ptr) else null,
@@ -323,6 +356,7 @@ pub fn showSaveFile(
 ///
 /// ## Function Parameters
 /// * `dialog_type`: The type of file dialog.
+/// * `UserData`: User data type.
 /// * `callback`: A function pointer to be invoked when the user selects a file and accepts, or cancels the dialog, or an error occurs.
 /// * `user_data`: An optional pointer to pass extra data to the callback when it will be invoked.
 /// * `props`: The properties to use.
@@ -338,14 +372,21 @@ pub fn showSaveFile(
 /// This function is available since SDL 3.2.0.
 pub fn showWithProperties(
     dialog_type: Type,
-    callback: FileCallback,
-    user_data: ?*anyopaque,
+    comptime UserData: type,
+    comptime callback: FileCallback(UserData),
+    user_data: ?*UserData,
     props: Properties,
 ) !properties.Group {
+    const Cb = struct {
+        fn run(user_data_c: ?*anyopaque, file_list_c: [*c]const [*c]const u8, filter_c: c_int) callconv(.c) void {
+            const data = sanatizeFileCallback(UserData, user_data_c, file_list_c, filter_c);
+            callback(data.user_data, data.file_list, data.filter, data.err);
+        }
+    };
     const ret = try props.toProperties();
     c.SDL_ShowFileDialogWithProperties(
         @intFromEnum(dialog_type),
-        callback,
+        Cb.run,
         user_data,
         ret.value,
     );
