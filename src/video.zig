@@ -1307,10 +1307,10 @@ pub const Window = packed struct {
         y: ?Position = null,
         /// MacOS only.
         /// The (`__unsafe_unretained`) `NSWindow` associated with the window, if you want to wrap an existing window.
-        cocoa_window: ??*anyopaque = null,
+        cocoa_window: ?struct { value: ?*anyopaque } = null,
         /// MacOS only.
         /// The (`__unsafe_unretained`) `NSView` associated  the window, defaults to `[window contentView]`
-        cocoa_view: ??*anyopaque = null,
+        cocoa_view: ?struct { value: ?*anyopaque } = null,
         /// Wayland only.
         /// True if the application wants to use the Wayland surface for a custom role and does not want it attached to an XDG toplevel window.
         /// See SDL3's README/wayland for more information on using custom surfaces.
@@ -1391,9 +1391,9 @@ pub const Window = packed struct {
             if (self.y) |val|
                 try ret.set(c.SDL_PROP_WINDOW_CREATE_Y_NUMBER, .{ .number = @intCast(val.toSdl()) });
             if (self.cocoa_window) |val|
-                try ret.set(c.SDL_PROP_WINDOW_CREATE_COCOA_WINDOW_POINTER, .{ .pointer = val });
+                try ret.set(c.SDL_PROP_WINDOW_CREATE_COCOA_WINDOW_POINTER, .{ .pointer = val.value });
             if (self.cocoa_view) |val|
-                try ret.set(c.SDL_PROP_WINDOW_CREATE_COCOA_VIEW_POINTER, .{ .pointer = val });
+                try ret.set(c.SDL_PROP_WINDOW_CREATE_COCOA_VIEW_POINTER, .{ .pointer = val.value });
             if (self.wayland_surface_role_custom) |val|
                 try ret.set(c.SDL_PROP_WINDOW_CREATE_WAYLAND_SURFACE_ROLE_CUSTOM_BOOLEAN, .{ .boolean = val });
             if (self.wayland_create_egl_window) |val|

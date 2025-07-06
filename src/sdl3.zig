@@ -266,6 +266,22 @@ pub const endian = @import("endian.zig");
 /// These strings are set by calling `errors.set()`.
 pub const errors = @import("errors.zig");
 
+/// Event queue management.
+///
+/// It's extremely common--often required--that an app deal with SDL's event queue.
+/// Almost all useful information about interactions with the real world flow through here: the user interacting with the computer and app, hardware coming and going,
+/// the system changing in some way, etc.
+///
+/// An app generally takes a moment, perhaps at the start of a new frame, to examine any events that have occured since the last time and process or ignore them.
+/// This is generally done by calling `events.poll()` in a loop until it returns `null` (or, if using the main callbacks,
+/// events are provided one at a time in calls to `SDL_AppEvent()` before the next call to `SDL_AppIterate()`; in this scenario, the app does not call `events.poll()` at all).
+///
+/// There is other forms of control, too: `events.peep()` has more functionality at the cost of more complexity,
+/// and `events.wait()`/`events.waitAndPop()` can block the process until something interesting happens, which might be beneficial for certain types of programs on low-power hardware.
+/// One may also call `events.addWatch()` to set a callback when new events arrive.
+///
+/// The app is free to generate their own events, too: `events.push()` allows the app to put events onto the queue for later retrieval;
+/// `events.register()` can guarantee that these events have a type that isn't in use by other parts of the system.
 pub const events = @import("events.zig");
 
 /// SDL offers an API for examining and manipulating the system's filesystem.

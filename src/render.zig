@@ -2,12 +2,17 @@ const c = @import("c.zig").c;
 const blend_mode = @import("blend_mode.zig");
 const errors = @import("errors.zig");
 const events = @import("events.zig");
+const gpu = @import("gpu.zig");
 const pixels = @import("pixels.zig");
 const properties = @import("properties.zig");
 const rect = @import("rect.zig");
 const std = @import("std");
+const stdinc = @import("stdinc.zig");
 const surface = @import("surface.zig");
 const video = @import("video.zig");
+
+/// Maximum stack size to use for a message stack.
+const debug_text_stack = 1024;
 
 /// The size, in pixels, of a single `render.Renderer.renderDebugText()` character.
 ///
@@ -34,6 +39,97 @@ pub const software_renderer_name = c.SDL_SOFTWARE_RENDERER;
 /// This struct is available since SDL 3.2.0.
 pub const Renderer = struct {
     value: *c.SDL_Renderer,
+
+    /// Get the properties associated with a renderer.
+    ///
+    /// ## Version
+    /// This struct is provided by zig-sdl3.
+    pub const Properties = struct {
+        /// The name of the rendering driver.
+        name: ?[:0]const u8,
+        /// The window where rendering is displayed, if any.
+        window: ?struct { value: ?video.Window },
+        /// The surface where rendering is displayed, if this is a software renderer without a window.
+        render_surface: ?struct { value: ?surface.Surface },
+        /// The current vsync setting.
+        vsync: ?struct { value: ?video.VSync },
+        /// The maximum texture width and height.
+        max_texture_size: ?usize,
+        /// Array representing the available texture formats for this renderer.
+        formats: ?struct { value: ?[*:c.SDL_PIXELFORMAT_UNKNOWN]const c.SDL_PixelFormat },
+        /// Value describing the colorspace for output to the display, defaults to `pixels.Colorspace.srgb`.
+        output_colorspace: ?pixels.Colorspace,
+        /// True if the output colorspace is `pixels.Colorspace.srgb_linear` and the renderer is showing on a display with HDR enabled.
+        /// This property can change dynamically when `events.Type.window_hdr_state_changed` is sent.
+        hdr_enabled: ?bool,
+        /// The value of SDR white in the `pixels.Colorspace.srgb_linear` colorspace.
+        /// When HDR is enabled, this value is automatically multiplied into the color scale.
+        /// This property can change dynamically when `events.Type.window_hdr_state_changed` is sent.
+        sdr_white_point: ?f32,
+        /// The additional high dynamic range that can be displayed, in terms of the SDR white point.
+        /// When HDR is not enabled, this will be `1`.
+        /// This property can change dynamically when `events.Type.window_hdr_state_changed` is sent.
+        hdr_headroom: ?f32,
+        /// The `IDirect3DDevice9` associated with the renderer.
+        d3d9_device: ?struct { value: ?*anyopaque },
+        /// The `ID3D11Device` associated with the renderer.
+        d3d11_device: ?struct { value: ?*anyopaque },
+        /// The `IDXGISwapChain1` associated with the renderer.
+        /// This may change when the window is resized.
+        d3d11_swapchain: ?struct { value: ?*anyopaque },
+        /// The `ID3D12Device` associated with the renderer.
+        d3d12_device: ?struct { value: ?*anyopaque },
+        /// The `IDXGISwapChain4` associated with the renderer.
+        d3d12_swapchain: ?struct { value: ?*anyopaque },
+        /// The `ID3D12CommandQueue` associated with the renderer.
+        d3d12_command_queue: ?struct { value: ?*anyopaque },
+        /// The `VkInstance` associated with the renderer.
+        vulkan_instance: ?struct { value: ?*anyopaque },
+        /// The `VkSurfaceKHR` associated with the renderer.
+        vulkan_surface: ?i64,
+        /// The `VkPhysicalDevice` associated with the renderer.
+        vulkan_physical_device: ?struct { value: ?*anyopaque },
+        /// The `VkDevice` associated with the renderer.
+        vulkan_device: ?struct { value: ?*anyopaque },
+        /// The queue family index used for rendering.
+        vulkan_graphics_queue_family_index: ?i64,
+        /// The queue family index used for presentation.
+        vulkan_present_queue_family_index: ?i64,
+        /// The number of swapchain images, or potential frames in flight, used by the Vulkan renderer.
+        vulkan_swapchain_image_count: ?i64,
+        /// The GPU device associated with the renderer.
+        gpu_device: ?struct { value: ?gpu.Device },
+
+        /// Convert from SDL.
+        pub fn fromSdl(props: properties.Group) Properties {
+            return .{
+                .name = if (props.get(c.SDL_PROP_RENDERER_NAME_STRING)) |val| val.string else null,
+                .window = if (props.get(c.SDL_PROP_RENDERER_WINDOW_POINTER)) |val| (.{ .value = if (val.pointer) |val2| .{ .value = @alignCast(@ptrCast(val2)) } else null }) else null,
+                .render_surface = if (props.get(c.SDL_PROP_RENDERER_SURFACE_POINTER)) |val| (.{ .value = if (val.pointer) |val2| .{ .value = @alignCast(@ptrCast(val2)) } else null }) else null,
+                .vsync = if (props.get(c.SDL_PROP_RENDERER_VSYNC_NUMBER)) |val| .{ .value = video.VSync.fromSdl(@intCast(val.number)) } else null,
+                .max_texture_size = if (props.get(c.SDL_PROP_RENDERER_MAX_TEXTURE_SIZE_NUMBER)) |val| @intCast(val.number) else null,
+                .formats = if (props.get(c.SDL_PROP_RENDERER_TEXTURE_FORMATS_POINTER)) |val| .{ .value = @alignCast(@ptrCast(val.pointer)) } else null,
+                .output_colorspace = if (props.get(c.SDL_PROP_RENDERER_OUTPUT_COLORSPACE_NUMBER)) |val| .{ .value = @intCast(val.number) } else null,
+                .hdr_enabled = if (props.get(c.SDL_PROP_RENDERER_HDR_ENABLED_BOOLEAN)) |val| val.boolean else null,
+                .sdr_white_point = if (props.get(c.SDL_PROP_RENDERER_SDR_WHITE_POINT_FLOAT)) |val| val.float else null,
+                .hdr_headroom = if (props.get(c.SDL_PROP_RENDERER_HDR_HEADROOM_FLOAT)) |val| val.float else null,
+                .d3d9_device = if (props.get(c.SDL_PROP_RENDERER_D3D9_DEVICE_POINTER)) |val| .{ .value = val.pointer } else null,
+                .d3d11_device = if (props.get(c.SDL_PROP_RENDERER_D3D11_DEVICE_POINTER)) |val| .{ .value = val.pointer } else null,
+                .d3d11_swapchain = if (props.get(c.SDL_PROP_RENDERER_D3D11_SWAPCHAIN_POINTER)) |val| .{ .value = val.pointer } else null,
+                .d3d12_device = if (props.get(c.SDL_PROP_RENDERER_D3D12_DEVICE_POINTER)) |val| .{ .value = val.pointer } else null,
+                .d3d12_swapchain = if (props.get(c.SDL_PROP_RENDERER_D3D12_SWAPCHAIN_POINTER)) |val| .{ .value = val.pointer } else null,
+                .d3d12_command_queue = if (props.get(c.SDL_PROP_RENDERER_D3D12_COMMAND_QUEUE_POINTER)) |val| .{ .value = val.pointer } else null,
+                .vulkan_instance = if (props.get(c.SDL_PROP_RENDERER_VULKAN_INSTANCE_POINTER)) |val| .{ .value = val.pointer } else null,
+                .vulkan_surface = if (props.get(c.SDL_PROP_RENDERER_VULKAN_SURFACE_NUMBER)) |val| val.number else null,
+                .vulkan_physical_device = if (props.get(c.SDL_PROP_RENDERER_VULKAN_PHYSICAL_DEVICE_POINTER)) |val| .{ .value = val.pointer } else null,
+                .vulkan_device = if (props.get(c.SDL_PROP_RENDERER_VULKAN_DEVICE_POINTER)) |val| .{ .value = val.pointer } else null,
+                .vulkan_graphics_queue_family_index = if (props.get(c.SDL_PROP_RENDERER_VULKAN_GRAPHICS_QUEUE_FAMILY_INDEX_NUMBER)) |val| val.number else null,
+                .vulkan_present_queue_family_index = if (props.get(c.SDL_PROP_RENDERER_VULKAN_PRESENT_QUEUE_FAMILY_INDEX_NUMBER)) |val| val.number else null,
+                .vulkan_swapchain_image_count = if (props.get(c.SDL_PROP_RENDERER_VULKAN_SWAPCHAIN_IMAGE_COUNT_NUMBER)) |val| val.number else null,
+                .gpu_device = if (props.get(c.SDL_PROP_RENDERER_GPU_DEVICE_POINTER)) |val| (.{ .value = if (val.pointer) |val2| .{ .value = @alignCast(@ptrCast(val2)) } else null }) else null,
+            };
+        }
+    };
 
     /// Add a set of synchronization semaphores for the current frame.
     ///
@@ -231,6 +327,565 @@ pub const Renderer = struct {
         return errors.wrapCallBool(ret);
     }
 
+    /// Get whether clipping is enabled on the given render target.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The rendering context.
+    ///
+    /// ## Return Value
+    /// Returns true if clipping is enabled or not.
+    ///
+    /// ## Remarks
+    /// Each render target has its own clip rectangle.
+    /// This function checks the clip rect for the current render target.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getClipEnabled(
+        self: Renderer,
+    ) bool {
+        const ret = c.SDL_RenderClipEnabled(
+            self.value,
+        );
+        return ret;
+    }
+
+    /// Get the clip rectangle for the current target.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The rendering context.
+    ///
+    /// ## Return Value
+    /// The current clipping area or `null` if disabled.
+    ///
+    /// ## Remarks
+    /// Each render target has its own clip rectangle.
+    /// This function gets the clip rect for the current render target.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getClipRect(
+        self: Renderer,
+    ) !?rect.IRect {
+        var clipping: c.SDL_Rect = undefined;
+        const ret = c.SDL_GetRenderClipRect(
+            self.value,
+            &clipping,
+        );
+        try errors.wrapCallBool(ret);
+        const conv = rect.IRect.fromSdl(clipping);
+        if (conv.empty())
+            return null;
+        return conv;
+    }
+
+    /// Get the color scale used for render operations.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The rendering context.
+    ///
+    /// ## Return Value
+    /// The current color scale value.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getColorScale(
+        self: Renderer,
+    ) !f32 {
+        var scale: f32 = undefined;
+        const ret = c.SDL_GetRenderColorScale(
+            self.value,
+            &scale,
+        );
+        try errors.wrapCallBool(ret);
+        return scale;
+    }
+
+    /// Get the current output size in pixels of a rendering context.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The rendering context.
+    ///
+    /// ## Return Value
+    /// The current output size in pixels of a rendering context.
+    ///
+    /// ## Remarks
+    /// If a rendering target is active, this will return the size of the rendering target in pixels, otherwise return the value of `render.Renderer.getOutputSize()`.
+    ///
+    /// Rendering target or not, the output will be adjusted by the current logical presentation state, dictated by `render.Renderer.setRenderLogicalPresentation()`.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getCurrentOutputSize(
+        self: Renderer,
+    ) !struct { width: usize, height: usize } {
+        var w: c_int = undefined;
+        var h: c_int = undefined;
+        const ret = c.SDL_GetCurrentRenderOutputSize(
+            self.value,
+            &w,
+            &h,
+        );
+        try errors.wrapCallBool(ret);
+        return .{ .width = @intCast(w), .height = @intCast(h) };
+    }
+
+    // getDefaultTextureScalMode() is in SDL 3.4.0.
+
+    /// Get the blend mode used for drawing operations.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The rendering context.
+    ///
+    /// ## Return Value
+    /// The current blend mode.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getDrawBlendMode(
+        self: Renderer,
+    ) !?blend_mode.Mode {
+        var mode: c.SDL_BlendMode = undefined;
+        const ret = c.SDL_GetRenderDrawBlendMode(
+            self.value,
+            &mode,
+        );
+        try errors.wrapCallBool(ret);
+        return blend_mode.Mode.fromSdl(mode);
+    }
+
+    /// Get the color used for drawing operations (Rect, Line and Clear).
+    ///
+    /// ## Function Parameters
+    /// * `self`: The rendering context.
+    ///
+    /// ## Return Value
+    /// The color used to draw on the rendering target.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getDrawColor(
+        self: Renderer,
+    ) !pixels.Color {
+        var r: u8 = undefined;
+        var g: u8 = undefined;
+        var b: u8 = undefined;
+        var a: u8 = undefined;
+        const ret = c.SDL_GetRenderDrawColor(
+            self.value,
+            &r,
+            &g,
+            &b,
+            &a,
+        );
+        try errors.wrapCallBool(ret);
+        return .{ .r = r, .g = g, .b = b, .a = a };
+    }
+
+    /// Get the color used for drawing operations (Rect, Line and Clear).
+    ///
+    /// ## Function Parameters
+    /// * `self`: The rendering context.
+    ///
+    /// ## Return Value
+    /// The color used to draw on the rendering target.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getDrawColorFloat(
+        self: Renderer,
+    ) !pixels.FColor {
+        var r: f32 = undefined;
+        var g: f32 = undefined;
+        var b: f32 = undefined;
+        var a: f32 = undefined;
+        const ret = c.SDL_GetRenderDrawColorFloat(
+            self.value,
+            &r,
+            &g,
+            &b,
+            &a,
+        );
+        try errors.wrapCallBool(ret);
+        return .{ .r = r, .g = g, .b = b, .a = a };
+    }
+
+    /// Get device independent resolution and presentation mode for rendering.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The rendering context.
+    ///
+    /// ## Return Value
+    /// The logical presentation output size along with the presentation mode used.
+    ///
+    /// ## Remarks
+    /// This function gets the width and height of the logical rendering output, or the output size in pixels if a logical resolution is not enabled.
+    ///
+    /// Each render target has its own logical presentation state.
+    /// This function gets the state for the current render target.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getLogicalPresentation(
+        self: Renderer,
+    ) !struct { width: usize, height: usize, presentation_mode: ?LogicalPresentation } {
+        var w: c_int = undefined;
+        var h: c_int = undefined;
+        var presentation_mode: c.SDL_RendererLogicalPresentation = undefined;
+        const ret = c.SDL_GetRenderLogicalPresentation(
+            self.value,
+            &w,
+            &h,
+            &presentation_mode,
+        );
+        try errors.wrapCallBool(ret);
+        return .{ .width = @intCast(w), .height = @intCast(h), .presentation_mode = LogicalPresentation.fromSdl(presentation_mode) };
+    }
+
+    /// Get the final presentation rectangle for rendering.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The rendering context.
+    ///
+    /// ## Return Value
+    /// The logical presentation rectangle.
+    ///
+    /// ## Remarks
+    /// This function returns the calculated rectangle used for logical presentation, based on the presentation mode and output size.
+    /// If logical presentation is disabled, it will fill the rectangle with the output size, in pixels.
+    ///
+    /// Each render target has its own logical presentation state.
+    /// This function gets the rectangle for the current render target.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getLogicalPresentationRect(
+        self: Renderer,
+    ) !rect.FRect {
+        var presentation_rect: c.SDL_FRect = undefined;
+        const ret = c.SDL_GetRenderLogicalPresentationRect(
+            self.value,
+            &presentation_rect,
+        );
+        try errors.wrapCallBool(ret);
+        return rect.FRect.fromSdl(presentation_rect);
+    }
+
+    /// Get the Metal command encoder for the current frame.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The rendering context.
+    ///
+    /// ## Return Value
+    /// The metal layer on success, or `null` if the renderer isn't a Metal renderer or there was an error.
+    ///
+    /// ## Remarks
+    /// This will return `null` if Metal refuses to give SDL a drawable to render to, which might happen if the window is hidden/minimized/offscreen.
+    /// This doesn't apply to command encoders for render targets, just the window's backbuffer.
+    /// Check your return values!
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getMetalCommandEncoder(
+        self: Renderer,
+    ) ?*anyopaque {
+        const ret = c.SDL_GetRenderMetalCommandEncoder(
+            self.value,
+        );
+        return ret;
+    }
+
+    /// Get the `CAMetalLayer` associated with the given Metal renderer.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The rendering context.
+    ///
+    /// ## Return Value
+    /// The metal layer on success, or `null` if the renderer isn't a Metal renderer.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getMetalLayer(
+        self: Renderer,
+    ) ?*anyopaque {
+        const ret = c.SDL_GetRenderMetalLayer(
+            self.value,
+        );
+        return ret;
+    }
+
+    /// Get the name of a renderer.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The rendering context.
+    ///
+    /// ## Return Value
+    /// Returns the name of the selected renderer.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getName(
+        self: Renderer,
+    ) ![:0]const u8 {
+        const ret = c.SDL_GetRendererName(
+            self.value,
+        );
+        return errors.wrapCallCString(ret);
+    }
+
+    /// Get the output size in pixels of a rendering context.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The rendering context.
+    ///
+    /// ## Return Value
+    /// The output size in pixels.
+    ///
+    /// ## Remarks
+    /// This returns the true output size in pixels, ignoring any render targets or logical size and presentation.
+    ///
+    /// For the output size of the current rendering target, with logical size adjustments, use `render.Renderer.getCurrentOutputSize()` instead.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getOutputSize(
+        self: Renderer,
+    ) !struct { width: usize, height: usize } {
+        var w: c_int = undefined;
+        var h: c_int = undefined;
+        const ret = c.SDL_GetRenderOutputSize(
+            self.value,
+            &w,
+            &h,
+        );
+        try errors.wrapCallBool(ret);
+        return .{ .width = @intCast(w), .height = @intCast(h) };
+    }
+
+    /// Get the properties associated with a renderer.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The rendering context.
+    ///
+    /// ## Return Value
+    /// Returns the read-only properties of the renderer.
+    ///
+    /// ## Thread Safety
+    /// It is safe to call this function from any thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getProperties(
+        self: Renderer,
+    ) !Properties {
+        const ret = c.SDL_GetRendererProperties(
+            self.value,
+        );
+        return Properties.fromSdl(.{ .value = try errors.wrapCall(c.SDL_PropertiesID, ret, 0) });
+    }
+
+    /// Get the safe area for rendering within the current viewport.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The rendering context.
+    ///
+    /// ## Return Value
+    /// Area that is safe for interactive content.
+    ///
+    /// ## Remarks
+    /// Some devices have portions of the screen which are partially obscured or not interactive, possibly due to on-screen controls, curved edges, camera notches, TV overscan, etc.
+    /// This function provides the area of the current viewport which is safe to have interactible content.
+    /// You should continue rendering into the rest of the render target, but it should not contain visually important or interactible content.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getSafeArea(
+        self: Renderer,
+    ) !rect.IRect {
+        var area: c.SDL_Rect = undefined;
+        const ret = c.SDL_GetRenderSafeArea(
+            self.value,
+            &area,
+        );
+        try errors.wrapCallBool(ret);
+        return rect.IRect.fromSdl(area);
+    }
+
+    /// Get the drawing scale for the current target.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The rendering context.
+    ///
+    /// ## Return Value
+    /// The scaling factors.
+    ///
+    /// ## Remarks
+    /// Each render target has its own scale.
+    /// This function gets the scale for the current render target.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getScale(
+        self: Renderer,
+    ) !struct { x: f32, y: f32 } {
+        var x: f32 = undefined;
+        var y: f32 = undefined;
+        const ret = c.SDL_GetRenderScale(
+            self.value,
+            &x,
+            &y,
+        );
+        try errors.wrapCallBool(ret);
+        return .{ .x = x, .y = y };
+    }
+
+    /// Get the current render target.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The rendering context.
+    ///
+    /// ## Return Value
+    /// Returns the current render target or `null` for the default target.
+    ///
+    /// ## Remarks
+    /// The default render target is the window for which the renderer was created, and is reported a `null` here.
+    ///
+    /// ## Thread Safety
+    /// It is safe to call this function from any thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getTarget(
+        self: Renderer,
+    ) ?Texture {
+        const ret = c.SDL_GetRenderTarget(
+            self.value,
+        );
+        if (ret == null)
+            return null;
+        return Texture{ .value = ret };
+    }
+
+    // getTextureAddressMode added in SDL 3.4.0.
+
+    /// Get the drawing area for the current target.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The renderer to query.
+    ///
+    /// ## Return Value
+    /// Returns the current drawing area.
+    ///
+    /// ## Remarks
+    /// Each render target has its own viewport.
+    /// This function gets the viewport for the current render target.
+    ///
+    /// ## Thread Safety
+    /// It is safe to call this function from any thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getViewport(
+        self: Renderer,
+    ) !rect.IRect {
+        var viewport: c.SDL_Rect = undefined;
+        const ret = c.SDL_GetRenderViewport(
+            self.value,
+            &viewport,
+        );
+        try errors.wrapCallBool(ret);
+        return rect.IRect.fromSdl(viewport);
+    }
+
+    /// Get VSync of the given renderer.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The renderer to query.
+    ///
+    /// ## Return Value
+    /// Returns the current vertical refresh sync interval.
+    ///
+    /// ## Thread Safety
+    /// It is safe to call this function from any thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getVSync(
+        self: Renderer,
+    ) !?video.VSync {
+        var vsync: c_int = undefined;
+        const ret = c.SDL_GetRenderVSync(self.value, &vsync);
+        try errors.wrapCallBool(ret);
+        return video.VSync.fromSdl(vsync);
+    }
+
+    /// Get the window associated with a renderer.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The renderer to query.
+    ///
+    /// ## Return Value
+    /// Returns the window.
+    ///
+    /// ## Thread Safety
+    /// It is safe to call this function from any thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getWindow(
+        self: Renderer,
+    ) !video.Window {
+        const ret = c.SDL_GetRenderWindow(
+            self.value,
+        );
+        return video.Window{ .value = try errors.wrapNull(*c.SDL_Window, ret) };
+    }
+
     /// Create a 2D rendering context for a window.
     ///
     /// ## Function Parameters
@@ -373,6 +1028,476 @@ pub const Renderer = struct {
         return errors.wrapCallBool(ret);
     }
 
+    /// Read pixels from the current rendering target.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The rendering context.
+    /// * `capture_area`: Rectangle representing the area to read, which will be clipped to the current viewport, or `null` for the entire viewport.
+    ///
+    /// ## Return Value
+    /// Returns a new surface on success.
+    ///
+    /// ## Remarks
+    /// The returned surface contains pixels inside the desired area clipped to the current viewport, and should be freed with `surface.Surface.deinit().
+    ///
+    /// Note that this returns the actual pixels on the screen, so if you are using logical presentation you should use `renderer.Renderer.getLogicalPresentationRect()` to get
+    /// the area containing your content.
+    ///
+    /// WARNING: This is a very slow operation, and should not be used frequently.
+    /// If you're using this on the main rendering target, it should be called after rendering and before `render.Renderer.present()`.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn readPixels(
+        self: Renderer,
+        capture_area: ?rect.IRect,
+    ) !surface.Surface {
+        const capture_area_sdl: c.SDL_Rect = if (capture_area) |val| val.toSdl() else undefined;
+        const ret = c.SDL_RenderReadPixels(
+            self.value,
+            if (capture_area != null) &capture_area_sdl else null,
+        );
+        return surface.Surface{ .value = try errors.wrapNull(*c.SDL_Surface, ret) };
+    }
+
+    /// Get a point in render coordinates when given a point in window coordinates.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The rendering context.
+    /// * `point`: The point to convert to render coordinates.
+    ///
+    /// ## Return Value
+    /// Returns the render coordinates.
+    ///
+    /// ## Remarks
+    /// This takes into account several states:
+    /// * The window dimensions.
+    /// * The logical presentation settings (`render.Renderer.setLogicalPresentation()`).
+    /// * The scale (`render.Renderer.setScale()`).
+    /// * The viewport (`render.Renderer.setViewport()`).
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn renderCoordinatesFromWindowCoordinates(
+        self: Renderer,
+        point: rect.FPoint,
+    ) !rect.FPoint {
+        var render_x: f32 = undefined;
+        var render_y: f32 = undefined;
+        const ret = c.SDL_RenderCoordinatesFromWindow(
+            self.value,
+            point.x,
+            point.y,
+            &render_x,
+            &render_y,
+        );
+        try errors.wrapCallBool(ret);
+        return .{ .x = render_x, .y = render_y };
+    }
+
+    /// Get a point in window coordinates when given a point in render coordinates.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The rendering context.
+    /// * `point`: The point to convert to window coordinates.
+    ///
+    /// ## Return Value
+    /// Returns the window coordinates.
+    ///
+    /// ## Remarks
+    /// This takes into account several states:
+    /// * The window dimensions.
+    /// * The logical presentation settings (`render.Renderer.setLogicalPresentation()`).
+    /// * The scale (`render.Renderer.setScale()`).
+    /// * The viewport (`render.Renderer.setViewport()`).
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn renderCoordinatesToWindowCoordinates(
+        self: Renderer,
+        point: rect.FPoint,
+    ) !rect.FPoint {
+        var window_x: f32 = undefined;
+        var window_y: f32 = undefined;
+        const ret = c.SDL_RenderCoordinatesToWindow(
+            self.value,
+            point.x,
+            point.y,
+            &window_x,
+            &window_y,
+        );
+        try errors.wrapCallBool(ret);
+        return .{ .x = window_x, .y = window_y };
+    }
+
+    /// Draw debug text to a renderer.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The renderer which should draw the text.
+    /// * `top_left`: The top-left corner of the text will draw.
+    /// * `str`: The string to render.
+    ///
+    /// ## Remarks
+    /// This function will render a string of text to a renderer.
+    /// Note that this is a convenience function for debugging, with severe limitations, and not intended to be used for production apps and games.
+    ///
+    /// Among these limitations:
+    /// * It accepts UTF-8 strings, but will only render ASCII characters.
+    /// * It has a single, tiny size (8x8 pixels). One can use logical presentation or scaling to adjust it, but it will be blurry.
+    /// * It uses a simple, hardcoded bitmap font. It does not allow different font selections and it does not support truetype, for proper scaling.
+    /// * It does no word-wrapping and does not treat newline characters as a line break. If the text goes out of the window, it's gone.
+    ///
+    /// For serious text rendering, there are several good options, such as `SDL_ttf`, `stb_truetype`, or other external libraries.
+    ///
+    /// On first use, this will create an internal texture for rendering glyphs.
+    /// This texture will live until the renderer is destroyed.
+    ///
+    /// The text is drawn in the color specified by `render.Renderer.setDrawColor()`.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn renderDebugText(
+        self: Renderer,
+        top_left: rect.FPoint,
+        str: [:0]const u8,
+    ) !void {
+        const ret = c.SDL_RenderDebugText(
+            self.value,
+            top_left.x,
+            top_left.y,
+            str.ptr,
+        );
+        return errors.wrapCallBool(ret);
+    }
+
+    /// Draw debug text to a renderer.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The renderer which should draw the text.
+    /// * `top_left`: The top-left corner of the text will draw.
+    /// * `fmt`: Print format for the debug text.
+    /// * `args`: Arguments to the debug text format.
+    ///
+    /// ## Remarks
+    /// This function will render formatted text to the target.
+    /// Note that this is a convinence function for debugging, with severe limitations, and is not intended to be used for production apps and games.
+    ///
+    /// For the full list of limitations and other useful information, see `render.renderDebugText()`.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn renderDebugTextFormat(
+        self: Renderer,
+        top_left: rect.FPoint,
+        comptime fmt: []const u8,
+        args: anytype,
+    ) !void {
+        var fallback = std.heap.stackFallback(debug_text_stack, stdinc.allocator);
+        const allocator = fallback.get();
+        const msg = try std.fmt.allocPrintZ(allocator, fmt, args);
+        defer allocator.free(msg);
+        const ret = c.SDL_RenderDebugText(
+            self.value,
+            top_left.x,
+            top_left.y,
+            msg.ptr,
+        );
+        return errors.wrapCallBool(ret);
+    }
+
+    /// Fill a rectangle on the current rendering target with the drawing color at subpixel precision.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The renderer which should fill a rectangle.
+    /// * `dst_rect`: The destination rectangles to draw or `null` for the entire target.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn renderFillRect(
+        self: Renderer,
+        dst_rect: ?rect.FRect,
+    ) !void {
+        const dst_rect_sdl: c.SDL_FRect = if (dst_rect) |val| val.toSdl() else undefined;
+        const ret = c.SDL_RenderFillRect(
+            self.value,
+            if (dst_rect != null) &dst_rect_sdl else null,
+        );
+        return errors.wrapCallBool(ret);
+    }
+
+    /// Fill some number of rectangles on the current rendering target with the drawing color at subpixel precision.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The renderer which should fill multiple rectangles.
+    /// * `rects`: The rectangles to draw.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn renderFillRects(
+        self: Renderer,
+        rects: []const rect.FRect,
+    ) !void {
+        const ret = c.SDL_RenderFillRects(
+            self.value,
+            @ptrCast(rects.ptr),
+            @intCast(rects.len),
+        );
+        return errors.wrapCallBool(ret);
+    }
+
+    /// Render a list of triangles, optionally using a texture and indices into the vertex arrays Color and alpha modulation is done per vertex (texture color and texture alpha mod are ignored).
+    ///
+    /// ## Function Parameters
+    /// * `self`: The rendering context.
+    /// * `texture`: The optional texture to use.
+    /// * `vertices`: Vertex positions.
+    /// * `xy_positions_stride`: Byte size to move from one element to the next element.
+    /// * `colors`: Vertex colors.
+    /// * `colors_stride`: Byte size to move from one element to the next element.
+    /// * `uv_coords`: Vertex normalized texture coordinates.
+    /// * `uv_coords_stride`: Byte size to move from one element to the next element.
+    /// * `num_vertices`: Number of vertices.
+    /// * `indices`: An optional array of indices into the 'vertices' arrays, if `null` all vertices will be rendered in sequential order.
+    /// * `num_indices`: Number of indices.
+    /// * `bytes_per_index`: Size of an index in bytes.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn renderGeometry(
+        self: Renderer,
+        texture: ?Texture,
+        vertices: []const Vertex,
+        indices: ?[]const c_int,
+    ) !void {
+        const ret = c.SDL_RenderGeometry(
+            self.value,
+            if (texture) |texture_val| texture_val.value else null,
+            @ptrCast(vertices.ptr),
+            @intCast(vertices.len),
+            if (indices) |val| val.ptr else null,
+            if (indices) |val| @intCast(val.len) else 0,
+        );
+        return errors.wrapCallBool(ret);
+    }
+
+    /// Render a list of triangles, optionally using a texture and indices into the vertex arrays Color and alpha modulation is done per vertex (texture color and texture alpha mod are ignored).
+    ///
+    /// ## Function Parameters
+    /// * `self`: The rendering context.
+    /// * `texture`: The optional texture to use.
+    /// * `xy_positions`: Vertex positions.
+    /// * `xy_positions_stride`: Byte size to move from one element to the next element.
+    /// * `colors`: Vertex colors.
+    /// * `colors_stride`: Byte size to move from one element to the next element.
+    /// * `uv_coords`: Vertex normalized texture coordinates.
+    /// * `uv_coords_stride`: Byte size to move from one element to the next element.
+    /// * `num_vertices`: Number of vertices.
+    /// * `indices`: An optional array of indices into the 'vertices' arrays, if `null` all vertices will be rendered in sequential order.
+    /// * `num_indices`: Number of indices.
+    /// * `bytes_per_index`: Size of an index in bytes.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn renderGeometryRaw(
+        self: Renderer,
+        texture: ?Texture,
+        xy_positions: [*]const f32,
+        xy_positions_stride: usize,
+        colors: [*]const pixels.FColor,
+        colors_stride: usize,
+        uv_coords: [*]const f32,
+        uv_coords_stride: usize,
+        num_vertices: usize,
+        indices: ?*const anyopaque,
+        num_indices: usize,
+        bytes_per_index: usize,
+    ) !void {
+        const ret = c.SDL_RenderGeometryRaw(
+            self.value,
+            if (texture) |texture_val| texture_val.value else null,
+            xy_positions,
+            @intCast(xy_positions_stride),
+            colors,
+            @intCast(colors_stride),
+            uv_coords,
+            @intCast(uv_coords_stride),
+            @intCast(num_vertices),
+            indices,
+            @intCast(num_indices),
+            @intCast(bytes_per_index),
+        );
+        return errors.wrapCallBool(ret);
+    }
+
+    /// Draw a line on the current rendering target at subpixel precision.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The renderer which should draw a line.
+    /// * `start`: The start point.
+    /// * `end`: The end point.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn renderLine(
+        self: Renderer,
+        start: rect.FPoint,
+        end: rect.FPoint,
+    ) !void {
+        const ret = c.SDL_RenderLine(
+            self.value,
+            start.x,
+            start.y,
+            end.x,
+            end.y,
+        );
+        return errors.wrapCallBool(ret);
+    }
+
+    /// Draw a series of connected lines on the current rendering target at subpixel precision.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The renderer which should draw multiple points.
+    /// * `points`: The points along the lines.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn renderLines(
+        self: Renderer,
+        points: []const rect.FPoint,
+    ) !void {
+        const ret = c.SDL_RenderLines(
+            self.value,
+            @ptrCast(points.ptr),
+            @intCast(points.len),
+        );
+        return errors.wrapCallBool(ret);
+    }
+
+    /// Draw a point on the current rendering target at subpixel precision.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The renderer which should draw a point.
+    /// * `point`: The point to render.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn renderPoint(
+        self: Renderer,
+        point: rect.FPoint,
+    ) !void {
+        const ret = c.SDL_RenderPoint(
+            self.value,
+            point.x,
+            point.y,
+        );
+        return errors.wrapCallBool(ret);
+    }
+
+    /// Draw multiple points on the current rendering target at subpixel precision.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The renderer which should draw multiple points.
+    /// * `points`: The points to draw.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn renderPoints(
+        self: Renderer,
+        points: []const rect.FPoint,
+    ) !void {
+        const ret = c.SDL_RenderPoints(
+            self.value,
+            @ptrCast(points.ptr),
+            @intCast(points.len),
+        );
+        return errors.wrapCallBool(ret);
+    }
+
+    /// Draw a rectangle on the current rendering target at subpixel precision.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The renderer which should draw a rectangle.
+    /// * `dst`: Destination rectangle, or `null` for the entire target.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn renderRect(
+        self: Renderer,
+        dst: ?rect.FRect,
+    ) !void {
+        const dst_sdl: c.SDL_FRect = if (dst) |val| val.toSdl() else undefined;
+        const ret = c.SDL_RenderRect(
+            self.value,
+            if (dst != null) &dst_sdl else null,
+        );
+        return errors.wrapCallBool(ret);
+    }
+
+    /// Draw some number of rectangles on the current rendering target at subpixel precision.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The renderer which should draw multiple rectangles.
+    /// * `rects`: Slice of destination rectangles.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn renderRects(
+        self: Renderer,
+        rects: []const rect.FRect,
+    ) !void {
+        const ret = c.SDL_RenderRects(
+            self.value,
+            @ptrCast(rects.ptr),
+            @intCast(rects.len),
+        );
+        return errors.wrapCallBool(ret);
+    }
+
     /// Copy a portion of the texture to the current rendering target at subpixel precision.
     ///
     /// ## Function Parameters
@@ -398,6 +1523,198 @@ pub const Renderer = struct {
             self.value,
             texture.value,
             if (src_rect != null) &src_rect_sdl else null,
+            if (dst_rect != null) &dst_rect_sdl else null,
+        );
+        return errors.wrapCallBool(ret);
+    }
+
+    /// Copy a portion of the source texture to the current rendering target, with affine transform, at subpixel precision.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The renderer which should copy parts of a texture.
+    /// * `texture`: The source texture.
+    /// * `src_rect`: The source rectangle, or `null` for the entire texture.
+    /// * `left_width`: The width, in pixels, of the left corners in `src_rect`.
+    /// * `right_width`: The width, in pixels, of the right corners in `src_rect`.
+    /// * `top_width`: The width, in pixels, of the top corners in `src_rect`.
+    /// * `bottom_width`: The width, in pixels, of the bottom corners in `src_rect`.
+    /// * `scale`: The scale used to transform the corner of `src_rect` into the corner of `dst_rect`, or `0.0` for an unscaled copy.
+    /// * `dst_rect`: The destination rectangle, or `null` for the entire target.
+    pub fn renderTexture9GridTiled(
+        self: Renderer,
+        texture: Texture,
+        src_rect: ?rect.FRect,
+        left_width: f32,
+        right_width: f32,
+        top_height: f32,
+        bottom_height: f32,
+        scale: f32,
+        dst_rect: ?rect.FRect,
+    ) !void {
+        const src_rect_sdl: c.SDL_FRect = if (src_rect) |val| val.toSdl() else undefined;
+        const dst_rect_sdl: c.SDL_FRect = if (dst_rect) |val| val.toSdl() else undefined;
+        const ret = c.SDL_RenderTexture9Grid(
+            self.value,
+            texture.value,
+            if (src_rect != null) &src_rect_sdl else null,
+            left_width,
+            right_width,
+            top_height,
+            bottom_height,
+            scale,
+            if (dst_rect != null) &dst_rect_sdl else null,
+        );
+        return errors.wrapCallBool(ret);
+    }
+
+    // /// Copy a portion of the source texture to the current rendering target, with affine transform, at subpixel precision.
+    // ///
+    // /// ## Function Parameters
+    // /// * `self`: The renderer which should copy parts of a texture.
+    // /// * `texture`: The source texture.
+    // /// * `src_rect`: The source rectangle, or `null` for the entire texture.
+    // /// * `left_width`: The width, in pixels, of the left corners in `src_rect`.
+    // /// * `right_width`: The width, in pixels, of the right corners in `src_rect`.
+    // /// * `top_width`: The width, in pixels, of the top corners in `src_rect`.
+    // /// * `bottom_width`: The width, in pixels, of the bottom corners in `src_rect`.
+    // /// * `scale`: The scale used to transform the corner of `src_rect` into the corner of `dst_rect`, or `0.0` for an unscaled copy.
+    // /// * `dst_rect`: The destination rectangle, or `null` for the entire target.
+    // /// * `tile_scale`: The scale used to transform the borders and center of `src_rect` into the borders and middle of `dst_rect`, or `1` for an unscaled copy.
+    // pub fn renderTexture9GridTiled(
+    //     self: Renderer,
+    //     texture: Texture,
+    //     src_rect: ?rect.FRect,
+    //     left_width: f32,
+    //     right_width: f32,
+    //     top_height: f32,
+    //     bottom_height: f32,
+    //     scale: f32,
+    //     dst_rect: ?rect.FRect,
+    //     tile_scale: f32,
+    // ) !void {
+    //     const src_rect_sdl: c.SDL_FRect = if (src_rect) |val| val.toSdl() else undefined;
+    //     const dst_rect_sdl: c.SDL_FRect = if (dst_rect) |val| val.toSdl() else undefined;
+    //     const ret = c.SDL_RenderTexture9GridTiled(
+    //         self.value,
+    //         texture.value,
+    //         if (src_rect != null) &src_rect_sdl else null,
+    //         if (dst_rect != null) &dst_rect_sdl else null,
+    //         angle,
+    //         if (center != null) &center_sdl else null,
+    //         flip_mode.toSdl(),
+    //     );
+    //     return errors.wrapCallBool(ret);
+    // }
+
+    /// Copy a portion of the source texture to the current rendering target, with affine transform, at subpixel precision.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The renderer which should copy parts of a texture.
+    /// * `texture`: The source texture.
+    /// * `src_rect`: The source rectangle, or `null` for the entire texture.
+    /// * `origin`: A point indicating where the top-left corner of `src_rect` should be mapped to, or `null` for the rendering target's origin.
+    /// * `right`: A point indicating where the top-right corner of `src_rect` should be mapped to, or `null` for the rendering target's top-right corner.
+    /// * `down`: A point indicating where the bottom-left corner of `src_rect` should be mapped to, or `null` for the rendering target's bottom-left corner.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn renderTextureAffine(
+        self: Renderer,
+        texture: Texture,
+        src_rect: ?rect.FRect,
+        origin: ?rect.FPoint,
+        right: ?rect.FPoint,
+        down: ?rect.FPoint,
+    ) !void {
+        const src_rect_sdl: c.SDL_FRect = if (src_rect) |val| val.toSdl() else undefined;
+        const origin_sdl: c.SDL_FPoint = if (origin) |val| val.toSdl() else undefined;
+        const right_sdl: c.SDL_FPoint = if (right) |val| val.toSdl() else undefined;
+        const down_sdl: c.SDL_FPoint = if (down) |val| val.toSdl() else undefined;
+        const ret = c.SDL_RenderTextureAffine(
+            self.value,
+            texture.value,
+            if (src_rect != null) &src_rect_sdl else null,
+            if (origin != null) &origin_sdl else null,
+            if (right != null) &right_sdl else null,
+            if (down != null) &down_sdl else null,
+        );
+        return errors.wrapCallBool(ret);
+    }
+
+    /// Copy a portion of the source texture to the current rendering target, with rotation and flipping, at subpixel precision.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The renderer which should copy parts of a texture.
+    /// * `texture`: The source texture.
+    /// * `src_rect`: The source rectangle, or `null` for the entire texture.
+    /// * `dst_rect`: The destination rectangle, or `null` for the entire target.
+    /// * `angle`: An angle in degrees that indicates the rotation that will be applied to `dst_rect`, rotating it in a clockwise direction.
+    /// * `center`: A point indicating the point around which `dst_rect` will be rotated (if `null`, rotation will be done around `dst_rect.w / 2`, `dst_rect.h / 2`).
+    /// * `flip`: Which flipping actions should be performed on the texture.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn renderTextureRotated(
+        self: Renderer,
+        texture: Texture,
+        src_rect: ?rect.FRect,
+        dst_rect: ?rect.FRect,
+        angle: f64,
+        center: ?rect.FPoint,
+        flip_mode: surface.FlipMode,
+    ) !void {
+        const src_rect_sdl: c.SDL_FRect = if (src_rect) |val| val.toSdl() else undefined;
+        const dst_rect_sdl: c.SDL_FRect = if (dst_rect) |val| val.toSdl() else undefined;
+        const center_sdl: c.SDL_FPoint = if (center) |val| val.toSdl() else undefined;
+        const ret = c.SDL_RenderTextureRotated(
+            self.value,
+            texture.value,
+            if (src_rect != null) &src_rect_sdl else null,
+            if (dst_rect != null) &dst_rect_sdl else null,
+            angle,
+            if (center != null) &center_sdl else null,
+            flip_mode.toSdl(),
+        );
+        return errors.wrapCallBool(ret);
+    }
+
+    /// Tile a portion of the texture to the current rendering target at subpixel precision.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The renderer which should copy parts of a texture.
+    /// * `texture`: The source texture.
+    /// * `src_rect`: The source rectangle, or `null` for the entire texture.
+    /// * `scale`: The scale used to transform `src_rect` into the destination rectangle, e.g. a 32x32 texture with a scale of 2 would fill 64x64 tiles.
+    /// * `dst_rect`: The destination rectangle, or `null` for the entire target.
+    ///
+    /// ## Remarks
+    /// The pixels in `src_rect` will be repeated as many times as needed to completely fill `dst_rect`.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn renderTextureTiled(
+        self: Renderer,
+        texture: Texture,
+        src_rect: ?rect.FRect,
+        scale: f32,
+        dst_rect: ?rect.FRect,
+    ) !void {
+        const src_rect_sdl: c.SDL_FRect = if (src_rect) |val| val.toSdl() else undefined;
+        const dst_rect_sdl: c.SDL_FRect = if (dst_rect) |val| val.toSdl() else undefined;
+        const ret = c.SDL_RenderTextureTiled(
+            self.value,
+            texture.value,
+            if (src_rect != null) &src_rect_sdl else null,
+            scale,
             if (dst_rect != null) &dst_rect_sdl else null,
         );
         return errors.wrapCallBool(ret);
@@ -736,25 +2053,31 @@ pub const Renderer = struct {
         return errors.wrapCallBool(ret);
     }
 
+    /// Return whether an explicit rectangle was set as the viewport.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The rendering context.
+    ///
+    /// ## Return Value
+    /// Returns true if the viewport was set to a specific rectangle, or false if it was set to `null` (the entire target).
+    ///
+    /// ## Remarks
+    /// This is useful if you're saving and restoring the viewport and want to know whether you should restore a specific rectangle or `null`.
+    ///
+    /// Each render target has its own viewport. This function checks the viewport for the current render target.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn viewportSet(
+        self: Renderer,
+    ) bool {
+        return c.SDL_RenderViewportSet(self.value);
+    }
+
     // SetRenderGPUState is added in SDL 3.4.0.
-
-    /// Get the number of 2D rendering drivers available for the current display.
-    pub fn numDrivers() usize {
-        const ret = c.SDL_GetNumRenderDrivers();
-        return @intCast(ret);
-    }
-
-    /// Use this function to get the name of a built in 2D rendering driver.
-    pub fn getDriverName(
-        index: usize,
-    ) ?[:0]const u8 {
-        const ret = c.SDL_GetRenderDriver(
-            @intCast(index),
-        );
-        if (ret == null)
-            return null;
-        return std.mem.span(ret);
-    }
 
     /// Create a 2D rendering context for a window, with the specified properties.
     pub fn initWithProperties(
@@ -767,646 +2090,6 @@ pub const Renderer = struct {
             return error.SdlError;
         return Renderer{ .value = ret.? };
     }
-
-    /// Get the renderer associated with a window.
-    pub fn getRenderer(
-        window: video.Window,
-    ) !Renderer {
-        const ret = c.SDL_GetRenderer(
-            window.value,
-        );
-        if (ret == null)
-            return error.SdlError;
-        return Renderer{ .value = ret.? };
-    }
-
-    /// Get the window associated with a renderer.
-    pub fn getWindow(
-        self: Renderer,
-    ) !video.Window {
-        const ret = c.SDL_GetRenderWindow(
-            self.value,
-        );
-        if (ret == null)
-            return error.SdlError;
-        return video.Window{ .value = ret.? };
-    }
-
-    /// Get the name of a renderer.
-    pub fn getName(
-        self: Renderer,
-    ) ![:0]const u8 {
-        const ret = c.SDL_GetRendererName(
-            self.value,
-        );
-        if (ret == null)
-            return error.SdlError;
-        return std.mem.span(ret);
-    }
-
-    /// Get the properties associated with a renderer.
-    pub fn getProperties(
-        self: Renderer,
-    ) !properties.Group {
-        const ret = c.SDL_GetRendererProperties(
-            self.value,
-        );
-        if (ret == 0)
-            return error.SdlError;
-        return properties.Group{ .value = ret };
-    }
-
-    /// Get the output size in pixels of a rendering context.
-    pub fn getOutputSize(
-        self: Renderer,
-    ) !struct { width: usize, height: usize } {
-        var w: c_int = undefined;
-        var h: c_int = undefined;
-        const ret = c.SDL_GetRenderOutputSize(
-            self.value,
-            &w,
-            &h,
-        );
-        if (!ret)
-            return error.SdlError;
-        return .{ .width = @intCast(w), .height = @intCast(h) };
-    }
-
-    /// Get the current output size in pixels of a rendering context.
-    pub fn getCurrentOutputSize(
-        self: Renderer,
-    ) !struct { width: usize, height: usize } {
-        var w: c_int = undefined;
-        var h: c_int = undefined;
-        const ret = c.SDL_GetCurrentRenderOutputSize(
-            self.value,
-            &w,
-            &h,
-        );
-        if (!ret)
-            return error.SdlError;
-        return .{ .width = @intCast(w), .height = @intCast(h) };
-    }
-
-    /// Create a texture for a rendering context.
-    pub fn createTexture(
-        self: Renderer,
-        format: pixels.Format,
-        texture_access: TextureAccess,
-        width: usize,
-        height: usize,
-    ) !Texture {
-        const ret = c.SDL_CreateTexture(
-            self.value,
-            format.value,
-            @intFromEnum(texture_access),
-            @intCast(width),
-            @intCast(height),
-        );
-        if (ret == null)
-            return error.SdlError;
-        return Texture{ .value = ret };
-    }
-
-    /// Create a texture for a rendering context with the specified properties.
-    pub fn createTextureWithProperties(
-        self: Renderer,
-        props: properties.Group,
-    ) !Texture {
-        const ret = c.SDL_CreateTextureWithProperties(
-            self.value,
-            props.value,
-        );
-        if (ret == null)
-            return error.SdlError;
-        return Texture{ .value = ret };
-    }
-
-    /// Get the current render target.
-    pub fn getTarget(
-        self: Renderer,
-    ) ?Texture {
-        const ret = c.SDL_GetRenderTarget(
-            self.value,
-        );
-        if (ret == null)
-            return null;
-        return Texture{ .value = ret };
-    }
-
-    /// Get device independent resolution and presentation mode for rendering.
-    pub fn getLogicalPresentation(
-        self: Renderer,
-    ) !struct { width: usize, height: usize, presentation_mode: ?LogicalPresentation } {
-        var w: c_int = undefined;
-        var h: c_int = undefined;
-        var presentation_mode: c.SDL_RendererLogicalPresentation = undefined;
-        const ret = c.SDL_GetRenderLogicalPresentation(
-            self.value,
-            &w,
-            &h,
-            &presentation_mode,
-        );
-        if (!ret)
-            return error.SdlError;
-        return .{ .width = @intCast(w), .height = @intCast(h), .presentation_mode = if (presentation_mode == c.SDL_LOGICAL_PRESENTATION_DISABLED) null else @enumFromInt(presentation_mode) };
-    }
-
-    /// Get the final presentation rectangle for rendering.
-    pub fn getLogicalPresentationRect(
-        self: Renderer,
-    ) !rect.FRect {
-        var presentation_rect: c.SDL_FRect = undefined;
-        const ret = c.SDL_GetRenderLogicalPresentationRect(
-            self.value,
-            &presentation_rect,
-        );
-        if (!ret)
-            return error.SdlError;
-        return rect.FRect.fromSdl(presentation_rect);
-    }
-
-    /// Get a point in render coordinates when given a point in window coordinates.
-    pub fn renderCoordinatesFromWindowCoordinates(
-        self: Renderer,
-        x: f32,
-        y: f32,
-    ) !struct { x: f32, y: f32 } {
-        var render_x: f32 = undefined;
-        var render_y: f32 = undefined;
-        const ret = c.SDL_RenderCoordinatesFromWindow(
-            self.value,
-            @floatCast(x),
-            @floatCast(y),
-            &render_x,
-            &render_y,
-        );
-        if (!ret)
-            return error.SdlError;
-        return .{ .x = render_x, .y = render_y };
-    }
-
-    /// Get a point in window coordinates when given a point in render coordinates.
-    pub fn renderCoordinatesToWindowCoordinates(
-        self: Renderer,
-        x: f32,
-        y: f32,
-    ) !struct { x: f32, y: f32 } {
-        var window_x: f32 = undefined;
-        var window_y: f32 = undefined;
-        const ret = c.SDL_RenderCoordinatesToWindow(
-            self.value,
-            @floatCast(x),
-            @floatCast(y),
-            &window_x,
-            &window_y,
-        );
-        if (!ret)
-            return error.SdlError;
-        return .{ .x = window_x, .y = window_y };
-    }
-
-    /// Get the drawing area for the current target.
-    pub fn getViewport(
-        self: Renderer,
-    ) !rect.IRect {
-        var viewport: c.SDL_Rect = undefined;
-        const ret = c.SDL_GetRenderViewport(
-            self.value,
-            &viewport,
-        );
-        if (!ret)
-            return error.SdlError;
-        return rect.IRect.fromSdl(viewport);
-    }
-
-    /// Return whether an explicit rectangle was set as the viewport.
-    pub fn viewportSet(
-        self: Renderer,
-    ) bool {
-        const ret = c.SDL_RenderViewportSet(
-            self.value,
-        );
-        return ret;
-    }
-
-    /// Get the safe area for rendering within the current viewport.
-    pub fn getSafeArea(
-        self: Renderer,
-    ) !rect.IRect {
-        var area: c.SDL_Rect = undefined;
-        const ret = c.SDL_GetRenderSafeArea(
-            self.value,
-            &area,
-        );
-        if (!ret)
-            return error.SdlError;
-        return rect.IRect.fromSdl(area);
-    }
-
-    // /// Get the clip rectangle for the current target.
-    // pub fn getClipRect(
-    //     self: Renderer,
-    // ) !?rect.IRect {
-    //     var clipping: c.SDL_Rect = undefined;
-    //     const ret = c.SDL_GetRenderClipRect(
-    //         self.value,
-    //         &clipping,
-    //     );
-    //     if (!ret)
-    //         return error.SdlError;
-    //     if (clipping.empty())
-    //         return null;
-    //     return rect.IRect.fromSdl(clipping);
-    // }
-
-    /// Get whether clipping is enabled on the given renderer.
-    pub fn clipEnabled(
-        self: Renderer,
-    ) bool {
-        const ret = c.SDL_RenderClipEnabled(
-            self.value,
-        );
-        return ret;
-    }
-
-    /// Get the drawing scale for the current target.
-    pub fn getScale(
-        self: Renderer,
-    ) !struct { x: f32, y: f32 } {
-        var x: f32 = undefined;
-        var y: f32 = undefined;
-        const ret = c.SDL_GetRenderScale(
-            self.value,
-            &x,
-            &y,
-        );
-        if (!ret)
-            return error.SdlError;
-        return .{ .x = x, .y = y };
-    }
-
-    /// Get the color used for drawing operations (Rect, Line and Clear).
-    pub fn getDrawColor(
-        self: Renderer,
-    ) !pixels.Color {
-        var r: u8 = undefined;
-        var g: u8 = undefined;
-        var b: u8 = undefined;
-        var a: u8 = undefined;
-        const ret = c.SDL_GetRenderDrawColor(
-            self.value,
-            &r,
-            &g,
-            &b,
-            &a,
-        );
-        if (!ret)
-            return error.SdlError;
-        return .{ .r = r, .g = g, .b = b, .a = a };
-    }
-
-    /// Get the color used for drawing operations (Rect, Line and Clear).
-    pub fn getDrawColorFloat(
-        self: Renderer,
-    ) !pixels.FColor {
-        var r: f32 = undefined;
-        var g: f32 = undefined;
-        var b: f32 = undefined;
-        var a: f32 = undefined;
-        const ret = c.SDL_GetRenderDrawColorFloat(
-            self.value,
-            &r,
-            &g,
-            &b,
-            &a,
-        );
-        if (!ret)
-            return error.SdlError;
-        return .{ .r = r, .g = g, .b = b, .a = a };
-    }
-
-    /// Get the color scale used for render operations.
-    pub fn getColorScale(
-        self: Renderer,
-    ) !f32 {
-        var scale: f32 = undefined;
-        const ret = c.SDL_GetRenderColorScale(
-            self.value,
-            &scale,
-        );
-        if (!ret)
-            return error.SdlError;
-        return scale;
-    }
-
-    /// Get the blend mode used for drawing operations.
-    pub fn getDrawBlendMode(
-        self: Renderer,
-    ) !?blend_mode.Mode {
-        var mode: c.SDL_BlendMode = undefined;
-        const ret = c.SDL_GetRenderDrawBlendMode(
-            self.value,
-            &mode,
-        );
-        if (!ret)
-            return error.SdlError;
-        if (mode == c.SDL_BLENDMODE_NONE)
-            return null;
-        return .{ .value = mode };
-    }
-
-    /// Draw a point on the current rendering target at subpixel precision.
-    pub fn renderPoint(
-        self: Renderer,
-        p1: rect.FPoint,
-    ) !void {
-        const ret = c.SDL_RenderPoint(
-            self.value,
-            p1.x,
-            p1.y,
-        );
-        if (!ret)
-            return error.SdlError;
-    }
-
-    /// Draw multiple points on the current rendering target at subpixel precision.
-    pub fn renderPoints(
-        self: Renderer,
-        points: []const rect.FPoint,
-    ) !void {
-        const ret = c.SDL_RenderPoints(
-            self.value,
-            @ptrCast(points.ptr),
-            @intCast(points.len),
-        );
-        if (!ret)
-            return error.SdlError;
-    }
-
-    /// Draw a line on the current rendering target at subpixel precision.
-    pub fn renderLine(
-        self: Renderer,
-        p1: rect.FPoint,
-        p2: rect.FPoint,
-    ) !void {
-        const ret = c.SDL_RenderLine(
-            self.value,
-            p1.x,
-            p1.y,
-            p2.x,
-            p2.y,
-        );
-        if (!ret)
-            return error.SdlError;
-    }
-
-    /// Draw a series of connected lines on the current rendering target at subpixel precision.
-    pub fn renderLines(
-        self: Renderer,
-        points: []const rect.FPoint,
-    ) !void {
-        const ret = c.SDL_RenderLines(
-            self.value,
-            @ptrCast(points.ptr),
-            @intCast(points.len),
-        );
-        if (!ret)
-            return error.SdlError;
-    }
-
-    /// Draw a rectangle on the current rendering target at subpixel precision.
-    pub fn renderRect(
-        self: Renderer,
-        dst: ?rect.FRect,
-    ) !void {
-        const dst_sdl: ?c.SDL_FRect = if (dst == null) null else dst.?.toSdl();
-        const ret = c.SDL_RenderRect(
-            self.value,
-            if (dst_sdl == null) null else &(dst_sdl.?),
-        );
-        if (!ret)
-            return error.SdlError;
-    }
-
-    /// Draw some number of rectangles on the current rendering target at subpixel precision.
-    pub fn renderRects(
-        self: Renderer,
-        rects: []const rect.FRect,
-    ) !void {
-        const ret = c.SDL_RenderRects(
-            self.value,
-            @ptrCast(rects.ptr),
-            @intCast(rects.len),
-        );
-        if (!ret)
-            return error.SdlError;
-    }
-
-    /// Fill a rectangle on the current rendering target with the drawing color at subpixel precision.
-    pub fn renderFillRect(
-        self: Renderer,
-        dst: ?rect.FRect,
-    ) !void {
-        const dst_sdl: ?c.SDL_FRect = if (dst == null) null else dst.?.toSdl();
-        const ret = c.SDL_RenderFillRect(
-            self.value,
-            if (dst_sdl == null) null else &(dst_sdl.?),
-        );
-        if (!ret)
-            return error.SdlError;
-    }
-
-    /// Fill some number of rectangles on the current rendering target with the drawing color at subpixel precision.
-    pub fn renderFillRects(
-        self: Renderer,
-        rects: []const rect.FRect,
-    ) !void {
-        const ret = c.SDL_RenderFillRects(
-            self.value,
-            @ptrCast(rects.ptr),
-            @intCast(rects.len),
-        );
-        if (!ret)
-            return error.SdlError;
-    }
-
-    /// Copy a portion of the source texture to the current rendering target, with rotation and flipping, at subpixel precision.
-    pub fn renderTextureRotated(
-        self: Renderer,
-        texture: Texture,
-        src_rect: ?rect.FRect,
-        dst_rect: ?rect.FRect,
-        angle: f64,
-        center: ?rect.FPoint,
-        flip_mode: ?surface.FlipMode,
-    ) !void {
-        const src_rect_sdl: ?c.SDL_FRect = if (src_rect == null) null else src_rect.?.toSdl();
-        const dst_rect_sdl: ?c.SDL_FRect = if (dst_rect == null) null else dst_rect.?.toSdl();
-        const center_sdl: ?c.SDL_FPoint = if (center == null) null else center.?.toSdl();
-        const ret = c.SDL_RenderTextureRotated(
-            self.value,
-            texture.value,
-            if (src_rect_sdl == null) null else &(src_rect_sdl.?),
-            if (dst_rect_sdl == null) null else &(dst_rect_sdl.?),
-            @floatCast(angle),
-            if (center_sdl == null) null else &(center_sdl.?),
-            if (flip_mode) |val| @intFromEnum(val) else c.SDL_FLIP_NONE,
-        );
-        if (!ret)
-            return error.SdlError;
-    }
-
-    /// Tile a portion of the texture to the current rendering target at subpixel precision.
-    pub fn renderTextureTiled(
-        self: Renderer,
-        texture: Texture,
-        src_rect: ?rect.FRect,
-        scale: f32,
-        dst_rect: ?rect.FRect,
-    ) !void {
-        const src_rect_sdl: ?c.SDL_FRect = if (src_rect == null) null else src_rect.?.toSdl();
-        const dst_rect_sdl: ?c.SDL_FRect = if (dst_rect == null) null else dst_rect.?.toSdl();
-        const ret = c.SDL_RenderTextureTiled(
-            self.value,
-            texture.value,
-            if (src_rect_sdl == null) null else &(src_rect_sdl.?),
-            @floatCast(scale),
-            if (dst_rect_sdl == null) null else &(dst_rect_sdl.?),
-        );
-        if (!ret)
-            return error.SdlError;
-    }
-
-    /// Perform a scaled copy using the 9-grid algorithm to the current rendering target at subpixel precision.
-    pub fn renderTexture9Grid(
-        self: Renderer,
-        texture: Texture,
-        src_rect: ?rect.FRect,
-        left_width: f32,
-        right_width: f32,
-        top_height: f32,
-        bottom_height: f32,
-        scale: f32,
-        dst_rect: ?rect.FRect,
-    ) !void {
-        const src_rect_sdl: ?c.SDL_FRect = if (src_rect == null) null else src_rect.?.toSdl();
-        const dst_rect_sdl: ?c.SDL_FRect = if (dst_rect == null) null else dst_rect.?.toSdl();
-        const ret = c.SDL_RenderTexture9Grid(
-            self.value,
-            texture.value,
-            if (src_rect_sdl == null) null else &(src_rect_sdl.?),
-            @floatCast(left_width),
-            @floatCast(right_width),
-            @floatCast(top_height),
-            @floatCast(bottom_height),
-            @floatCast(scale),
-            if (dst_rect_sdl == null) null else &(dst_rect_sdl.?),
-        );
-        if (!ret)
-            return error.SdlError;
-    }
-
-    // /// Render a list of triangles, optionally using a texture and indices into the vertex arrays Color and alpha modulation is done per vertex.
-    // pub fn renderGeometry(
-    //     self: Renderer,
-    //     texture: ?Texture,
-    //     vertices: [*]const Vertex,
-    //     num_vertices: usize,
-    //     indices: ?[*]const c_int,
-    //     num_indices: usize,
-    // ) !void {
-    //     const ret = c.SDL_RenderGeometry(
-    //         self.value,
-    //         if (texture) |texture_val| texture_val.value else null,
-    //         vertices,
-    //         @intCast(num_vertices),
-    //         if (indices) |val| val else null,
-    //         @intCast(num_indices),
-    //     );
-    //     if (!ret)
-    //         return error.SdlError;
-    // }
-
-    /// Render a list of triangles, optionally using a texture and indices into the vertex arrays Color and alpha modulation is done per vertex.
-    pub fn renderGeometryRaw(
-        self: Renderer,
-        texture: ?Texture,
-        xy_positions: [*]const f32,
-        xy_positions_stride: usize,
-        colors: [*]const pixels.FColor,
-        colors_stride: usize,
-        uv_coords: [*]const f32,
-        uv_coords_stride: usize,
-        num_vertices: usize,
-        indices: ?*const anyopaque,
-        num_indices: usize,
-        bytes_per_index: usize,
-    ) !void {
-        const ret = c.SDL_RenderGeometryRaw(
-            self.value,
-            if (texture) |texture_val| texture_val.value else null,
-            xy_positions,
-            @intCast(xy_positions_stride),
-            colors,
-            @intCast(colors_stride),
-            uv_coords,
-            @intCast(uv_coords_stride),
-            @intCast(num_vertices),
-            indices,
-            @intCast(num_indices),
-            @intCast(bytes_per_index),
-        );
-        if (!ret)
-            return error.SdlError;
-    }
-
-    /// Read pixels from the current rendering target.
-    pub fn readPixels(
-        self: Renderer,
-        capture_area: ?rect.IRect,
-    ) !surface.Surface {
-        const capture_area_sdl: ?c.SDL_Rect = if (capture_area == null) null else capture_area.?.toSdl();
-        const ret = c.SDL_RenderReadPixels(
-            self.value,
-            if (capture_area_sdl == null) null else &(capture_area_sdl.?),
-        );
-        if (ret == null)
-            return error.SdlError;
-        return surface.Surface{ .value = ret };
-    }
-
-    /// Get the CAMetalLayer associated with the given Metal renderer.
-    pub fn getMetalLayer(
-        self: Renderer,
-    ) ?*anyopaque {
-        const ret = c.SDL_GetRenderMetalLayer(
-            self.value,
-        );
-        return ret;
-    }
-
-    /// Get the Metal command encoder for the current frame.
-    pub fn getMetalCommandEncoder(
-        self: Renderer,
-    ) ?*anyopaque {
-        const ret = c.SDL_GetRenderMetalCommandEncoder(
-            self.value,
-        );
-        return ret;
-    }
-
-    // /// Get VSync of the given renderer.
-    // pub fn getVSync(
-    //     self: Renderer,
-    // ) !?VSync {
-    //     var vsync: c_int = undefined;
-    //     const ret = c.SDL_GetRenderVSync(self.value, &vsync);
-    //     if (!ret)
-    //         return error.SdlError;
-    //     return VSync.fromSdl(vsync);
-    // }
-
 };
 
 /// How the logical size is mapped to the output.
@@ -1470,6 +2153,126 @@ pub const Texture = struct {
         c.SDL_DestroyTexture(self.value);
     }
 
+    /// Get the additional alpha value multiplied into render copy operations.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The texture to query.
+    ///
+    /// ## Return Value
+    /// The current alpha value.
+    ///
+    /// ## Version
+    /// This function is provided by zig-sdl3.
+    pub fn getAlphaMod(
+        self: Texture,
+    ) !u8 {
+        var alpha: u8 = undefined;
+        const ret = c.SDL_GetTextureAlphaMod(
+            self.value,
+            &alpha,
+        );
+        try errors.wrapCallBool(ret);
+        return alpha;
+    }
+
+    /// Get the additional alpha value multiplied into render copy operations.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The texture to query.
+    ///
+    /// ## Return Value
+    /// The current alpha value.
+    ///
+    /// ## Version
+    /// This function is provided by zig-sdl3.
+    pub fn getAlphaModFloat(
+        self: Texture,
+    ) !f32 {
+        var alpha: f32 = undefined;
+        const ret = c.SDL_GetTextureAlphaModFloat(
+            self.value,
+            &alpha,
+        );
+        try errors.wrapCallBool(ret);
+        return alpha;
+    }
+
+    /// Get the blend mode used for texture copy operations.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The texture to query.
+    ///
+    /// ## Return Value
+    /// The current blend mode.
+    ///
+    /// ## Version
+    /// This function is provided by zig-sdl3.
+    pub fn getBlendMode(
+        self: Texture,
+    ) !?blend_mode.Mode {
+        var mode: c.SDL_BlendMode = undefined;
+        const ret = c.SDL_GetTextureBlendMode(
+            self.value,
+            &mode,
+        );
+        try errors.wrapCallBool(ret);
+        if (mode == c.SDL_BLENDMODE_INVALID)
+            return null;
+        return .{ .value = mode };
+    }
+
+    /// Get the additional color value multiplied into render copy operations.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The texture to query.
+    ///
+    /// ## Return Value
+    /// The current color value.
+    ///
+    /// ## Version
+    /// This function is provided by zig-sdl3.
+    pub fn getColorMod(
+        self: Texture,
+    ) !struct { r: u8, g: u8, b: u8 } {
+        var r: u8 = undefined;
+        var g: u8 = undefined;
+        var b: u8 = undefined;
+        const ret = c.SDL_GetTextureColorMod(
+            self.value,
+            &r,
+            &g,
+            &b,
+        );
+        try errors.wrapCallBool(ret);
+        return .{ .r = r, .g = g, .b = b };
+    }
+
+    /// Get the additional color value multiplied into render copy operations.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The texture to query.
+    ///
+    /// ## Return Value
+    /// The current color value.
+    ///
+    /// ## Version
+    /// This function is provided by zig-sdl3.
+    pub fn getColorModFloat(
+        self: Texture,
+    ) !struct { r: f32, g: f32, b: f32 } {
+        var r: f32 = undefined;
+        var g: f32 = undefined;
+        var b: f32 = undefined;
+        const ret = c.SDL_GetTextureColorModFloat(
+            self.value,
+            &r,
+            &g,
+            &b,
+        );
+        try errors.wrapCallBool(ret);
+        return .{ .r = r, .g = g, .b = b };
+    }
+
     /// Get the format of the texture.
     ///
     /// ## Function Parameters
@@ -1516,6 +2319,80 @@ pub const Texture = struct {
         self: Texture,
     ) usize {
         return @intCast(self.value.refcount);
+    }
+
+    /// Get the renderer that created the texture.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The texture to query.
+    ///
+    /// ## Return Value
+    /// The renderer that created this texture.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getRenderer(
+        self: Texture,
+    ) !Renderer {
+        const ret = c.SDL_GetRendererFromTexture(
+            self.value,
+        );
+        return Renderer{ .value = try errors.wrapNull(*c.SDL_Renderer, ret) };
+    }
+
+    /// Get the scale mode used for texture scale operations.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The texture to query.
+    ///
+    /// ## Return Value
+    /// The current scale mode.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getScaleMode(
+        self: Texture,
+    ) !surface.ScaleMode {
+        var mode: c.SDL_ScaleMode = undefined;
+        const ret = c.SDL_GetTextureScaleMode(
+            self.value,
+            &mode,
+        );
+        try errors.wrapCallBool(ret);
+        return @enumFromInt(mode);
+    }
+
+    /// Get the size of a texture, as floating point values.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The texture to query.
+    ///
+    /// ## Return Value
+    /// The width and height of the texture in pixels.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getSize(
+        self: Texture,
+    ) !struct { width: f32, height: f32 } {
+        var w: f32 = undefined;
+        var h: f32 = undefined;
+        const ret = c.SDL_GetTextureSize(
+            self.value,
+            &w,
+            &h,
+        );
+        try errors.wrapCallBool(ret);
+        return .{ .width = w, .height = h };
     }
 
     /// Get the width of the texture.
@@ -2004,128 +2881,6 @@ pub const Texture = struct {
             return error.SdlError;
         return properties.Group{ .value = ret };
     }
-
-    /// Get the renderer that created an SDL_Texture.
-    pub fn getRenderer(
-        self: Texture,
-    ) !Renderer {
-        const ret = c.SDL_GetRendererFromTexture(
-            self.value,
-        );
-        if (ret == null)
-            return error.SdlError;
-        return Renderer{ .value = ret.? };
-    }
-
-    /// Get the size of a texture, as floating point values.
-    pub fn getSize(
-        self: Texture,
-    ) !struct { width: f32, height: f32 } {
-        var w: f32 = undefined;
-        var h: f32 = undefined;
-        const ret = c.SDL_GetTextureSize(
-            self.value,
-            &w,
-            &h,
-        );
-        if (!ret)
-            return error.SdlError;
-        return .{ .width = @floatCast(w), .height = @floatCast(h) };
-    }
-
-    /// Get the additional color value multiplied into render copy operations.
-    pub fn getColorMod(
-        self: Texture,
-    ) !struct { r: u8, g: u8, b: u8 } {
-        var r: u8 = undefined;
-        var g: u8 = undefined;
-        var b: u8 = undefined;
-        const ret = c.SDL_GetTextureColorMod(
-            self.value,
-            &r,
-            &g,
-            &b,
-        );
-        if (!ret)
-            return error.SdlError;
-        return .{ .r = r, .g = g, .b = b };
-    }
-
-    /// Get the additional color value multiplied into render copy operations.
-    pub fn getColorModFloat(
-        self: Texture,
-    ) !struct { r: f32, g: f32, b: f32 } {
-        var r: f32 = undefined;
-        var g: f32 = undefined;
-        var b: f32 = undefined;
-        const ret = c.SDL_GetTextureColorModFloat(
-            self.value,
-            &r,
-            &g,
-            &b,
-        );
-        if (!ret)
-            return error.SdlError;
-        return .{ .r = r, .g = g, .b = b };
-    }
-
-    /// Get the additional alpha value multiplied into render copy operations.
-    pub fn getAlphaMod(
-        self: Texture,
-    ) !u8 {
-        var alpha: u8 = undefined;
-        const ret = c.SDL_GetTextureAlphaMod(
-            self.value,
-            &alpha,
-        );
-        if (!ret)
-            return error.SdlError;
-        return alpha;
-    }
-
-    /// Get the additional alpha value multiplied into render copy operations.
-    pub fn getAlphaModFloat(
-        self: Texture,
-    ) !f32 {
-        var alpha: f32 = undefined;
-        const ret = c.SDL_GetTextureAlphaModFloat(
-            self.value,
-            &alpha,
-        );
-        if (!ret)
-            return error.SdlError;
-        return alpha;
-    }
-
-    /// Get the blend mode used for texture copy operations.
-    pub fn getBlendMode(
-        self: Texture,
-    ) !?blend_mode.Mode {
-        var mode: c.SDL_BlendMode = undefined;
-        const ret = c.SDL_GetTextureBlendMode(
-            self.value,
-            &mode,
-        );
-        if (!ret)
-            return error.SdlError;
-        if (mode == c.SDL_BLENDMODE_INVALID)
-            return null;
-        return .{ .value = mode };
-    }
-
-    /// Get the scale mode used for texture scale operations.
-    pub fn getScaleMode(
-        self: Texture,
-    ) !surface.ScaleMode {
-        var mode: c.SDL_ScaleMode = undefined;
-        const ret = c.SDL_GetTextureScaleMode(
-            self.value,
-            &mode,
-        );
-        if (!ret)
-            return error.SdlError;
-        return @enumFromInt(mode);
-    }
 };
 
 /// The access pattern allowed for a texture.
@@ -2160,6 +2915,83 @@ pub const Vertex = extern struct {
         errors.assertStructsEqual(c.SDL_Vertex, Vertex);
     }
 };
+
+/// Use this function to get the name of a built in 2D rendering driver.
+///
+/// ## Function Parameters
+/// * `index`: The index of the rendering driver.
+///
+/// ## Return Value
+/// Returns the name of the rendering driver at the requested index, or `null` if an invalid index was specified.
+///
+/// ## Remarks
+/// The list of rendering drivers is given in the order that they are normally initialized by default; the drivers that seem more reasonable to choose first
+/// (as far as the SDL developers believe) are earlier in the list.
+///
+/// The names of drivers are all simple, low-ASCII identifiers, like "opengl", "direct3d12" or "metal"
+/// These never have Unicode characters, and are not meant to be proper names.
+///
+/// ## Thread Safety
+/// It is safe to call this function from any thread.
+///
+/// ## Version
+/// This function is available since SDL 3.2.0.
+///
+/// ## Code Examples
+/// TODO!!!
+pub fn getDriverName(
+    index: usize,
+) ?[:0]const u8 {
+    const ret = c.SDL_GetRenderDriver(
+        @intCast(index),
+    );
+    if (ret == null)
+        return null;
+    return std.mem.span(ret);
+}
+
+/// Get the number of 2D rendering drivers available for the current display.
+///
+/// ## Return Value
+/// Returns the number of built in render drivers.
+///
+/// ## Remarks
+/// A render driver is a set of code that handles rendering and texture management on a particular display.
+/// Normally there is only one, but some drivers may have several available with different capabilities.
+///
+/// There may be none if SDL was compiled without render support.
+///
+/// ## Thread Safety
+/// It is safe to call this function from any thread.
+///
+/// ## Version
+/// This function is available since SDL 3.2.0.
+pub fn numDrivers() usize {
+    const ret = c.SDL_GetNumRenderDrivers();
+    return @intCast(ret);
+}
+
+/// Get the renderer associated with a window.
+///
+/// ## Function Parameters
+/// * `window`: The window to query.
+///
+/// ## Return Value
+/// Returns the rendering context.
+///
+/// ## Thread Safety
+/// It is safe to call this function from any thread.
+///
+/// ## Version
+/// This function is available since SDL 3.2.0.
+pub fn getRenderer(
+    window: video.Window,
+) !Renderer {
+    const ret = c.SDL_GetRenderer(
+        window.value,
+    );
+    return Renderer{ .value = try errors.wrapNull(*c.SDL_Renderer, ret) };
+}
 
 // Render tests.
 test "Render" {

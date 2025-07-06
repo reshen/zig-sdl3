@@ -1,4 +1,6 @@
+const audio = @import("audio.zig");
 const c = @import("c.zig").c;
+const camera = @import("camera.zig");
 const errors = @import("errors.zig");
 const sdl3 = @import("sdl3.zig");
 const std = @import("std");
@@ -36,7 +38,29 @@ pub const Action = enum(c_uint) {
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const Filter = *const fn (user_data: ?*anyopaque, event: [*c]c.SDL_Event) callconv(.c) bool;
+pub fn Filter(comptime UserData: type) type {
+    return *const fn (
+        user_data: ?*UserData,
+        event: *Event,
+    ) bool;
+}
+
+/// A function pointer used for callbacks that watch the event queue.
+///
+/// ## Function Parameters
+/// * `user_data`: What was passed as `user_data` to `events.setFilter()` or `events.addWatch()`.
+/// * `event`: The event that triggered the callback.
+///
+/// ## Return Value
+/// Returns true to permit event to be added to the queue, and false to disallow it.
+/// When used with `events.addWatch()`, the return value is ignored.
+///
+/// ## Thread Safety
+/// SDL may call this callback at any time from any thread; the application is responsible for locking resources the callback touches that need to be protected.
+///
+/// ## Version
+/// This datatype is available since SDL 3.2.0.
+pub const FilterC = *const fn (user_data: ?*anyopaque, event: [*c]c.SDL_Event) callconv(.c) bool;
 
 /// For clearing out a group of events.
 ///
@@ -310,9 +334,12 @@ pub const Type = enum(c.SDL_EventType) {
     // DropBegin,
     // DropComplete,
     // DropPosition,
-    // AudioDeviceAdded,
-    // AudioDeviceRemoved,
-    // AudioDeviceFormatChanged,
+    /// A new audio device is available.
+    audio_device_added = c.SDL_EVENT_AUDIO_DEVICE_ADDED,
+    /// An audio device has been removed.
+    audio_device_removed = c.SDL_EVENT_AUDIO_DEVICE_REMOVED,
+    /// An audio device's format has been changed by the system.
+    audio_device_format_changed = c.SDL_EVENT_AUDIO_DEVICE_FORMAT_CHANGED,
     // SensorUpdate,
     // PenProximityIn,
     // PenProximityOut,
@@ -322,10 +349,14 @@ pub const Type = enum(c.SDL_EventType) {
     // PenButtonUp,
     // PenMotion,
     // PenAxis,
-    // CameraDeviceAdded,
-    // CameraDeviceRemoved,
-    // CameraDeviceApproved,
-    // CameraDeviceDenied,
+    /// A new camera device is available.
+    camera_device_added = c.SDL_EVENT_CAMERA_DEVICE_ADDED,
+    /// A camera device has been removed.
+    camera_device_removed = c.SDL_EVENT_CAMERA_DEVICE_REMOVED,
+    /// A camera device has been approved for use by the user.
+    camera_device_approved = c.SDL_EVENT_CAMERA_DEVICE_APPROVED,
+    /// A camera device has been denied for use by the user.
+    camera_device_denied = c.SDL_EVENT_CAMERA_DEVICE_DENIED,
     // RenderTargetsReset,
     // RenderDeviceReset,
     // RenderDeviceLost,
@@ -340,6 +371,30 @@ pub const Type = enum(c.SDL_EventType) {
     /// For padding out the union.
     padding = c.SDL_EVENT_ENUM_PADDING,
     // _,
+};
+
+/// Audio device event structure.
+///
+/// ## Version
+/// This struct is available since SDL 3.2.0.
+pub const AudioDevice = struct {
+    /// Common event information.
+    common: Common,
+    /// Device being added or removed or changing.
+    device: audio.Device,
+    /// False if a playback device, true if a recording device.
+    recording: bool,
+};
+
+/// Camera device event structure.
+///
+/// ## Version
+/// This struct is available since SDL 3.2.0.
+pub const CameraDevice = struct {
+    /// Common event information.
+    common: Common,
+    /// The device being added or removed or changing.
+    device: camera.ID,
 };
 
 /// Fields shared by every event.
@@ -581,6 +636,22 @@ pub const Event = union(Type) {
     /// A mouse wheel motion event.
     mouse_wheel: MouseWheel,
 
+    /// A new audio device is available.
+    audio_device_added: AudioDevice,
+    /// An audio device has been removed.
+    audio_device_removed: AudioDevice,
+    /// An audio device's format has been changed by the system.
+    audio_device_format_changed: AudioDevice,
+
+    /// A new camera device is available.
+    camera_device_added: CameraDevice,
+    /// A camera device has been removed.
+    camera_device_removed: CameraDevice,
+    /// A camera device has been approved for use by the user.
+    camera_device_approved: CameraDevice,
+    /// A camera device has been denied for use by the user.
+    camera_device_denied: CameraDevice,
+
     /// A user event.
     user: User,
 
@@ -646,19 +717,19 @@ pub const Event = union(Type) {
                 .repeat = event.key.repeat,
             } },
             c.SDL_EVENT_MOUSE_MOTION => .{ .mouse_motion = .{
-                .common = .fromSdl(&event),
+                .common = Common.fromSdl(&event),
                 .window_id = if (event.motion.windowID == 0) null else event.motion.windowID,
-                .which = .fromSdl(event.button.which),
-                .state = .fromSdl(event.motion.state),
+                .which = mouse.ID.fromSdl(event.button.which),
+                .state = mouse.ButtonFlags.fromSdl(event.motion.state),
                 .x = event.motion.x,
                 .y = event.motion.y,
                 .x_rel = event.motion.xrel,
                 .y_rel = event.motion.yrel,
             } },
             c.SDL_EVENT_MOUSE_BUTTON_DOWN => .{ .mouse_button_down = .{
-                .common = .fromSdl(&event),
+                .common = Common.fromSdl(&event),
                 .window_id = if (event.button.windowID == 0) null else event.button.windowID,
-                .which = .fromSdl(event.button.which),
+                .which = mouse.ID.fromSdl(event.button.which),
                 .button = @enumFromInt(event.button.button),
                 .down = event.button.down,
                 .clicks = event.button.clicks,
@@ -666,9 +737,9 @@ pub const Event = union(Type) {
                 .y = event.button.y,
             } },
             c.SDL_EVENT_MOUSE_BUTTON_UP => .{ .mouse_button_up = .{
-                .common = .fromSdl(&event),
+                .common = Common.fromSdl(&event),
                 .window_id = if (event.button.windowID == 0) null else event.button.windowID,
-                .which = .fromSdl(event.button.which),
+                .which = mouse.ID.fromSdl(event.button.which),
                 .button = @enumFromInt(event.button.button),
                 .down = event.button.down,
                 .clicks = event.button.clicks,
@@ -676,14 +747,45 @@ pub const Event = union(Type) {
                 .y = event.button.y,
             } },
             c.SDL_EVENT_MOUSE_WHEEL => .{ .mouse_wheel = .{
-                .common = .fromSdl(&event),
+                .common = Common.fromSdl(&event),
                 .window_id = if (event.button.windowID == 0) null else event.button.windowID,
-                .which = .fromSdl(event.button.which),
+                .which = mouse.ID.fromSdl(event.button.which),
                 .scroll_x = event.wheel.x,
                 .scroll_y = event.wheel.y,
                 .direction = @enumFromInt(event.wheel.direction),
                 .x = event.wheel.mouse_x,
                 .y = event.wheel.mouse_y,
+            } },
+            c.SDL_EVENT_AUDIO_DEVICE_ADDED => .{ .audio_device_added = .{
+                .common = Common.fromSdl(&event),
+                .device = .{ .value = event.adevice.which },
+                .recording = event.adevice.recording,
+            } },
+            c.SDL_EVENT_AUDIO_DEVICE_REMOVED => .{ .audio_device_removed = .{
+                .common = Common.fromSdl(&event),
+                .device = .{ .value = event.adevice.which },
+                .recording = event.adevice.recording,
+            } },
+            c.SDL_EVENT_AUDIO_DEVICE_FORMAT_CHANGED => .{ .audio_device_format_changed = .{
+                .common = Common.fromSdl(&event),
+                .device = .{ .value = event.adevice.which },
+                .recording = event.adevice.recording,
+            } },
+            c.SDL_EVENT_CAMERA_DEVICE_ADDED => .{ .camera_device_added = .{
+                .common = Common.fromSdl(&event),
+                .device = .{ .value = event.cdevice.which },
+            } },
+            c.SDL_EVENT_CAMERA_DEVICE_REMOVED => .{ .camera_device_removed = .{
+                .common = Common.fromSdl(&event),
+                .device = .{ .value = event.cdevice.which },
+            } },
+            c.SDL_EVENT_CAMERA_DEVICE_APPROVED => .{ .camera_device_approved = .{
+                .common = Common.fromSdl(&event),
+                .device = .{ .value = event.cdevice.which },
+            } },
+            c.SDL_EVENT_CAMERA_DEVICE_DENIED => .{ .camera_device_denied = .{
+                .common = Common.fromSdl(&event),
+                .device = .{ .value = event.cdevice.which },
             } },
             c.SDL_EVENT_USER...c.SDL_EVENT_LAST => .{ .user = .{
                 .common = Common.fromSdl(&event),
@@ -842,6 +944,44 @@ pub const Event = union(Type) {
                 .mouse_x = val.x,
                 .mouse_y = val.y,
             } },
+            .audio_device_added => |val| .{ .adevice = .{
+                .type = c.SDL_EVENT_AUDIO_DEVICE_ADDED,
+                .timestamp = val.common.timestamp,
+                .which = val.device.value,
+                .recording = val.recording,
+            } },
+            .audio_device_removed => |val| .{ .adevice = .{
+                .type = c.SDL_EVENT_AUDIO_DEVICE_REMOVED,
+                .timestamp = val.common.timestamp,
+                .which = val.device.value,
+                .recording = val.recording,
+            } },
+            .audio_device_format_changed => |val| .{ .adevice = .{
+                .type = c.SDL_EVENT_AUDIO_DEVICE_FORMAT_CHANGED,
+                .timestamp = val.common.timestamp,
+                .which = val.device.value,
+                .recording = val.recording,
+            } },
+            .camera_device_added => |val| .{ .cdevice = .{
+                .type = c.SDL_EVENT_CAMERA_DEVICE_ADDED,
+                .timestamp = val.common.timestamp,
+                .which = val.device.value,
+            } },
+            .camera_device_removed => |val| .{ .cdevice = .{
+                .type = c.SDL_EVENT_CAMERA_DEVICE_REMOVED,
+                .timestamp = val.common.timestamp,
+                .which = val.device.value,
+            } },
+            .camera_device_approved => |val| .{ .cdevice = .{
+                .type = c.SDL_EVENT_CAMERA_DEVICE_APPROVED,
+                .timestamp = val.common.timestamp,
+                .which = val.device.value,
+            } },
+            .camera_device_denied => |val| .{ .cdevice = .{
+                .type = c.SDL_EVENT_CAMERA_DEVICE_DENIED,
+                .timestamp = val.common.timestamp,
+                .which = val.device.value,
+            } },
             .user => |val| .{ .user = .{
                 .type = val.event_type,
                 .timestamp = val.common.timestamp,
@@ -884,8 +1024,12 @@ pub const Event = union(Type) {
 /// Add a callback to be triggered when an event is added to the event queue.
 ///
 /// ## Function Parameters
+/// * `UserData`: Type of user data.
 /// * `event_filter`: An `events.Filter` function to call when an event happens.
 /// * `user_data`: A pointer that is passed to `event_filter`.
+///
+/// ## Return Value
+/// A C callback filter to use with `events.removeWatch()`.
 ///
 /// ## Remarks
 /// The `event_filter` will be called when an event happens, and its return value is ignored.
@@ -904,10 +1048,20 @@ pub const Event = union(Type) {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn addWatch(
-    event_filter: Filter,
+    comptime UserData: type,
+    comptime event_filter: Filter(UserData),
     user_data: ?*anyopaque,
-) !void {
-    return errors.wrapCallBool(c.SDL_AddEventWatch(event_filter, user_data));
+) !FilterC {
+    const Cb = struct {
+        pub fn run(user_data_c: ?*anyopaque, event_c: [*c]c.SDL_Event) callconv(.c) bool {
+            var event = Event.fromSdl(event_c.*);
+            const ret = event_filter(@alignCast(@ptrCast(user_data_c)), &event);
+            event_c.* = event.toSdl();
+            return ret;
+        }
+    };
+    try errors.wrapCallBool(c.SDL_AddEventWatch(Cb.run, user_data));
+    return Cb.run;
 }
 
 /// If an event is available in the queue.
@@ -949,6 +1103,7 @@ pub fn enabled(
 /// Run a specific filter function on the current event queue, removing any events for which the filter returns false.
 ///
 /// ## Function Parameters
+/// * `UserData`: Type of user data.
 /// * `event_filter`: An `events.Filter` function to call when an event happens.
 /// * `user_data`: A pointer that is passed to `event_filter`.
 ///
@@ -962,10 +1117,19 @@ pub fn enabled(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn filter(
-    event_filter: Filter,
-    user_data: ?*anyopaque,
+    comptime UserData: type,
+    comptime event_filter: Filter(UserData),
+    user_data: ?*UserData,
 ) void {
-    c.SDL_FilterEvents(event_filter, user_data);
+    const Cb = struct {
+        pub fn run(user_data_c: ?*anyopaque, event_c: [*c]c.SDL_Event) callconv(.c) bool {
+            var event = Event.fromSdl(event_c.*);
+            const ret = event_filter(@alignCast(@ptrCast(user_data_c)), &event);
+            event_c.* = event.toSdl();
+            return ret;
+        }
+    };
+    c.SDL_FilterEvents(Cb.run, user_data);
 }
 
 /// Clear events of a specific type from the event queue.
@@ -1035,7 +1199,7 @@ pub fn flushGroup(
 /// It is safe to call this function from any thread.
 ///
 /// This function is available since SDL 3.2.0.
-pub fn getFilter() ?struct { event_filter: Filter, user_data: ?*anyopaque } {
+pub fn getFilter() ?struct { event_filter: FilterC, user_data: ?*anyopaque } {
     var event_filter: c.SDL_FunctionPointer = undefined;
     var user_data: ?*anyopaque = undefined;
     const ret = c.SDL_GetEventFilter(&event_filter, &user_data);
@@ -1271,7 +1435,7 @@ pub fn register(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn removeWatch(
-    event_filter: Filter,
+    event_filter: FilterC,
     user_data: ?*anyopaque,
 ) void {
     c.SDL_RemoveEventWatch(event_filter, user_data);
@@ -1298,8 +1462,12 @@ pub fn setEnabled(
 /// Set up a filter to process all events before they are added to the internal event queue.
 ///
 /// ## Function Parameters
+/// * `UserData`: User data type.
 /// * `event_filter`: A function to call when an event happens.
 /// * `user_data`: User data passed to `event_filter`.
+///
+/// ## Return Value
+/// Returns the C callback used.
 ///
 /// If you just want to see events without modifying them or preventing them from being queued, you should use `events.addWatch()` instead.
 ///
@@ -1325,10 +1493,20 @@ pub fn setEnabled(
 /// ## Code Examples
 /// TODO!!!
 pub fn setFilter(
-    event_filter: Filter,
-    user_data: ?*anyopaque,
-) void {
-    c.SDL_SetEventFilter(event_filter, user_data);
+    comptime UserData: type,
+    comptime event_filter: Filter(UserData),
+    user_data: ?*UserData,
+) FilterC {
+    const Cb = struct {
+        pub fn run(user_data_c: ?*anyopaque, event_c: [*c]c.SDL_Event) callconv(.c) bool {
+            var event = Event.fromSdl(event_c.*);
+            const ret = event_filter(@alignCast(@ptrCast(user_data_c)), &event);
+            event_c.* = event.toSdl();
+            return ret;
+        }
+    };
+    c.SDL_SetEventFilter(Cb.run, user_data);
+    return Cb.run;
 }
 
 /// Wait indefinitely for the next available event.
@@ -1423,9 +1601,9 @@ pub fn waitAndPopTimeout(
 }
 
 fn dummyFilter(
-    user_data: ?*anyopaque,
-    event: [*c]c.SDL_Event,
-) callconv(.c) bool {
+    user_data: ?*void,
+    event: *Event,
+) bool {
     _ = user_data;
     _ = event;
     return true;
@@ -1466,12 +1644,12 @@ test "Events" {
         _ = val;
     }
 
-    filter(dummyFilter, null);
-    setFilter(dummyFilter, null);
-    try std.testing.expectEqual(@intFromPtr(&dummyFilter), @intFromPtr(getFilter().?.event_filter));
+    filter(void, dummyFilter, null);
+    const curr_filter = setFilter(void, dummyFilter, null);
+    try std.testing.expectEqual(@intFromPtr(curr_filter), @intFromPtr(getFilter().?.event_filter));
 
-    try addWatch(dummyFilter, null);
-    removeWatch(dummyFilter, null);
+    const watch = try addWatch(void, dummyFilter, null);
+    removeWatch(watch, null);
 
     try std.testing.expect(register(1) != null);
     _ = buf[0].getWindow();

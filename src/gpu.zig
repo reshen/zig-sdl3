@@ -112,7 +112,7 @@ pub const BlitInfo = struct {
     /// Ignored if `load_op` is not `gpu.LoadOperation.clear`.
     clear_color: pixels.FColor,
     /// The flip mode for the source region.
-    flip_mode: ?surface.FlipMode,
+    flip_mode: surface.FlipMode,
     /// The filter mode used when blitting.
     filter: Filter,
     /// True cycles the destination texture if it is already bound.

@@ -48,24 +48,30 @@ pub const Flags = struct {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const FlipMode = enum(c_uint) {
+pub const FlipMode = struct {
     /// Flip horizontally.
-    horizontal = c.SDL_FLIP_HORIZONTAL,
+    horizontal: bool = false,
     /// Flip vertically.
-    vertical = c.SDL_FLIP_VERTICAL,
+    vertical: bool = false,
 
     /// Convert from an SDL value.
-    pub fn fromSdl(value: c.SDL_FlipMode) ?FlipMode {
-        if (value == c.SDL_FLIP_NONE)
-            return null;
-        return @enumFromInt(value);
+    pub fn fromSdl(value: c.SDL_FlipMode) FlipMode {
+        var ret: FlipMode = .{};
+        if (value & c.SDL_FLIP_HORIZONTAL != 0)
+            ret.horizontal = true;
+        if (value & c.SDL_FLIP_VERTICAL != 0)
+            ret.vertical = true;
+        return ret;
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: ?FlipMode) c.SDL_FlipMode {
-        if (self) |val|
-            return @intFromEnum(val);
-        return c.SDL_FLIP_NONE;
+    pub fn toSdl(self: FlipMode) c.SDL_FlipMode {
+        var ret: c_uint = c.SDL_FLIP_NONE;
+        if (self.horizontal)
+            ret |= c.SDL_FLIP_HORIZONTAL;
+        if (self.vertical)
+            ret |= c.SDL_FLIP_VERTICAL;
+        return ret;
     }
 };
 
@@ -750,7 +756,7 @@ pub const Surface = packed struct {
     ) !void {
         const ret = c.SDL_FlipSurface(
             self.value,
-            @intFromEnum(flip_mode),
+            flip_mode.toSdl(),
         );
         return errors.wrapCallBool(ret);
     }
