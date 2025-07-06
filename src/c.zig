@@ -3,7 +3,7 @@ const extension_options = @import("extension_options");
 pub const c = @cImport({
     @cInclude("SDL3/SDL.h");
     if (!extension_options.main) {
-        @cDefine("SDL_MAIN_NO_IMPL", {});
+        @cDefine("SDL_MAIN_NOIMPL", {});
     }
     @cInclude("SDL3/SDL_main.h");
     @cInclude("SDL3/SDL_vulkan.h");
