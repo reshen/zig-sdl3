@@ -12,6 +12,54 @@ concurrency:
   group: "test"
   cancel-in-progress: false
 jobs:
+  docs:
+    name: Build Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mlugg/setup-zig@v1
+        with:
+          version: ${{ env.ZIG_VERSION }}
+      - name: Build Documentation Linux
+        run: zig build docs
+      - name: Build Documentation Windows
+        run: zig build docs -Dtarget=x86_64-windows
+  gpu_examples:
+    name: Build GPU Examples
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mlugg/setup-zig@v1
+        with:
+          version: ${{ env.ZIG_VERSION }}
+      - name: Build Template Linux
+        run: cd gpu_examples && zig build
+      - name: Build Template Windows
+        run: cd gpu_examples && zig build -Dtarget=x86_64-windows
+  examples:
+    name: Build Examples
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mlugg/setup-zig@v1
+        with:
+          version: ${{ env.ZIG_VERSION }}
+      - name: Build Examples Linux
+        run: zig build examples
+      - name: Build Examples Windows
+        run: zig build examples -Dtarget=x86_64-windows
+  template:
+    name: Build Template
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mlugg/setup-zig@v1
+        with:
+          version: ${{ env.ZIG_VERSION }}
+      - name: Build Template Linux
+        run: cd template && zig build
+      - name: Build Template Windows
+        run: cd template && zig build -Dtarget=x86_64-windows
   test:
     name: Testing
     runs-on: ubuntu-latest
@@ -22,43 +70,3 @@ jobs:
           version: ${{ env.ZIG_VERSION }}
       - name: Testing
         run: zig build test
-  examples:
-    name: Build Examples
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: mlugg/setup-zig@v1
-        with:
-          version: ${{ env.ZIG_VERSION }}
-      - name: Build Examples
-        run: zig build examples
-  template:
-    name: Build Template
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: mlugg/setup-zig@v1
-        with:
-          version: ${{ env.ZIG_VERSION }}
-      - name: Build Template
-        run: cd template && zig build
-  gpu_examples:
-    name: Build GPU Examples
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: mlugg/setup-zig@v1
-        with:
-          version: ${{ env.ZIG_VERSION }}
-      - name: Build Template
-        run: cd gpu_examples && zig build
-  docs:
-    name: Build Documentation
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: mlugg/setup-zig@v1
-        with:
-          version: ${{ env.ZIG_VERSION }}
-      - name: Build documentation
-        run: zig build docs
