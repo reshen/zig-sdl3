@@ -40,6 +40,72 @@ pub const software_renderer_name = c.SDL_SOFTWARE_RENDERER;
 pub const Renderer = struct {
     value: *c.SDL_Renderer,
 
+    /// Properties for a 2d rendering context.
+    ///
+    /// ## Version
+    /// This struct is provided by zig-sdl3.
+    pub const CreateProperties = struct {
+        /// The name of the rendering driver to use, if a specific one is desired.
+        name: ?[:0]const u8 = null,
+        /// The window where rendering is displayed, required if this isn't a software renderer using a surface.
+        window: ?struct { value: ?video.Window } = null,
+        /// The surface where rendering is displayed, if you want a software renderer without a window.
+        render_surface: ?struct { value: ?surface.Surface } = null,
+        /// An SDL_Colorspace value describing the colorspace for output to the display, defaults to `pixels.Colorspace.srgb`.
+        /// The direct3d11, direct3d12, and metal renderers support `pixels.Colorspace.srgb_linear`, which is a linear color space and supports HDR output.
+        /// If you select `pixels.Colorspace.srgb_linear`, drawing still uses the sRGB colorspace, but values can go beyond `1` and float (linear) format textures can be used for HDR content.
+        output_colorspace: ?pixels.Colorspace = null,
+        /// Optional vsync option.
+        present_vsync: ?struct { value: ?video.VSync } = null,
+        // gpu_shaders_spirv: ?bool = null,
+        // gpu_shaders_dxil: ?bool = null,
+        // gpu_shaders_msl: ?bool = null,
+        /// The `VkInstance` to use with the renderer, optional.
+        vulkan_instance: ?struct { value: ?*anyopaque } = null,
+        /// The `VkSurfaceKHR` to use with the renderer, optional.
+        vulkan_surface: ?i64 = null,
+        /// The `VkPhysicalDevice` to use with the renderer, optional.
+        vulkan_physical_device: ?struct { value: ?*anyopaque } = null,
+        /// The `VkDevice` to use with the renderer, optional.
+        vulkan_device: ?struct { value: ?*anyopaque } = null,
+        /// The queue family index used for rendering.
+        vulkan_graphics_queue_family_index: ?i64 = null,
+        /// The queue family index used for presentation.
+        vulkan_present_queue_family_index: ?i64 = null,
+
+        /// Convert to SDL.
+        pub fn toProperties(
+            self: CreateProperties,
+        ) !properties.Group {
+            const ret = try properties.Group.init();
+            if (self.name) |val|
+                try ret.set(c.SDL_PROP_RENDERER_CREATE_NAME_STRING, .{ .string = val });
+            if (self.window) |val|
+                try ret.set(c.SDL_PROP_RENDERER_CREATE_WINDOW_POINTER, .{ .pointer = if (val.value) |val2| val2.value else null });
+            if (self.render_surface) |val|
+                try ret.set(c.SDL_PROP_RENDERER_CREATE_SURFACE_POINTER, .{ .pointer = if (val.value) |val2| val2.value else null });
+            if (self.output_colorspace) |val|
+                try ret.set(c.SDL_PROP_RENDERER_CREATE_OUTPUT_COLORSPACE_NUMBER, .{ .number = @intCast(val.value) });
+            if (self.present_vsync) |val|
+                try ret.set(c.SDL_PROP_RENDERER_CREATE_PRESENT_VSYNC_NUMBER, .{ .number = @intCast(video.VSync.toSdl(val.value)) });
+            // GPU properties exist in later SDL version.
+
+            if (self.vulkan_instance) |val|
+                try ret.set(c.SDL_PROP_RENDERER_CREATE_VULKAN_INSTANCE_POINTER, .{ .pointer = val.value });
+            if (self.vulkan_surface) |val|
+                try ret.set(c.SDL_PROP_RENDERER_CREATE_VULKAN_SURFACE_NUMBER, .{ .number = val });
+            if (self.vulkan_physical_device) |val|
+                try ret.set(c.SDL_PROP_RENDERER_CREATE_VULKAN_PHYSICAL_DEVICE_POINTER, .{ .pointer = val.value });
+            if (self.vulkan_device) |val|
+                try ret.set(c.SDL_PROP_RENDERER_CREATE_VULKAN_DEVICE_POINTER, .{ .pointer = val.value });
+            if (self.vulkan_graphics_queue_family_index) |val|
+                try ret.set(c.SDL_PROP_RENDERER_CREATE_VULKAN_GRAPHICS_QUEUE_FAMILY_INDEX_NUMBER, .{ .number = val });
+            if (self.vulkan_present_queue_family_index) |val|
+                try ret.set(c.SDL_PROP_RENDERER_CREATE_VULKAN_PRESENT_QUEUE_FAMILY_INDEX_NUMBER, .{ .number = val });
+            return ret;
+        }
+    };
+
     /// Get the properties associated with a renderer.
     ///
     /// ## Version
@@ -101,7 +167,9 @@ pub const Renderer = struct {
         gpu_device: ?struct { value: ?gpu.Device },
 
         /// Convert from SDL.
-        pub fn fromSdl(props: properties.Group) Properties {
+        pub fn fromProperties(
+            props: properties.Group,
+        ) Properties {
             return .{
                 .name = if (props.get(c.SDL_PROP_RENDERER_NAME_STRING)) |val| val.string else null,
                 .window = if (props.get(c.SDL_PROP_RENDERER_WINDOW_POINTER)) |val| (.{ .value = if (val.pointer) |val2| .{ .value = @alignCast(@ptrCast(val2)) } else null }) else null,
@@ -720,7 +788,7 @@ pub const Renderer = struct {
         const ret = c.SDL_GetRendererProperties(
             self.value,
         );
-        return Properties.fromSdl(.{ .value = try errors.wrapCall(c.SDL_PropertiesID, ret, 0) });
+        return Properties.fromProperties(.{ .value = try errors.wrapCall(c.SDL_PropertiesID, ret, 0) });
     }
 
     /// Get the safe area for rendering within the current viewport.
@@ -920,6 +988,30 @@ pub const Renderer = struct {
         const ret = c.SDL_CreateRenderer(
             window.value,
             if (renderer_name) |str_capture| str_capture.ptr else null,
+        );
+        return Renderer{ .value = try errors.wrapNull(*c.SDL_Renderer, ret) };
+    }
+
+    /// Create a 2D rendering context for a window, with the specified properties.
+    ///
+    /// ## Function Parameters
+    /// * `props`: The properties to use.
+    ///
+    /// ## Return Value
+    /// Returns a valid rendering context.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn initWithProperties(
+        props: CreateProperties,
+    ) !Renderer {
+        const props_sdl = try props.toProperties();
+        defer props_sdl.deinit();
+        const ret = c.SDL_CreateRendererWithProperties(
+            props_sdl.value,
         );
         return Renderer{ .value = try errors.wrapNull(*c.SDL_Renderer, ret) };
     }
@@ -2079,17 +2171,6 @@ pub const Renderer = struct {
 
     // SetRenderGPUState is added in SDL 3.4.0.
 
-    /// Create a 2D rendering context for a window, with the specified properties.
-    pub fn initWithProperties(
-        props: properties.Group,
-    ) !Renderer {
-        const ret = c.SDL_CreateRendererWithProperties(
-            props.value,
-        );
-        if (ret == null)
-            return error.SdlError;
-        return Renderer{ .value = ret.? };
-    }
 };
 
 /// How the logical size is mapped to the output.
@@ -2131,6 +2212,213 @@ pub const LogicalPresentation = enum(c_uint) {
 /// This struct is available since SDL 3.2.0.
 pub const Texture = struct {
     value: *c.SDL_Texture,
+
+    /// Properties associated with a texture.
+    ///
+    /// ## Version
+    /// Provided by zig-sdl3.
+    pub const CreateProperties = struct {
+        /// An colorspace value describing the texture colorspace, defaults to `pixels.Colorspace.srgb_linear` for floating point textures,
+        /// `pixels.Colorspace.hdr10` for 10-bit textures, `pixels.Colorspace.srgb` for other RGB textures and `pixels.Colorspace.jpeg` for YUV textures.
+        colorspace: ?pixels.Colorspace = null,
+        /// Pixel format to use.
+        format: ?struct { value: ?pixels.Format } = null,
+        /// Texture access mode.
+        access: ?TextureAccess = null,
+        /// The width of the texture in pixels, required.
+        width: ?usize = null,
+        /// The height of the texture in pixels, required.
+        height: ?usize = null,
+        /// Tor HDR10 and floating point textures, this defines the value of 100% diffuse white, with higher values being displayed in the High Dynamic Range headroom.
+        /// This defaults to `100` for HDR10 textures and `1` for floating point textures.
+        sdr_white_point: ?f32 = null,
+        /// For HDR10 and floating point textures, this defines the maximum dynamic range used by the content, in terms of the SDR white point.
+        /// This would be equivalent to maxCLL / `render.Texture.CreateProperties.sdr_white_point` for HDR10 content.
+        /// If this is defined, any values outside the range supported by the display will be scaled into the available HDR headroom, otherwise they are clipped.
+        hdr_headroom: ?f32 = null,
+        /// The `ID3D11Texture2D` associated with the texture, if you want to wrap an existing texture.
+        d3d11_texture: ?struct { value: ?*anyopaque } = null,
+        /// The `ID3D11Texture2D` associated with the U plane of a YUV texture, if you want to wrap an existing texture.
+        d3d11_texture_u: ?struct { value: ?*anyopaque } = null,
+        /// The `ID3D11Texture2D` associated with the V plane of a YUV texture, if you want to wrap an existing texture.
+        d3d11_texture_v: ?struct { value: ?*anyopaque } = null,
+        /// The `ID3D12Resource` associated with the texture, if you want to wrap an existing texture.
+        d3d12_texture: ?struct { value: ?*anyopaque } = null,
+        /// The `ID3D12Resource` associated with the U plane of a YUV texture, if you want to wrap an existing texture.
+        d3d12_texture_u: ?struct { value: ?*anyopaque } = null,
+        /// The `ID3D12Resource` associated with the V plane of a YUV texture, if you want to wrap an existing texture.
+        d3d12_texture_v: ?struct { value: ?*anyopaque } = null,
+        /// The `CVPixelBufferRef` associated with the texture, if you want to create a texture from an existing pixel buffer.
+        metal_pixelbuffer: ?struct { value: ?*anyopaque } = null,
+        /// The `GLuint` texture associated with the texture, if you want to wrap an existing texture.
+        opengl_texture: ?i64 = null,
+        /// The `GLuint` texture associated with the UV plane of an NV12 texture, if you want to wrap an existing texture.
+        opengl_texture_uv: ?i64 = null,
+        /// The `GLuint` texture associated with the U plane of a YUV texture, if you want to wrap an existing texture.
+        opengl_texture_u: ?i64 = null,
+        /// The `GLuint` texture associated with the V plane of a YUV texture, if you want to wrap an existing texture.
+        opengl_texture_v: ?i64 = null,
+        /// The `GLuint` texture associated with the texture, if you want to wrap an existing texture.
+        opengles2_texture: ?i64 = null,
+        /// The `GLuint` texture associated with the UV plane of an NV12 texture, if you want to wrap an existing texture.
+        opengles2_texture_uv: ?i64 = null,
+        /// The `GLuint` texture associated with the U plane of a YUV texture, if you want to wrap an existing texture.
+        opengles2_texture_u: ?i64 = null,
+        /// The `GLuint` texture associated with the V plane of a YUV texture, if you want to wrap an existing texture.
+        opengles2_texture_v: ?i64 = null,
+        /// The `VkImage` with layout `VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL` associated with the texture, if you want to wrap an existing texture.
+        vulkan_texture: ?i64 = null,
+
+        /// Convert to SDL.
+        pub fn toProperties(
+            self: CreateProperties,
+        ) !properties.Group {
+            const ret = try properties.Group.init();
+            if (self.colorspace) |val|
+                try ret.set(c.SDL_PROP_TEXTURE_CREATE_COLORSPACE_NUMBER, .{ .number = @intCast(val.value) });
+            if (self.format) |val|
+                try ret.set(c.SDL_PROP_TEXTURE_CREATE_FORMAT_NUMBER, .{ .number = pixels.Format.toSdl(val.value) });
+            if (self.access) |val|
+                try ret.set(c.SDL_PROP_TEXTURE_CREATE_ACCESS_NUMBER, .{ .number = @intFromEnum(val) });
+            if (self.width) |val|
+                try ret.set(c.SDL_PROP_TEXTURE_CREATE_WIDTH_NUMBER, .{ .number = @intCast(val) });
+            if (self.height) |val|
+                try ret.set(c.SDL_PROP_TEXTURE_CREATE_HEIGHT_NUMBER, .{ .number = @intCast(val) });
+            if (self.sdr_white_point) |val|
+                try ret.set(c.SDL_PROP_TEXTURE_CREATE_SDR_WHITE_POINT_FLOAT, .{ .float = val });
+            if (self.hdr_headroom) |val|
+                try ret.set(c.SDL_PROP_TEXTURE_CREATE_HDR_HEADROOM_FLOAT, .{ .float = val });
+            if (self.d3d11_texture) |val|
+                try ret.set(c.SDL_PROP_TEXTURE_CREATE_D3D11_TEXTURE_POINTER, .{ .pointer = val.value });
+            if (self.d3d11_texture_u) |val|
+                try ret.set(c.SDL_PROP_TEXTURE_CREATE_D3D11_TEXTURE_U_POINTER, .{ .pointer = val.value });
+            if (self.d3d11_texture_v) |val|
+                try ret.set(c.SDL_PROP_TEXTURE_CREATE_D3D11_TEXTURE_V_POINTER, .{ .pointer = val.value });
+            if (self.d3d12_texture) |val|
+                try ret.set(c.SDL_PROP_TEXTURE_CREATE_D3D12_TEXTURE_POINTER, .{ .pointer = val.value });
+            if (self.d3d12_texture_u) |val|
+                try ret.set(c.SDL_PROP_TEXTURE_CREATE_D3D12_TEXTURE_U_POINTER, .{ .pointer = val.value });
+            if (self.d3d12_texture_v) |val|
+                try ret.set(c.SDL_PROP_TEXTURE_CREATE_D3D12_TEXTURE_V_POINTER, .{ .pointer = val.value });
+            if (self.metal_pixelbuffer) |val|
+                try ret.set(c.SDL_PROP_TEXTURE_CREATE_METAL_PIXELBUFFER_POINTER, .{ .pointer = val.value });
+            if (self.opengl_texture) |val|
+                try ret.set(c.SDL_PROP_TEXTURE_CREATE_OPENGL_TEXTURE_NUMBER, .{ .number = val });
+            if (self.opengl_texture_uv) |val|
+                try ret.set(c.SDL_PROP_TEXTURE_CREATE_OPENGL_TEXTURE_UV_NUMBER, .{ .number = val });
+            if (self.opengl_texture_u) |val|
+                try ret.set(c.SDL_PROP_TEXTURE_CREATE_OPENGL_TEXTURE_U_NUMBER, .{ .number = val });
+            if (self.opengl_texture_v) |val|
+                try ret.set(c.SDL_PROP_TEXTURE_CREATE_OPENGL_TEXTURE_V_NUMBER, .{ .number = val });
+            if (self.opengles2_texture) |val|
+                try ret.set(c.SDL_PROP_TEXTURE_CREATE_OPENGLES2_TEXTURE_NUMBER, .{ .number = val });
+            if (self.opengles2_texture_uv) |val|
+                try ret.set(c.SDL_PROP_TEXTURE_CREATE_OPENGLES2_TEXTURE_UV_NUMBER, .{ .number = val });
+            if (self.opengles2_texture_u) |val|
+                try ret.set(c.SDL_PROP_TEXTURE_CREATE_OPENGLES2_TEXTURE_U_NUMBER, .{ .number = val });
+            if (self.opengles2_texture_v) |val|
+                try ret.set(c.SDL_PROP_TEXTURE_CREATE_OPENGLES2_TEXTURE_V_NUMBER, .{ .number = val });
+            if (self.vulkan_texture) |val|
+                try ret.set(c.SDL_PROP_TEXTURE_CREATE_VULKAN_TEXTURE_NUMBER, .{ .number = val });
+            return ret;
+        }
+    };
+
+    /// Properties associated with a texture.
+    ///
+    /// ## Version
+    /// Provided by zig-sdl3.
+    pub const Properties = struct {
+        /// Value describing texture colorspace.
+        colorspace: ?pixels.Colorspace,
+        /// Pixel format.
+        format: ?struct { value: ?pixels.Format },
+        /// Texture access.
+        access: ?TextureAccess,
+        /// The width of the texture in pixels.
+        width: ?usize,
+        /// The height of the texture in pixels.
+        height: ?usize,
+        /// For HDR10 and floating point textures, this defines the value of 100% diffuse white, with higher values being displayed in the High Dynamic Range headroom.
+        /// This defaults to `100` for HDR10 textures and `1` for other textures.
+        sdr_white_point: ?f32,
+        /// Tor HDR10 and floating point textures, this defines the maximum dynamic range used by the content, in terms of the SDR white point.
+        /// If this is defined, any values outside the range supported by the display will be scaled into the available HDR headroom, otherwise they are clipped.
+        /// This defaults to `1` for SDR textures, `4` for HDR10 textures, and no default for floating point textures.
+        hdr_headroom: ?f32,
+        /// The `ID3D11Texture2D` associated with the texture.
+        d3d11_texture: ?struct { value: ?*anyopaque },
+        /// The `ID3D11Texture2D` associated with the U plane of a YUV texture.
+        d3d11_texture_u: ?struct { value: ?*anyopaque },
+        /// The `ID3D11Texture2D` associated with the V plane of a YUV texture.
+        d3d11_texture_v: ?struct { value: ?*anyopaque },
+        /// The `ID3D12Resource` associated with the texture.
+        d3d12_texture: ?struct { value: ?*anyopaque },
+        /// The `ID3D12Resource` associated with the U plane of a YUV texture.
+        d3d12_texture_u: ?struct { value: ?*anyopaque },
+        /// The `ID3D12Resource` associated with the V plane of a YUV texture.
+        d3d12_texture_v: ?struct { value: ?*anyopaque },
+        /// The `VkImage` associated with the texture.
+        vulkan_texture: ?i64,
+        /// The `GLuint` texture associated with the texture.
+        opengl_texture: ?i64,
+        /// The `GLuint` texture associated with the UV plane of an NV12 texture.
+        opengl_texture_uv: ?i64,
+        /// The `GLuint` texture associated with the U plane of a YUV texture.
+        opengl_texture_u: ?i64,
+        /// The `GLuint` texture associated with the V plane of a YUV texture.
+        opengl_texture_v: ?i64,
+        /// The `GLenum` for the texture target (`GL_TEXTURE_2D`, `GL_TEXTURE_RECTANGLE_ARB`, etc).
+        opengl_texture_target: ?i64,
+        /// The texture coordinate wdigth of the texture (`0` - `1`).
+        opengl_tex_w: ?f32,
+        /// The texture coordinate height of the texture (`0` - `1`).
+        opengl_tex_h: ?f32,
+        /// The `GLuint` texture associated with the texture.
+        opengles2_texture: ?i64,
+        /// The `GLuint` texture associated with the UV plane of an NV12 texture.
+        opengles2_texture_uv: ?i64,
+        /// The `GLuint` texture associated with the U plane of a YUV texture.
+        opengles2_texture_u: ?i64,
+        /// The `GLuint` texture associated with the V plane of a YUV texture.
+        opengles2_texture_v: ?i64,
+        /// The `GLenum` for the texture target (`GL_TEXTURE_2D`, `GL_TEXTURE_EXTERNAL_OES`, etc).
+        opengles2_texture_target: ?i64,
+
+        /// Create from SDL.
+        pub fn fromProperties(
+            props: properties.Group,
+        ) Properties {
+            return .{
+                .colorspace = if (props.get(c.SDL_PROP_TEXTURE_COLORSPACE_NUMBER)) |val| .{ .value = @intCast(val.number) } else null,
+                .format = if (props.get(c.SDL_PROP_TEXTURE_FORMAT_NUMBER)) |val| .{ .value = pixels.Format.fromSdl(@intCast(val.number)) } else null,
+                .access = if (props.get(c.SDL_PROP_TEXTURE_ACCESS_NUMBER)) |val| @enumFromInt(val.number) else null,
+                .width = if (props.get(c.SDL_PROP_TEXTURE_WIDTH_NUMBER)) |val| @intCast(val.number) else null,
+                .height = if (props.get(c.SDL_PROP_TEXTURE_HEIGHT_NUMBER)) |val| @intCast(val.number) else null,
+                .sdr_white_point = if (props.get(c.SDL_PROP_TEXTURE_SDR_WHITE_POINT_FLOAT)) |val| val.float else null,
+                .hdr_headroom = if (props.get(c.SDL_PROP_TEXTURE_HDR_HEADROOM_FLOAT)) |val| val.float else null,
+                .d3d11_texture = if (props.get(c.SDL_PROP_TEXTURE_D3D11_TEXTURE_POINTER)) |val| .{ .value = val.pointer } else null,
+                .d3d11_texture_u = if (props.get(c.SDL_PROP_TEXTURE_D3D11_TEXTURE_U_POINTER)) |val| .{ .value = val.pointer } else null,
+                .d3d11_texture_v = if (props.get(c.SDL_PROP_TEXTURE_D3D11_TEXTURE_V_POINTER)) |val| .{ .value = val.pointer } else null,
+                .d3d12_texture = if (props.get(c.SDL_PROP_TEXTURE_D3D12_TEXTURE_POINTER)) |val| .{ .value = val.pointer } else null,
+                .d3d12_texture_u = if (props.get(c.SDL_PROP_TEXTURE_D3D12_TEXTURE_U_POINTER)) |val| .{ .value = val.pointer } else null,
+                .d3d12_texture_v = if (props.get(c.SDL_PROP_TEXTURE_D3D12_TEXTURE_V_POINTER)) |val| .{ .value = val.pointer } else null,
+                .vulkan_texture = if (props.get(c.SDL_PROP_TEXTURE_VULKAN_TEXTURE_NUMBER)) |val| val.number else null,
+                .opengl_texture = if (props.get(c.SDL_PROP_TEXTURE_OPENGL_TEXTURE_NUMBER)) |val| val.number else null,
+                .opengl_texture_uv = if (props.get(c.SDL_PROP_TEXTURE_OPENGL_TEXTURE_UV_NUMBER)) |val| val.number else null,
+                .opengl_texture_u = if (props.get(c.SDL_PROP_TEXTURE_OPENGL_TEXTURE_U_NUMBER)) |val| val.number else null,
+                .opengl_texture_v = if (props.get(c.SDL_PROP_TEXTURE_OPENGL_TEXTURE_V_NUMBER)) |val| val.number else null,
+                .opengl_texture_target = if (props.get(c.SDL_PROP_TEXTURE_OPENGL_TEXTURE_TARGET_NUMBER)) |val| val.number else null,
+                .opengl_tex_w = if (props.get(c.SDL_PROP_TEXTURE_OPENGL_TEX_W_FLOAT)) |val| val.float else null,
+                .opengl_tex_h = if (props.get(c.SDL_PROP_TEXTURE_OPENGL_TEX_H_FLOAT)) |val| val.float else null,
+                .opengles2_texture = if (props.get(c.SDL_PROP_TEXTURE_OPENGLES2_TEXTURE_NUMBER)) |val| val.number else null,
+                .opengles2_texture_uv = if (props.get(c.SDL_PROP_TEXTURE_OPENGLES2_TEXTURE_UV_NUMBER)) |val| val.number else null,
+                .opengles2_texture_u = if (props.get(c.SDL_PROP_TEXTURE_OPENGLES2_TEXTURE_U_NUMBER)) |val| val.number else null,
+                .opengles2_texture_v = if (props.get(c.SDL_PROP_TEXTURE_OPENGLES2_TEXTURE_V_NUMBER)) |val| val.number else null,
+                .opengles2_texture_target = if (props.get(c.SDL_PROP_TEXTURE_OPENGLES2_TEXTURE_TARGET_NUMBER)) |val| val.number else null,
+            };
+        }
+    };
 
     /// Destroy the specified texture.
     ///
@@ -2305,6 +2593,28 @@ pub const Texture = struct {
         return @intCast(self.value.h);
     }
 
+    /// Get the properties associated with a texture.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The texture to query.
+    ///
+    /// ## Return Value
+    /// The read-only properties of the texture.
+    ///
+    /// ## Thread Safety
+    /// It is safe to call this function from any thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getProperties(
+        self: Texture,
+    ) !Properties {
+        const ret = c.SDL_GetTextureProperties(
+            self.value,
+        );
+        return Properties.fromProperties(.{ .value = try errors.wrapCall(c.SDL_PropertiesID, ret, 0) });
+    }
+
     /// Get the reference count of the texture.
     ///
     /// ## Function Parameters
@@ -2467,6 +2777,33 @@ pub const Texture = struct {
             @intCast(width),
             @intCast(height),
         )) };
+    }
+
+    /// Create a texture for a rendering context with the specified properties.
+    ///
+    /// ## Function Parameters
+    /// * `renderer`: The rendering context.
+    /// * `props`: The properties to use.
+    ///
+    /// ## Return Value
+    /// Returns the created texture.
+    ///
+    /// ## Thread Safety
+    /// This function should only be called on the main thread.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn initWithProperties(
+        renderer: Renderer,
+        props: CreateProperties,
+    ) !Texture {
+        const props_sdl = try props.toProperties();
+        defer props_sdl.deinit();
+        const ret = c.SDL_CreateTextureWithProperties(
+            renderer.value,
+            props_sdl.value,
+        );
+        return Texture{ .value = try errors.wrapNull(*c.SDL_Texture, ret) };
     }
 
     /// Lock a portion of the texture for write-only pixel access.
@@ -2868,18 +3205,6 @@ pub const Texture = struct {
             @intCast(v_pitch),
         );
         return errors.wrapCallBool(ret);
-    }
-
-    /// Get the properties associated with a texture.
-    pub fn getProperties(
-        self: Texture,
-    ) !properties.Group {
-        const ret = c.SDL_GetTextureProperties(
-            self.value,
-        );
-        if (ret == 0)
-            return error.SdlError;
-        return properties.Group{ .value = ret };
     }
 };
 
