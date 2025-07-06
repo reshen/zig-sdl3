@@ -102,7 +102,7 @@ pub const Device = struct {
     pub fn getIndexedString(
         self: Device,
         index: c_int,
-        buf: [:0]c_int,
+        buf: [:0]c.wchar_t,
     ) !void {
         const ret = c.SDL_hid_get_indexed_string(self.value, index, buf.ptr, buf.len);
         if (ret != 0) {
@@ -149,7 +149,7 @@ pub const Device = struct {
     /// This function is available since SDL 3.2.0.
     pub fn getManufacturerString(
         self: Device,
-        buf: [:0]c_int,
+        buf: [:0]c.wchar_t,
     ) !void {
         const ret = c.SDL_hid_get_manufacturer_string(self.value, buf.ptr, buf.len);
         if (ret != 0) {
@@ -168,7 +168,7 @@ pub const Device = struct {
     /// This function is available since SDL 3.2.0.
     pub fn getProductString(
         self: Device,
-        buf: [:0]c_int,
+        buf: [:0]c.wchar_t,
     ) !void {
         const ret = c.SDL_hid_get_product_string(self.value, buf.ptr, buf.len);
         if (ret != 0) {
@@ -214,7 +214,7 @@ pub const Device = struct {
     /// This function is available since SDL 3.2.0.
     pub fn getSerialNumberString(
         self: Device,
-        buf: [:0]c_int,
+        buf: [:0]c.wchar_t,
     ) !void {
         const ret = c.SDL_hid_get_serial_number_string(self.value, buf.ptr, buf.len);
         if (ret != 0) {
@@ -241,7 +241,7 @@ pub const Device = struct {
     pub fn init(
         vendor_id: c_ushort,
         product_id: c_ushort,
-        serial_num: ?[:0]c_int,
+        serial_num: ?[:0]c.wchar_t,
     ) !Device {
         return .{
             .value = try errors.wrapNull(*c.SDL_hid_device, c.SDL_hid_open(vendor_id, product_id, if (serial_num) |val| val.ptr else null)),

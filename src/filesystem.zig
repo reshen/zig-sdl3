@@ -726,7 +726,7 @@ test "Filesystem" {
     // Test path helper.
     var path = try Path.init(std.testing.allocator, "/home/gota/test/");
     defer path.deinit();
-    try std.testing.expectEqual('/', try Path.getSeparator());
+    try std.testing.expectEqual(std.fs.path.sep, try Path.getSeparator());
     try std.testing.expectEqualStrings("/home/gota/test", path.get());
     try std.testing.expectEqualStrings("test", path.baseName().?);
     try path.join("file.txt");

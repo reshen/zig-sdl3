@@ -8,9 +8,9 @@ const std = @import("std");
 /// This enum is provided by zig-sdl3.
 pub const ByteOrder = enum(c_int) {
     /// A value to represent bigendian byteorder.
-    big = c.BIG_ENDIAN,
+    big = c.SDL_BIG_ENDIAN,
     /// A value to represent littleendian byteorder.
-    little = c.LITTLE_ENDIAN,
+    little = c.SDL_LIL_ENDIAN,
 };
 
 /// A function that reports the target system's byte order.
@@ -21,7 +21,7 @@ pub const ByteOrder = enum(c_int) {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub inline fn byteOrder() ByteOrder {
-    return @enumFromInt(c.BYTE_ORDER);
+    return @enumFromInt(c.SDL_BYTEORDER);
 }
 
 /// A function that reports the target system's floating point word order.
