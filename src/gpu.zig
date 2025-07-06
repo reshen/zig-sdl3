@@ -231,23 +231,48 @@ pub const BufferCreateInfo = struct {
     /// The size in bytes of the buffer.
     size: u32,
     /// Properties for extensions.
-    props: ?properties.Group = null,
+    props: ?Properties = null,
+
+    /// Optional properties.
+    ///
+    /// ## Version
+    /// This struct is provided by zig-sdl3.
+    pub const Properties = struct {
+        /// A name that can be displayed in debugging tools.
+        name: ?[:0]const u8 = null,
+
+        /// Convert from SDL.
+        pub fn fromProperties(props: properties.Group) Properties {
+            return .{
+                .name = if (props.get(c.SDL_PROP_GPU_BUFFER_CREATE_NAME_STRING)) |val| val.string else null,
+            };
+        }
+
+        /// Convert to SDL.
+        pub fn toProperties(self: Properties) !properties.Group {
+            const ret = try properties.Group.init();
+            if (self.name) |val|
+                try ret.set(c.SDL_PROP_GPU_BUFFER_CREATE_NAME_STRING, .{ .string = val });
+            return ret;
+        }
+    };
 
     /// Convert from an SDL value.
     pub fn fromSdl(value: c.SDL_GPUBufferCreateInfo) BufferCreateInfo {
         return .{
             .usage = BufferUsageFlags.fromSdl(value.usage),
             .size = value.size,
-            .props = if (value.props == 0) null else .{ .value = value.props },
+            .props = if (value.props == 0) null else Properties.fromProperties(.{ .value = value.props }),
         };
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: BufferCreateInfo) c.SDL_GPUBufferCreateInfo {
+    /// This makes a properties group allocation!
+    pub fn toSdl(self: BufferCreateInfo) !c.SDL_GPUBufferCreateInfo {
         return .{
             .usage = self.usage.toSdl(),
             .size = self.size,
-            .props = if (self.props) |val| val.value else 0,
+            .props = if (self.props) |val| (try val.toProperties()).value else 0,
         };
     }
 };
@@ -1273,7 +1298,31 @@ pub const ComputePipelineCreateInfo = struct {
     thread_count_z: u32,
     /// A properties group for extensions.
     /// Should be `null` if no extensions are needed.
-    props: ?properties.Group = null,
+    props: ?Properties = null,
+
+    /// Optional properties.
+    ///
+    /// ## Version
+    /// This struct is provided by zig-sdl3.
+    pub const Properties = struct {
+        /// A name that can be displayed in debugging tools.
+        name: ?[:0]const u8 = null,
+
+        /// Convert from SDL.
+        pub fn fromProperties(props: properties.Group) Properties {
+            return .{
+                .name = if (props.get(c.SDL_PROP_GPU_COMPUTEPIPELINE_CREATE_NAME_STRING)) |val| val.string else null,
+            };
+        }
+
+        /// Convert to SDL.
+        pub fn toProperties(self: Properties) !properties.Group {
+            const ret = try properties.Group.init();
+            if (self.name) |val|
+                try ret.set(c.SDL_PROP_GPU_COMPUTEPIPELINE_CREATE_NAME_STRING, .{ .string = val });
+            return ret;
+        }
+    };
 
     /// From an SDL value.
     pub fn fromSdl(value: c.SDL_GPUComputePipelineCreateInfo) ComputePipelineCreateInfo {
@@ -1290,12 +1339,13 @@ pub const ComputePipelineCreateInfo = struct {
             .thread_count_x = value.threadcount_x,
             .thread_count_y = value.threadcount_y,
             .thread_count_z = value.threadcount_z,
-            .props = if (value.props == 0) null else .{ .value = value.props },
+            .props = if (value.props == 0) null else Properties.fromProperties(.{ .value = value.props }),
         };
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: ComputePipelineCreateInfo) c.SDL_GPUComputePipelineCreateInfo {
+    /// This makes a properties group allocation!
+    pub fn toSdl(self: ComputePipelineCreateInfo) !c.SDL_GPUComputePipelineCreateInfo {
         return .{
             .code = self.code.ptr,
             .code_size = self.code.len,
@@ -1310,7 +1360,7 @@ pub const ComputePipelineCreateInfo = struct {
             .threadcount_x = self.thread_count_x,
             .threadcount_y = self.thread_count_y,
             .threadcount_z = self.thread_count_z,
-            .props = if (self.props) |val| val.value else 0,
+            .props = if (self.props) |val| (try val.toProperties()).value else 0,
         };
     }
 };
@@ -1688,6 +1738,68 @@ pub const DepthStencilTargetInfo = struct {
 pub const Device = packed struct {
     value: *c.SDL_GPUDevice,
 
+    /// GPU properties.
+    ///
+    /// ## Version
+    /// This struct is provided by zig-sdl3.
+    pub const Properties = struct {
+        /// Enable debug mode properties and validations, defaults to true.
+        debug_mode: ?bool = null,
+        /// Enable to prefer energy efficiency over maximum GPU performance, defaults to false.
+        prefer_low_power: ?bool = null,
+        // /// Enable to automatically log useful debug information on device creation, defaults to true.
+        // verbose: ?bool = null,
+        name: ?[:0]const u8 = null,
+        /// The app is able to provide shaders for an NDA platform.
+        shaders_private: ?bool = null,
+        /// The app is able to provide SPIR-V shaders if applicable.
+        shaders_spirv: ?bool = null,
+        /// The app is able to provide DXBC shaders if applicable.
+        shaders_dxbc: ?bool = null,
+        /// The app is able to provide DXIL shaders if applicable.
+        shaders_dxil: ?bool = null,
+        /// The app is able to provide MSL shaders if applicable.
+        shaders_msl: ?bool = null,
+        /// The app is able to provide Metal shader libraries if applicable.
+        shaders_metallib: ?bool = null,
+        /// The prefix to use for all vertex semantics, default is "TEXCOORD".
+        d3d12_semantic_name: ?[:0]const u8 = null,
+        // vulkan_shader_clip_distance: ?bool = null,
+        // vulkan_depth_clamp: ?bool = null,
+        // vulkan_draw_indirect_first: ?bool = null,
+        // vulkan_sample_anisotropy: ?bool = null,
+
+        /// Convert to SDL.
+        pub fn toProperties(self: Properties) !properties.Group {
+            const ret = try properties.Group.init();
+            if (self.debug_mode) |val|
+                try ret.set(c.SDL_PROP_GPU_DEVICE_CREATE_DEBUGMODE_BOOLEAN, .{ .boolean = val });
+            if (self.prefer_low_power) |val|
+                try ret.set(c.SDL_PROP_GPU_DEVICE_CREATE_PREFERLOWPOWER_BOOLEAN, .{ .boolean = val });
+            // if (self.verbose) |val|
+            //     try ret.set(c.SDL_PROP_GPU_DEVICE_CREATE_VERBOSE_BOOLEAN, .{ .boolean = val });
+            if (self.name) |val|
+                try ret.set(c.SDL_PROP_GPU_DEVICE_CREATE_NAME_STRING, .{ .string = val });
+            if (self.shaders_private) |val|
+                try ret.set(c.SDL_PROP_GPU_DEVICE_CREATE_SHADERS_PRIVATE_BOOLEAN, .{ .boolean = val });
+            if (self.shaders_spirv) |val|
+                try ret.set(c.SDL_PROP_GPU_DEVICE_CREATE_SHADERS_SPIRV_BOOLEAN, .{ .boolean = val });
+            if (self.shaders_dxbc) |val|
+                try ret.set(c.SDL_PROP_GPU_DEVICE_CREATE_SHADERS_DXBC_BOOLEAN, .{ .boolean = val });
+            if (self.shaders_dxil) |val|
+                try ret.set(c.SDL_PROP_GPU_DEVICE_CREATE_SHADERS_DXIL_BOOLEAN, .{ .boolean = val });
+            if (self.shaders_msl) |val|
+                try ret.set(c.SDL_PROP_GPU_DEVICE_CREATE_SHADERS_MSL_BOOLEAN, .{ .boolean = val });
+            if (self.shaders_metallib) |val|
+                try ret.set(c.SDL_PROP_GPU_DEVICE_CREATE_SHADERS_METALLIB_BOOLEAN, .{ .boolean = val });
+            if (self.d3d12_semantic_name) |val|
+                try ret.set(c.SDL_PROP_GPU_DEVICE_CREATE_D3D12_SEMANTIC_NAME_STRING, .{ .string = val });
+            // if (self.vulkan_shader_clip_distance) |val|
+            //     try ret.set(c.SDL_PROP_GPU_DEVICE_CREATE_VULKAN_SHADERCLIPDISTANCE_BOOLEAN, .{ .boolean = val });
+            return ret;
+        }
+    };
+
     /// Acquire a command buffer.
     ///
     /// ## Function Parameters
@@ -1775,7 +1887,9 @@ pub const Device = packed struct {
         self: Device,
         create_info: BufferCreateInfo,
     ) !Buffer {
-        const create_info_sdl = create_info.toSdl();
+        const create_info_sdl = try create_info.toSdl();
+        const group = properties.Group{ .value = create_info_sdl.props };
+        defer group.deinit();
         return .{
             .value = try errors.wrapNull(
                 *c.SDL_GPUBuffer,
@@ -1821,7 +1935,9 @@ pub const Device = packed struct {
         self: Device,
         create_info: ComputePipelineCreateInfo,
     ) !ComputePipeline {
-        const create_info_sdl = create_info.toSdl();
+        const create_info_sdl = try create_info.toSdl();
+        const group = properties.Group{ .value = create_info_sdl.props };
+        defer group.deinit();
         return .{
             .value = try errors.wrapNull(*c.SDL_GPUComputePipeline, c.SDL_CreateGPUComputePipeline(self.value, &create_info_sdl)),
         };
@@ -1848,7 +1964,9 @@ pub const Device = packed struct {
         self: Device,
         create_info: GraphicsPipelineCreateInfo,
     ) !GraphicsPipeline {
-        const create_info_sdl = create_info.toSdl();
+        const create_info_sdl = try create_info.toSdl();
+        const group = properties.Group{ .value = create_info_sdl.props };
+        defer group.deinit();
         return .{
             .value = try errors.wrapNull(*c.SDL_GPUGraphicsPipeline, c.SDL_CreateGPUGraphicsPipeline(
                 self.value,
@@ -1878,7 +1996,9 @@ pub const Device = packed struct {
         self: Device,
         create_info: SamplerCreateInfo,
     ) !Sampler {
-        const create_info_sdl = create_info.toSdl();
+        const create_info_sdl = try create_info.toSdl();
+        const group = properties.Group{ .value = create_info_sdl.props };
+        defer group.deinit();
         return .{
             .value = try errors.wrapNull(*c.SDL_GPUSampler, c.SDL_CreateGPUSampler(
                 self.value,
@@ -1942,7 +2062,9 @@ pub const Device = packed struct {
         self: Device,
         create_info: ShaderCreateInfo,
     ) !Shader {
-        const create_info_sdl = create_info.toSdl();
+        const create_info_sdl = try create_info.toSdl();
+        const group = properties.Group{ .value = create_info_sdl.props };
+        defer group.deinit();
         return .{
             .value = try errors.wrapNull(*c.SDL_GPUShader, c.SDL_CreateGPUShader(
                 self.value,
@@ -1985,7 +2107,9 @@ pub const Device = packed struct {
         self: Device,
         create_info: TextureCreateInfo,
     ) !Texture {
-        const create_info_sdl = create_info.toSdl();
+        const create_info_sdl = try create_info.toSdl();
+        const group = properties.Group{ .value = create_info_sdl.props };
+        defer group.deinit();
         return .{
             .value = try errors.wrapNull(*c.SDL_GPUTexture, c.SDL_CreateGPUTexture(
                 self.value,
@@ -2017,7 +2141,9 @@ pub const Device = packed struct {
         self: Device,
         create_info: TransferBufferCreateInfo,
     ) !TransferBuffer {
-        const create_info_sdl = create_info.toSdl();
+        const create_info_sdl = try create_info.toSdl();
+        const group = properties.Group{ .value = create_info_sdl.props };
+        defer group.deinit();
         return .{
             .value = try errors.wrapNull(*c.SDL_GPUTransferBuffer, c.SDL_CreateGPUTransferBuffer(
                 self.value,
@@ -2181,13 +2307,22 @@ pub const Device = packed struct {
 
     /// Creates a GPU context.
     ///
-    /// TODO: DOCS AND PROPER PROPERTIES!!!
+    /// ## Function Parameters
+    /// * `props`: The properties to use.
+    ///
+    /// ## Return Value
+    /// Returns a GPU context.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
     pub fn initWithProperties(
-        props: properties.Group,
+        props: Properties,
     ) !Device {
+        const group = try props.toProperties();
+        defer group.deinit();
         return .{
             .value = try errors.wrapNull(*c.SDL_GPUDevice, c.SDL_CreateGPUDeviceWithProperties(
-                props.value,
+                group.value,
             )),
         };
     }
@@ -2797,7 +2932,31 @@ pub const GraphicsPipelineCreateInfo = struct {
     /// Formats and blend modes for the render targets of the graphics pipeline.
     target_info: GraphicsPipelineTargetInfo = .{},
     /// Extra properties for extensions.
-    props: ?properties.Group = null,
+    props: ?Properties = null,
+
+    /// Optional properties.
+    ///
+    /// ## Version
+    /// This struct is provided by zig-sdl3.
+    pub const Properties = struct {
+        /// A name that can be displayed in debugging tools.
+        name: ?[:0]const u8 = null,
+
+        /// Convert from SDL.
+        pub fn fromProperties(props: properties.Group) Properties {
+            return .{
+                .name = if (props.get(c.SDL_PROP_GPU_GRAPHICSPIPELINE_CREATE_NAME_STRING)) |val| val.string else null,
+            };
+        }
+
+        /// Convert to SDL.
+        pub fn toProperties(self: Properties) !properties.Group {
+            const ret = try properties.Group.init();
+            if (self.name) |val|
+                try ret.set(c.SDL_PROP_GPU_GRAPHICSPIPELINE_CREATE_NAME_STRING, .{ .string = val });
+            return ret;
+        }
+    };
 
     /// Convert from an SDL value.
     pub fn fromSdl(value: c.SDL_GPUGraphicsPipelineCreateInfo) GraphicsPipelineCreateInfo {
@@ -2810,12 +2969,13 @@ pub const GraphicsPipelineCreateInfo = struct {
             .multisample_state = MultisampleState.fromSdl(value.multisample_state),
             .depth_stencil_state = DepthStencilState.fromSdl(value.depth_stencil_state),
             .target_info = GraphicsPipelineTargetInfo.fromSdl(value.target_info),
-            .props = if (value.props == 0) null else .{ .value = value.props },
+            .props = if (value.props == 0) null else Properties.fromProperties(.{ .value = value.props }),
         };
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: GraphicsPipelineCreateInfo) c.SDL_GPUGraphicsPipelineCreateInfo {
+    /// This makes a property group allocation!
+    pub fn toSdl(self: GraphicsPipelineCreateInfo) !c.SDL_GPUGraphicsPipelineCreateInfo {
         return .{
             .vertex_shader = self.vertex_shader.value,
             .fragment_shader = self.fragment_shader.value,
@@ -2825,7 +2985,7 @@ pub const GraphicsPipelineCreateInfo = struct {
             .multisample_state = self.multisample_state.toSdl(),
             .depth_stencil_state = self.depth_stencil_state.toSdl(),
             .target_info = self.target_info.toSdl(),
-            .props = if (self.props) |val| val.value else 0,
+            .props = if (self.props) |val| (try val.toProperties()).value else 0,
         };
     }
 };
@@ -3652,7 +3812,31 @@ pub const SamplerCreateInfo = struct {
     /// Clamps the maximum of the computed LOD value.
     max_lod: f32 = 0,
     /// Properties for extensions.
-    props: ?properties.Group = null,
+    props: ?Properties = null,
+
+    /// Optional properties.
+    ///
+    /// ## Version
+    /// This struct is provided by zig-sdl3.
+    pub const Properties = struct {
+        /// A name that can be displayed in debugging tools.
+        name: ?[:0]const u8 = null,
+
+        /// Convert from SDL.
+        pub fn fromProperties(props: properties.Group) Properties {
+            return .{
+                .name = if (props.get(c.SDL_PROP_GPU_SAMPLER_CREATE_NAME_STRING)) |val| val.string else null,
+            };
+        }
+
+        /// Convert to SDL.
+        pub fn toProperties(self: Properties) !properties.Group {
+            const ret = try properties.Group.init();
+            if (self.name) |val|
+                try ret.set(c.SDL_PROP_GPU_SAMPLER_CREATE_NAME_STRING, .{ .string = val });
+            return ret;
+        }
+    };
 
     /// Convert from an SDL value.
     pub fn fromSdl(value: c.SDL_GPUSamplerCreateInfo) SamplerCreateInfo {
@@ -3668,12 +3852,13 @@ pub const SamplerCreateInfo = struct {
             .compare = if (value.enable_compare) @enumFromInt(value.compare_op) else null,
             .min_lod = value.min_lod,
             .max_lod = value.max_lod,
-            .props = if (value.props != 0) .{ .value = value.props } else null,
+            .props = if (value.props != 0) Properties.fromProperties(.{ .value = value.props }) else null,
         };
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: SamplerCreateInfo) c.SDL_GPUSamplerCreateInfo {
+    /// This makes a group allocation!
+    pub fn toSdl(self: SamplerCreateInfo) !c.SDL_GPUSamplerCreateInfo {
         return .{
             .min_filter = @intFromEnum(self.min_filter),
             .mag_filter = @intFromEnum(self.mag_filter),
@@ -3688,7 +3873,7 @@ pub const SamplerCreateInfo = struct {
             .compare_op = if (self.compare) |val| @intFromEnum(val) else 0,
             .min_lod = self.min_lod,
             .max_lod = self.max_lod,
-            .props = if (self.props) |val| val.value else 0,
+            .props = if (self.props) |val| (try val.toProperties()).value else 0,
         };
     }
 };
@@ -3734,7 +3919,31 @@ pub const ShaderCreateInfo = struct {
     /// The number of uniform buffers defined in the shader.
     num_uniform_buffers: u32 = 0,
     /// Properties for extensions.
-    props: ?properties.Group = null,
+    props: ?Properties = null,
+
+    /// Optional properties.
+    ///
+    /// ## Version
+    /// This struct is provided by zig-sdl3.
+    pub const Properties = struct {
+        /// A name that can be displayed in debugging tools.
+        name: ?[:0]const u8 = null,
+
+        /// Convert from SDL.
+        pub fn fromProperties(props: properties.Group) Properties {
+            return .{
+                .name = if (props.get(c.SDL_PROP_GPU_SHADER_CREATE_NAME_STRING)) |val| val.string else null,
+            };
+        }
+
+        /// Convert to SDL.
+        pub fn toProperties(self: Properties) !properties.Group {
+            const ret = try properties.Group.init();
+            if (self.name) |val|
+                try ret.set(c.SDL_PROP_GPU_SHADER_CREATE_NAME_STRING, .{ .string = val });
+            return ret;
+        }
+    };
 
     /// Convert from an SDL value.
     pub fn fromSdl(value: c.SDL_GPUShaderCreateInfo) ShaderCreateInfo {
@@ -3747,12 +3956,12 @@ pub const ShaderCreateInfo = struct {
             .num_storage_textures = value.num_storage_textures,
             .num_storage_buffers = value.num_storage_buffers,
             .num_uniform_buffers = value.num_uniform_buffers,
-            .props = if (value.props == 0) null else .{ .value = value.props },
+            .props = if (value.props == 0) null else Properties.fromProperties(.{ .value = value.props }),
         };
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: ShaderCreateInfo) c.SDL_GPUShaderCreateInfo {
+    pub fn toSdl(self: ShaderCreateInfo) !c.SDL_GPUShaderCreateInfo {
         return .{
             .code = self.code.ptr,
             .code_size = self.code.len,
@@ -3763,7 +3972,7 @@ pub const ShaderCreateInfo = struct {
             .num_storage_textures = self.num_storage_textures,
             .num_storage_buffers = self.num_storage_buffers,
             .num_uniform_buffers = self.num_uniform_buffers,
-            .props = if (self.props) |val| val.value else 0,
+            .props = if (self.props) |val| (try val.toProperties()).value else 0,
         };
     }
 };
@@ -4066,7 +4275,67 @@ pub const TextureCreateInfo = struct {
     /// Only applies if the texture is used as a render target.
     sample_count: SampleCount = .no_multisampling,
     /// Properties for extensions.
-    props: ?properties.Group = null,
+    props: ?Properties = null,
+
+    /// Optional properties.
+    ///
+    /// ## Version
+    /// This struct is provided by zig-sdl3.
+    pub const Properties = struct {
+        /// (Direct3D 12 only) if the texture usage is `TextureUsageFlags.color_target`, clear the texture to a color with this red intensity.
+        /// Defaults to zero.
+        d3d12_clear_r: ?f32 = null,
+        /// (Direct3D 12 only) if the texture usage is `TextureUsageFlags.color_target`, clear the texture to a color with this green intensity.
+        /// Defaults to zero.
+        d3d12_clear_g: ?f32 = null,
+        /// (Direct3D 12 only) if the texture usage is `TextureUsageFlags.color_target`, clear the texture to a color with this blue intensity.
+        /// Defaults to zero.
+        d3d12_clear_b: ?f32 = null,
+        /// (Direct3D 12 only) if the texture usage is `TextureUsageFlags.color_target`, clear the texture to a color with this alpha intensity.
+        /// Defaults to zero.
+        d3d12_clear_a: ?f32 = null,
+        /// (Direct3D 12 only) if the texture usage is `TextureUsageFlags.depth_stencil_target` clear the texture to a depth of this value.
+        /// Defaults to zero.
+        d3d12_clear_depth: ?f32 = null,
+        /// (Direct3D 12 only) if the texture usage is `TextureUsageFlags.depth_stencil_target` clear the texture to a stencil of this value.
+        /// Defaults to zero.
+        d3d12_clear_stencil: ?u8 = null,
+        /// A name that can be displayed in debugging tools.
+        name: ?[:0]const u8 = null,
+
+        /// Convert from SDL.
+        pub fn fromProperties(props: properties.Group) Properties {
+            return .{
+                .d3d12_clear_r = if (props.get(c.SDL_PROP_GPU_TEXTURE_CREATE_D3D12_CLEAR_R_FLOAT)) |val| val.float else null,
+                .d3d12_clear_g = if (props.get(c.SDL_PROP_GPU_TEXTURE_CREATE_D3D12_CLEAR_G_FLOAT)) |val| val.float else null,
+                .d3d12_clear_b = if (props.get(c.SDL_PROP_GPU_TEXTURE_CREATE_D3D12_CLEAR_B_FLOAT)) |val| val.float else null,
+                .d3d12_clear_a = if (props.get(c.SDL_PROP_GPU_TEXTURE_CREATE_D3D12_CLEAR_A_FLOAT)) |val| val.float else null,
+                .d3d12_clear_depth = if (props.get(c.SDL_PROP_GPU_TEXTURE_CREATE_D3D12_CLEAR_DEPTH_FLOAT)) |val| val.float else null,
+                .d3d12_clear_stencil = if (props.get(c.SDL_PROP_GPU_TEXTURE_CREATE_D3D12_CLEAR_STENCIL_NUMBER)) |val| @intCast(val.number) else null,
+                .name = if (props.get(c.SDL_PROP_GPU_TEXTURE_CREATE_NAME_STRING)) |val| val.string else null,
+            };
+        }
+
+        /// Convert to SDL.
+        pub fn toProperties(self: Properties) !properties.Group {
+            const ret = try properties.Group.init();
+            if (self.d3d12_clear_r) |val|
+                try ret.set(c.SDL_PROP_GPU_TEXTURE_CREATE_D3D12_CLEAR_R_FLOAT, .{ .float = val });
+            if (self.d3d12_clear_g) |val|
+                try ret.set(c.SDL_PROP_GPU_TEXTURE_CREATE_D3D12_CLEAR_G_FLOAT, .{ .float = val });
+            if (self.d3d12_clear_b) |val|
+                try ret.set(c.SDL_PROP_GPU_TEXTURE_CREATE_D3D12_CLEAR_B_FLOAT, .{ .float = val });
+            if (self.d3d12_clear_a) |val|
+                try ret.set(c.SDL_PROP_GPU_TEXTURE_CREATE_D3D12_CLEAR_A_FLOAT, .{ .float = val });
+            if (self.d3d12_clear_depth) |val|
+                try ret.set(c.SDL_PROP_GPU_TEXTURE_CREATE_D3D12_CLEAR_DEPTH_FLOAT, .{ .float = val });
+            if (self.d3d12_clear_stencil) |val|
+                try ret.set(c.SDL_PROP_GPU_TEXTURE_CREATE_D3D12_CLEAR_STENCIL_NUMBER, .{ .number = @intCast(val) });
+            if (self.name) |val|
+                try ret.set(c.SDL_PROP_GPU_TEXTURE_CREATE_NAME_STRING, .{ .string = val });
+            return ret;
+        }
+    };
 
     /// Convert from an SDL value.
     pub fn fromSdl(value: c.SDL_GPUTextureCreateInfo) TextureCreateInfo {
@@ -4079,12 +4348,13 @@ pub const TextureCreateInfo = struct {
             .layer_count_or_depth = value.layer_count_or_depth,
             .num_levels = value.num_levels,
             .sample_count = @enumFromInt(value.sample_count),
-            .props = if (value.props == 0) null else .{ .value = value.props },
+            .props = if (value.props == 0) null else Properties.fromProperties(.{ .value = value.props }),
         };
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: TextureCreateInfo) c.SDL_GPUTextureCreateInfo {
+    /// This makes a group allocation!
+    pub fn toSdl(self: TextureCreateInfo) !c.SDL_GPUTextureCreateInfo {
         return .{
             .type = @intFromEnum(self.texture_type),
             .format = @intFromEnum(self.format),
@@ -4094,7 +4364,7 @@ pub const TextureCreateInfo = struct {
             .layer_count_or_depth = self.layer_count_or_depth,
             .num_levels = self.num_levels,
             .sample_count = @intFromEnum(self.sample_count),
-            .props = if (self.props) |val| val.value else 0,
+            .props = if (self.props) |val| (try val.toProperties()).value else 0,
         };
     }
 };
@@ -4598,23 +4868,48 @@ pub const TransferBufferCreateInfo = struct {
     /// The size in bytes of the transfer buffer.
     size: u32,
     /// Properties for extensions.
-    props: ?properties.Group = null,
+    props: ?Properties = null,
+
+    /// Optional properties.
+    ///
+    /// ## Version
+    /// This struct is provided by zig-sdl3.
+    pub const Properties = struct {
+        /// A name that can be displayed in debugging tools.
+        name: ?[:0]const u8 = null,
+
+        /// Convert from SDL.
+        pub fn fromProperties(props: properties.Group) Properties {
+            return .{
+                .name = if (props.get(c.SDL_PROP_GPU_TRANSFERBUFFER_CREATE_NAME_STRING)) |val| val.string else null,
+            };
+        }
+
+        /// Convert to SDL.
+        pub fn toProperties(self: Properties) !properties.Group {
+            const ret = try properties.Group.init();
+            if (self.name) |val|
+                try ret.set(c.SDL_PROP_GPU_TRANSFERBUFFER_CREATE_NAME_STRING, .{ .string = val });
+            return ret;
+        }
+    };
 
     /// Convert from an SDL value.
     pub fn fromSdl(value: c.SDL_GPUTransferBufferCreateInfo) TransferBufferCreateInfo {
         return .{
             .usage = @enumFromInt(value.usage),
             .size = value.size,
-            .props = if (value.props == 0) null else .{ .value = value.props },
+            .props = if (value.props == 0) null else Properties.fromProperties(.{ .value = value.props }),
         };
     }
 
     /// Convert to an SDL value.
-    pub fn toSdl(self: TransferBufferCreateInfo) c.SDL_GPUTransferBufferCreateInfo {
+    /// This makes a group allocation!
+    pub fn toSdl(self: TransferBufferCreateInfo) !c.SDL_GPUTransferBufferCreateInfo {
         return .{
             .usage = @intFromEnum(self.usage),
             .size = self.size,
-            .props = if (self.props) |val| val.value else 0,
+            .props = if (self.props) |val| (try val.toProperties()).value else 0,
         };
     }
 };
@@ -4908,10 +5203,12 @@ pub fn getNumDrivers() usize {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn supportsProperties(
-    props: properties.Group,
-) bool {
+    props: Device.Properties,
+) !bool {
+    const group = try props.toProperties();
+    defer group.deinit();
     return c.SDL_GPUSupportsProperties(
-        props.value,
+        group.value,
     );
 }
 

@@ -1,7 +1,7 @@
 # Checklist
 For monitoring how close various subsystems are to completion.
 
-## Done (52/57)
+## Done (53/57)
 
 ### Basics
 * Main
@@ -41,6 +41,9 @@ For monitoring how close various subsystems are to completion.
 ### Audio
 * Audio
 
+### GPU
+* GPU
+
 ### Threads
 * Thread
 * Mutex
@@ -75,7 +78,7 @@ For monitoring how close various subsystems are to completion.
 * GUID
 * Misc
 
-## In Progress (5/57)
+## In Progress (4/57)
 
 ### Basics
 * Hints
@@ -83,9 +86,6 @@ For monitoring how close various subsystems are to completion.
 ### Input
 * Events
 * Gamepad
-
-### GPU
-* GPU
 
 ### Additional Functionality
 * Standard Lib
