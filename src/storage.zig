@@ -524,7 +524,7 @@ pub const Storage = packed struct {
     ///
     /// ## Return Value
     /// Returns a slice of strings on success.
-    /// This should be freed with `stdinc.free()`
+    /// This should be freed with `free()`
     ///
     /// ## Remarks
     /// Files are filtered out if they don't match the string in pattern, which may contain wildcard characters '*' (match everything) and '?' (match one character).

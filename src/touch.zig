@@ -1,7 +1,7 @@
 const c = @import("c.zig").c;
 const errors = @import("errors.zig");
+const sdl3 = @import("sdl3.zig");
 const std = @import("std");
-const stdinc = @import("stdinc.zig");
 
 /// An enum that describes the type of a touch device.
 ///
@@ -94,7 +94,7 @@ pub const ID = packed struct {
     ///
     /// ## Return Value
     /// Returns a slice of fingers.
-    /// This should be freed with `stdinc.free()` when finished with it.
+    /// This should be freed with `free()` when finished with it.
     ///
     /// ## Value
     /// This function is available since SDL 3.2.0.
@@ -147,7 +147,7 @@ pub const ID = packed struct {
 ///
 /// ## Return Value
 /// Returns a slice of touch device IDs.
-/// This should be freed with `stdinc.free()` when no longer needed.
+/// This should be freed with `free()` when no longer needed.
 ///
 /// ## Remarks
 /// On some platforms SDL first sees the touch device if it was actually used.
@@ -168,11 +168,11 @@ test "Touch" {
     std.testing.refAllDeclsRecursive(@This());
 
     const devices = try getDevices();
-    defer stdinc.free(devices);
+    defer sdl3.free(devices);
     for (devices) |device| {
         _ = try device.getName();
         _ = device.getType();
         const fingers = try device.getFingers();
-        defer stdinc.free(fingers);
+        defer sdl3.free(fingers);
     }
 }

@@ -5,7 +5,6 @@ const properties = @import("properties.zig");
 const rect = @import("rect.zig");
 const scancode = @import("scancode.zig");
 const std = @import("std");
-const stdinc = @import("stdinc.zig");
 const video = @import("video.zig");
 
 /// Auto capitalization type.
@@ -184,7 +183,7 @@ pub fn getFocus() ?video.Window {
 ///
 /// ## Return Value
 /// Returns all the keyboards.
-/// This should be freed with `stdinc.free()`.
+/// This should be freed with `free()`.
 ///
 /// ## Remarks
 /// Note that this will include any device or virtual driver that includes keyboard functionality, including some mice, KVM switches, motherboard power buttons, etc.

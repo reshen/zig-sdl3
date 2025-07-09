@@ -8,9 +8,9 @@ const std = @import("std");
 /// All axes are either normalized to 0..1 or report a (positive or negative) angle in degrees, with 0.0 representing the centre.
 /// Not all pens/backends support all axes: unsupported axes are always zero.
 ///
-/// To convert angles for tilt and rotation into vector representation, use `stdinc.sinf()` on the XTILT, YTILT, or ROTATION component, for example:
+/// To convert angles for tilt and rotation into vector representation, use `@sin()` on the XTILT, YTILT, or ROTATION component, for example:
 ///
-/// `stdinc.sinf(x_tilt * stdinc.pi / 180.0)`.
+/// `@sin(x_tilt * std.math.pi / 180)`.
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.

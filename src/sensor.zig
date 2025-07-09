@@ -3,7 +3,6 @@ const errors = @import("errors.zig");
 const properties = @import("properties.zig");
 const sdl3 = @import("sdl3.zig");
 const std = @import("std");
-const stdinc = @import("stdinc.zig");
 
 /// A constant to represent standard gravity for accelerometer sensors.
 ///
@@ -348,7 +347,7 @@ pub const Sensor = packed struct {
 ///
 /// ## Return Value
 /// Returns a slice of sensor IDs.
-/// This must be freed with `stdinc.free()`.
+/// This must be freed with `free()`.
 ///
 /// ## Version
 /// This function is available since SDL 3.2.0.
@@ -384,7 +383,7 @@ test "Sensor" {
     update();
 
     const sensors = try getSensors();
-    defer stdinc.free(sensors);
+    defer sdl3.free(sensors);
     for (sensors) |id| {
         _ = id.getType();
         _ = id.getNonPortableType();

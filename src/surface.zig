@@ -979,7 +979,7 @@ pub const Surface = packed struct {
     ///
     /// ## Return Value
     /// Returns a slice of images.
-    /// This should be freed with `stdinc.free()`.
+    /// This should be freed with `free()`.
     ///
     /// ## Remarks
     /// This returns all versions of a surface, with the surface being queried as the first element in the returned array.

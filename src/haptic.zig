@@ -1389,7 +1389,7 @@ pub const Id = packed struct {
 ///
 /// ## Return Value
 /// Returns a slice of haptic device instance IDs.
-/// This should be freed with `stdinc.free()` when it is no longer needed.
+/// This should be freed with `free()` when it is no longer needed.
 ///
 /// ## Version
 /// This function is available since SDL 3.2.0.

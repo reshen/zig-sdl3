@@ -6,8 +6,8 @@ const gpu = @import("gpu.zig");
 const pixels = @import("pixels.zig");
 const properties = @import("properties.zig");
 const rect = @import("rect.zig");
+const sdl3 = @import("sdl3.zig");
 const std = @import("std");
-const stdinc = @import("stdinc.zig");
 const surface = @import("surface.zig");
 const video = @import("video.zig");
 
@@ -1299,7 +1299,7 @@ pub const Renderer = struct {
         comptime fmt: []const u8,
         args: anytype,
     ) !void {
-        var fallback = std.heap.stackFallback(debug_text_stack, stdinc.allocator);
+        var fallback = std.heap.stackFallback(debug_text_stack, sdl3.allocator);
         const allocator = fallback.get();
         const msg = try std.fmt.allocPrintZ(allocator, fmt, args);
         defer allocator.free(msg);

@@ -195,7 +195,7 @@ pub const Stream = struct {
         /// Data that can be get/set for `io_stream.Stream.initFromDynamicMem()`.
         dynamic_memory: ?struct {
             /// A pointer to the internal memory of the stream.
-            /// This can be set to `null` to transfer ownership of the memory to the application, which should free the memory with `stdinc.free()`.
+            /// This can be set to `null` to transfer ownership of the memory to the application, which should free the memory with `free()`.
             /// If this is done, the next operation on the stream must be `io_stream.Stream.deinit()`.
             ptr: ?*anyopaque,
             /// Memory will be allocated in multiples of this size, defaulting to `1024`.
@@ -569,7 +569,7 @@ pub const Stream = struct {
     ///
     /// ## Return Value
     /// Returns the data.
-    /// This should be freed with `stdinc.free()`.
+    /// This should be freed with `free()`.
     ///
     /// ## Remarks
     /// The data is null-terminated for convenience.
@@ -1886,7 +1886,7 @@ fn streamClose(data: ?*anyopaque) callconv(.c) bool {
 ///
 /// ## Return Value
 /// Returns the data.
-/// This should be freed with `stdinc.free()`.
+/// This should be freed with `free()`.
 ///
 /// ## Remarks
 /// The data is null-terminated for convenience.

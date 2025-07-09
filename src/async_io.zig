@@ -304,7 +304,7 @@ pub const Queue = struct {
     /// This extra byte is not included in `async_io.Outcome`'s `buffer.len` value.
     ///
     /// This function will allocate the buffer to contain the file.
-    /// It must be deallocated by calling `stdinc.free()` on `async_io.Outcome`'s buffer field after completion.
+    /// It must be deallocated by calling `free()` on `async_io.Outcome`'s buffer field after completion.
     ///
     /// An `async_io.Queue` must be specified.
     /// The newly-created task will be added to it when it completes its work.

@@ -529,7 +529,7 @@ pub const egl = struct {
     /// The callback should return a pointer to an EGL attribute array terminated with `EGL_NONE`.
     /// If this function returns `null`, the `video.createWindow()` process will fail gracefully.
     ///
-    /// The returned pointer should be allocated with `stdinc.malloc()` and will be passed to `stdinc.free()`.
+    /// The returned pointer should be allocated with `malloc()` and will be passed to `free()`.
     ///
     /// The arrays returned by each callback will be appended to the existing attribute arrays defined by SDL.
     ///
@@ -573,7 +573,7 @@ pub const egl = struct {
     /// The callback should return a pointer to an EGL attribute array terminated with `EGL_NONE`.
     /// If this function returns `null`, the `video.Window.init()` process will fail gracefully.
     ///
-    /// The returned pointer should be allocated with `stdinc.malloc()` and will be passed to `stdinc.free()`.
+    /// The returned pointer should be allocated with `malloc()` and will be passed to `free()`.
     ///
     /// The arrays returned by each callback will be appended to the existing attribute arrays defined by SDL.
     ///
@@ -2012,7 +2012,7 @@ pub const Window = packed struct {
     ///
     /// ## Return Value
     /// Returns the ICC profile data.
-    /// This should be freed with `stdinc.free()` when no longer needed.
+    /// This should be freed with `free()` when no longer needed.
     ///
     /// ## Thread Safety
     /// This function should only be called on the main thread.
@@ -3488,7 +3488,7 @@ pub fn getCurrentDriverName() ?[:0]const u8 {
 ///
 /// ## Return Value
 /// Returns a slice of display items.
-/// Return value must be freed with `stdinc.free()`.
+/// Return value must be freed with `free()`.
 ///
 /// ## Thread Safety
 /// This function should only be called on the main thread.
@@ -3606,7 +3606,7 @@ pub fn getDriverName(
 ///
 /// ## Return Value
 /// Returns a slice of windows.
-/// This is a single allocation that should be freed with `stdinc.free()` when it is no longer needed.
+/// This is a single allocation that should be freed with `free()` when it is no longer needed.
 ///
 /// ## Thread Safety
 /// This function should only be called on the main thread.

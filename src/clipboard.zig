@@ -1,7 +1,6 @@
 const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const std = @import("std");
-const stdinc = @import("stdinc.zig");
 
 /// Callback function that will be called when the clipboard is cleared, or new data is set.
 ///
@@ -83,7 +82,7 @@ pub fn getData(
 ///
 /// ## Return Value
 /// Returns a slice strings with mime types.
-/// The slice should be freed with `stdinc.free()`.
+/// The slice should be freed with `free()`.
 ///
 /// ## Thread Safety
 /// This function should only be called on the main thread.
@@ -103,7 +102,7 @@ pub fn getMimeTypes() ![][*:0]u8 {
 ///
 /// ## Return Value
 /// Returns the primary selection text.
-/// The slice should be freed with `stdinc.free()`.
+/// The slice should be freed with `free()`.
 ///
 /// ## Remarks
 /// This functions returns an empty string if there was not enough memory left for a copy of the primary selection's content.
@@ -128,7 +127,7 @@ pub fn getPrimarySelectionText() ![:0]const u8 {
 ///
 /// ## Return Value
 /// Returns the clipboard text.
-/// The slice should be freed with `stdinc.free()`.
+/// The slice should be freed with `free()`.
 ///
 /// ## Remarks
 /// This functions fails if there was not enough memory left for a copy of the clipboard's content.

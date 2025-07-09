@@ -2339,7 +2339,7 @@ pub const Device = packed struct {
     ///
     /// ## Remarks
     /// You must unmap the transfer buffer before encoding upload commands.
-    /// The memory is owned by the graphics driver - do NOT call `stdinc.free()` on the returned pointer.
+    /// The memory is owned by the graphics driver - do NOT call `free()` on the returned pointer.
     ///
     /// ## Version
     /// This function is available since SDL 3.2.0.

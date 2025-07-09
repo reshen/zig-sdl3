@@ -8,7 +8,7 @@ var debug = std.heap.DebugAllocator(.{}).init;
 
 pub fn main() !void {
     const allocator = debug.allocator();
-    try sdl3.stdinc.setMemoryFunctionsByAllocator(allocator);
+    try sdl3.setMemoryFunctionsByAllocator(allocator);
 
     const init_flags = sdl3.InitFlags{ .video = true };
     try sdl3.init(init_flags);

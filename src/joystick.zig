@@ -1544,7 +1544,7 @@ pub fn eventsEnabled() bool {
 ///
 /// ## Return Value
 /// Returns an array of joystick instance IDs.
-/// This should be freed with `stdinc.free()` when it is no longer needed.
+/// This should be freed with `free()` when it is no longer needed.
 ///
 /// ## Version
 /// This function is available since SDL 3.2.0.

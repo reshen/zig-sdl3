@@ -524,7 +524,7 @@ pub fn getBasePath() ![:0]const u8 {
 ///
 /// ## Return Value
 /// Returns a UTF-8 string of the current working directory in platform-dependent notation.
-/// This should be freed with `stdinc.free()`.
+/// This should be freed with `free()`.
 ///
 /// ## Remarks
 /// For systems without a concept of a current working directory, this will still attempt to provide something reasonable.
@@ -582,7 +582,7 @@ pub fn getPathInfo(
 ///
 /// ## Return Value
 /// Returns a UTF-8 string of the user directory in platform-dependent notation.
-/// This should be freed with `stdinc.free()`.
+/// This should be freed with `free()`.
 ///
 /// ## Remarks
 /// Get the "pref dir".
@@ -654,7 +654,7 @@ pub fn getUserFolder(
 ///
 /// ## Return Value
 /// Returns a slice of strings on success.
-/// This should be freed with `stdinc.free()`
+/// This should be freed with `free()`
 ///
 /// ## Remarks
 /// Files are filtered out if they don't match the string in pattern, which may contain wildcard characters '*' (match everything) and '?' (match one character).

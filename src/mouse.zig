@@ -2,7 +2,6 @@ const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const rect = @import("rect.zig");
 const std = @import("std");
-const stdinc = @import("stdinc.zig");
 const surface = @import("surface.zig");
 const video = @import("video.zig");
 
@@ -502,7 +501,7 @@ pub fn getGlobalState() struct { flags: ButtonFlags, x: f32, y: f32 } {
 /// Get a list of currently connected mice.
 ///
 /// ## Return Value
-/// Returns a list of mouse instance IDs, these should be freed with `stdinc.free()` when no longer needed.
+/// Returns a list of mouse instance IDs, these should be freed with `free()` when no longer needed.
 ///
 /// ## Remarks
 /// Note that this will include any device or virtual driver that includes mouse functionality,

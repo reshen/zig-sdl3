@@ -2,8 +2,8 @@ const c = @import("c.zig").c;
 const io_stream = @import("io_stream.zig");
 const errors = @import("errors.zig");
 const properties = @import("properties.zig");
+const sdl3 = @import("sdl3.zig");
 const std = @import("std");
-const stdinc = @import("stdinc.zig");
 
 /// An opaque handle representing a system process.
 ///
@@ -55,7 +55,7 @@ pub const Process = packed struct {
         args: [:null]const ?[*:0]const u8,
         /// An environment pointer.
         /// If this property is set, it will be the entire environment for the process, otherwise the current environment is used.
-        environment: ?stdinc.Environment = null,
+        environment: ?sdl3.Environment = null,
         // /// A UTF-8 encoded string representing the working directory for the process, defaults to the current working directory.
         // working_directory: ?[:0]const u8,
         /// A IO value describing where standard input for the process comes from, defaults to `Process.Io.ignored` if unspecified.
@@ -307,7 +307,7 @@ pub const Process = packed struct {
     /// * `self`: The process to read.
     ///
     /// ## Return Value
-    /// Returns the data read, must be freed with `stdinc.free()`.
+    /// Returns the data read, must be freed with `free()`.
     /// Also returns the exit code if the process exited.
     ///
     /// ## Remarks
@@ -317,7 +317,7 @@ pub const Process = packed struct {
     /// The data is allocated with a zero byte at the end (null terminated) for convenience.
     /// This extra byte is not included in the value reported via datasize.
     ///
-    /// The data should be freed with `stdinc.free()`.
+    /// The data should be freed with `free()`.
     ///
     /// ## Thread Safety
     /// This function is not thread safe.

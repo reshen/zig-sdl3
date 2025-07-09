@@ -1,7 +1,7 @@
 const c = @import("c.zig").c;
 const errors = @import("errors.zig");
+const sdl3 = @import("sdl3.zig");
 const std = @import("std");
-const stdinc = @import("stdinc.zig");
 
 /// A struct to provide locale data.
 ///
@@ -32,7 +32,7 @@ pub const Locale = extern struct {
     ///
     /// ## Return Value
     /// Returns a slice of preferred locales.
-    /// This must be freed with `stdinc.free()`.
+    /// This must be freed with `free()`.
     ///
     /// ## Remarks
     /// Returned language strings are in the format xx, where 'xx' is an ISO-639 language specifier (such as "en" for English, "de" for German, etc).
@@ -68,5 +68,5 @@ test "Locale" {
     std.testing.refAllDeclsRecursive(@This());
 
     const locales = Locale.getPreferred() catch return;
-    defer stdinc.free(locales);
+    defer sdl3.free(locales);
 }

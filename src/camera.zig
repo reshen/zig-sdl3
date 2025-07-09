@@ -2,8 +2,8 @@ const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const pixels = @import("pixels.zig");
 const properties = @import("properties.zig");
+const sdl3 = @import("sdl3.zig");
 const std = @import("std");
-const stdinc = @import("stdinc.zig");
 const surface = @import("surface.zig");
 
 /// If camera is approved by user.
@@ -47,7 +47,7 @@ pub const ID = packed struct {
     ///
     /// ## Return Value
     /// Returns a slice of IDs terminated by 0.
-    /// This needs to be freed with `stdinc.free()`.
+    /// This needs to be freed with `free()`.
     ///
     /// ## Thread Safety
     /// It is safe to call this function from any thread.
@@ -554,7 +554,7 @@ test "Camera" {
     // ID functions.
     const ids_raw: ?[]ID = ID.getAll() catch null;
     if (ids_raw) |ids| {
-        defer stdinc.free(ids.ptr);
+        defer sdl3.free(ids.ptr);
         for (ids) |id| {
             _ = id.getName() catch {};
             _ = id.getPosition();

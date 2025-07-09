@@ -8,7 +8,7 @@ pub fn main() !void {
     try out.print("Application Directory: \"{s}\"\n", .{try sdl3.filesystem.getBasePath()});
     try out.print("User Home Directory: \"{s}\"\n", .{try sdl3.filesystem.getUserFolder(.home)});
     const cwd = try sdl3.filesystem.getCurrentDirectory();
-    defer sdl3.stdinc.free(cwd);
+    defer sdl3.free(cwd);
     try out.print("Current Working Directory: \"{s}\"\n", .{cwd});
 
     // Check if a path exists.

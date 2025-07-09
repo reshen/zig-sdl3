@@ -222,7 +222,7 @@ pub const Format = struct {
     /// Returns a byte value that can be passed to memset.
     ///
     /// ## Remarks
-    /// The value returned by this function can be used as the second argument to `@memset` (or `stdinc.memset()`) to set an audio buffer in a specific format to silence.
+    /// The value returned by this function can be used as the second argument to `@memset()` to set an audio buffer in a specific format to silence.
     ///
     /// ## Thread Safety
     /// It is safe to call this function from any thread.
@@ -541,7 +541,7 @@ pub const Device = packed struct {
     ///
     /// ## Return Value
     /// Returns a slice of the current channel mapping, with as many elements as the current output spec's channels, or `null` if default/no remapping.
-    /// This should be freed with `stdinc.free()` when it is no longer needed.
+    /// This should be freed with `free()` when it is no longer needed.
     ///
     /// ## Remarks
     /// Channel maps are optional; most things do not need them, instead passing data in the order that SDL expects.
@@ -1230,7 +1230,7 @@ pub const Stream = packed struct {
     ///
     /// ## Return Value
     /// Returns an array of the current channel mapping, with as many elements as the current output spec's channels, or `null` if default.
-    /// This should be freed with `stdinc.free()` when it is no longer needed.
+    /// This should be freed with `free()` when it is no longer needed.
     ///
     /// ## Remarks
     /// Channel maps are optional; most things do not need them, instead passing data in [the order that SDL expects](https://wiki.libsdl.org/SDL3/CategoryAudio#channel-layouts).
@@ -1313,7 +1313,7 @@ pub const Stream = packed struct {
     ///
     /// ## Return Value
     /// Returns an array of the current channel mapping, with as many elements as the current output spec's channels, or `null` if default.
-    /// This should be freed with `stdinc.free()` when it is no longer needed.
+    /// This should be freed with `free()` when it is no longer needed.
     ///
     /// ## Remarks
     /// Channel maps are optional; most things do not need them, instead passing data in [the order that SDL expects](https://wiki.libsdl.org/SDL3/CategoryAudio#channel-layouts).
@@ -1834,7 +1834,7 @@ pub const Spec = struct {
     ///
     /// ## Return Value
     /// Returns the converted audio samples.
-    /// This should be freed with `stdinc.free()`.
+    /// This should be freed with `free()`.
     ///
     /// ## Remarks
     /// Please note that this function is for convenience, but should not be used to resample audio in blocks,
@@ -2001,7 +2001,7 @@ pub fn getNumDrivers() usize {
 ///
 /// ## Return Value
 /// Returns a slice of device instances.
-/// This should be freed with `stdinc.free()`.
+/// This should be freed with `free()`.
 ///
 /// ## Remarks
 /// This returns of list of available devices that play sound, perhaps to speakers or headphones ("playback" devices).
@@ -2024,7 +2024,7 @@ pub fn getPlaybackDevices() ![]Device {
 ///
 /// ## Return Value
 /// Returns a slice of device instances.
-/// This should be freed with `stdinc.free()`.
+/// This should be freed with `free()`.
 ///
 /// ## Remarks
 /// This returns of list of available devices that record audio, like a microphone ("recording" devices).
@@ -2050,7 +2050,7 @@ pub fn getRecordingDevices() ![]Device {
 ///
 /// ## Return Value
 /// Returns the audio spec of the WAV along with its data.
-/// The `data` must be freed with `stdinc.free()`.
+/// The `data` must be freed with `free()`.
 ///
 /// ## Remarks
 /// This is a convenience function that is effectively the same as:
@@ -2087,7 +2087,7 @@ pub fn loadWav(
 ///
 /// ## Return Value
 /// Returns the audio spec of the WAV along with its data.
-/// The `data` must be freed with `stdinc.free()`.
+/// The `data` must be freed with `free()`.
 ///
 /// ## Remarks
 /// The entire data portion of the file is then loaded into memory and decoded if necessary.
