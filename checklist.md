@@ -1,7 +1,7 @@
 # Checklist
 For monitoring how close various subsystems are to completion.
 
-## Done (53/57)
+## Done (54/57)
 
 ### Basics
 * Main
@@ -75,10 +75,11 @@ For monitoring how close various subsystems are to completion.
 * System Tray
 * Locale
 * System
+* Standard Lib
 * GUID
 * Misc
 
-## In Progress (4/57)
+## In Progress (3/57)
 
 ### Basics
 * Hints
@@ -86,6 +87,3 @@ For monitoring how close various subsystems are to completion.
 ### Input
 * Events
 * Gamepad
-
-### Additional Functionality
-* Standard Lib
