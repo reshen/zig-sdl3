@@ -9,6 +9,8 @@ A lightweight wrapper to zig-ify SDL3.
 > I'm hoping to be done soon, great progress has been made so far!
 >
 > See the [checklist](checklist.md) for more details on progress.
+>
+> However, most of the library is stable and usable!
 
 # Documentation
 [https://gota7.github.io/zig-sdl3/](https://gota7.github.io/zig-sdl3/)
