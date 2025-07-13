@@ -24,18 +24,6 @@ jobs:
         run: zig build docs
       - name: Build Documentation Windows
         run: zig build docs -Dtarget=x86_64-windows
-  gpu_examples:
-    name: Build GPU Examples
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: mlugg/setup-zig@v1
-        with:
-          version: ${{ env.ZIG_VERSION }}
-      - name: Build Template Linux
-        run: cd gpu_examples && zig build
-      - name: Build Template Windows
-        run: cd gpu_examples && zig build -Dtarget=x86_64-windows
   examples:
     name: Build Examples
     runs-on: ubuntu-latest

@@ -87,6 +87,7 @@ pub fn main() !void {
 # Structure
 
 ## Source
+
 The `src` folder was originally generated via a binding generator, but manually perfecting and testing the subsystems was found to be more productive.
 Each source file must also call each function at least once in testing if possible to ensure compilation is successful.
 
@@ -101,6 +102,7 @@ The `template` directory contains a sample hello world to get started using SDL3
 Simply copy this folder to use as your project, and have fun!
 
 ## Tests
+
 Tests for the library can be ran by running `zig build test`.
 
 # Features
@@ -115,3 +117,43 @@ Tests for the library can be ran by running `zig build test`.
 * Types that are intended to be nullable are now clearly annotated as such with optionals.
 * Easy conversion to/from SDL types from the wrapped types.
 * The `self.function()` notation is used where applicable.
+
+# FAQ
+
+## How Do I Get Started?
+
+The easiest way is to copy the template, and comment out the `path` in the zon file and uncomment the `url`.
+Fix the hash as needed.
+The template uses the callback method, an extension lib, and overall shows how the wrapper can be used to create an application.
+
+## When Is 1.0.0 Being Released?
+
+When it's ready, you can track progress by looking at the milestones.
+My free time is limited, but trust me my top priority is getting this out soon!
+
+## GPU Examples?
+
+I will try and get these done before 1.0.0.
+The original goal was to use zig shaders, but unfortunately the current zig release does not support the ability to run every example.
+The examples using zig shaders have been moved to https://github.com/Gota7/zig-sdl3-gpu-examples.
+Depending on when zig 15.0.0 releases, I may or may not implement all the GPU examples in HLSL.
+
+## HLSL Examples?
+
+There will be at least one that exists before 1.0.0 is released.
+
+## Symlink Error
+
+If you get something like this on Windows:
+```
+C:\...\zig\p\SDL_image-3.2.4--aJoHa0VAAC_C_du38OrOmZ4m23B5bCjXONc13NEpTYf\build.zig.zon:12:20: error: unable to unpack packfile
+            .url = "git+https://github.com/libsdl-org/SDL_image#release-3.2.4",
+                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+note: unable to create symlink from 'Xcode\macOS\SDL3.framework\Headers' to 'Versions/Current/Headers': AccessDenied
+note: unable to create symlink from 'Xcode\macOS\SDL3.framework\Resources' to 'Versions/Current/Resources': AccessDenied
+note: unable to create symlink from 'Xcode\macOS\SDL3.framework\SDL3.tbd' to 'Versions/Current/SDL3.tbd': AccessDenied
+note: unable to create symlink from 'Xcode\macOS\SDL3.framework\Versions\Current' to 'A': AccessDenied
+```
+
+See this:
+https://github.com/Gota7/zig-sdl3/issues/21
