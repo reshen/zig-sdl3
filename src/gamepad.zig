@@ -1,5 +1,6 @@
 const c = @import("c.zig").c;
 const errors = @import("errors.zig");
+const io_stream = @import("io_stream.zig");
 const joystick = @import("joystick.zig");
 const std = @import("std");
 
@@ -216,6 +217,26 @@ pub const Button = enum(c_int) {
             return @intFromEnum(val);
         return c.SDL_GAMEPAD_BUTTON_INVALID;
     }
+
+    /// Convert a string into a button.
+    ///
+    /// ## Function Parameters
+    /// * `str`: String representing a gamepad button.
+    ///
+    /// ## Return Value
+    /// Returns the button corresponding to the input string, or `null` if no match was found.
+    ///
+    /// ## Remarks
+    /// This function is called internally to translate gamepad mapping strings for the underlying joystick device into the consistent gamepad mapping.
+    /// You do not normally need to call this function unless you are parsing gamepad mappings in your own code.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn fromString(
+        str: [:0]const u8,
+    ) ?Button {
+        return Button.fromSdl(c.SDL_GetGamepadButtonFromString(str.ptr));
+    }
 };
 
 /// The set of gamepad button labels.
@@ -258,6 +279,35 @@ pub const ButtonLabel = enum(c_uint) {
 /// This struct is available since SDL 3.2.0.
 pub const Gamepad = struct {
     value: *c.SDL_Gamepad,
+
+    /// Close a gamepad previously opened with `Gamepad.init()`.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The gamepad to close.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn deinit(
+        self: Gamepad,
+    ) void {
+        c.SDL_CloseGamepad(self.value);
+    }
+
+    /// Open a gamepad for use.
+    ///
+    /// ## Function Parameters
+    /// * `id`: The joystick instance ID.
+    ///
+    /// ## Return Value
+    /// Returns a gamepad identifier.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn init(
+        id: joystick.ID,
+    ) !Gamepad {
+        return .{ .value = try errors.wrapNull(*c.SDL_Gamepad, c.SDL_OpenGamepad(id.value)) };
+    }
 };
 
 /// Standard gamepad types.
@@ -296,6 +346,107 @@ pub const Type = enum(c_uint) {
         return c.SDL_GAMEPAD_TYPE_UNKNOWN;
     }
 };
+
+/// Add support for gamepads that SDL is unaware of or change the binding of an existing gamepad.
+///
+/// ## Function Parameters
+/// * `mapping`: The mapping string.
+///
+/// ## Return Value
+/// Returns `true` if a new mapping is added, or `false` if an existing mapping is updated.
+///
+/// ## Remarks
+/// The mapping string has the format "GUID,name,mapping", where GUID is the string value from `GUID.toString()`,
+/// name is the human readable string for the device and mappings are gamepad mappings to joystick ones.
+/// Under Windows there is a reserved GUID of "xinput" that covers all XInput devices.
+///
+/// The mapping format for joystick is:
+/// bX: A joystick button, index X.
+/// hX.Y: Hat X with value Y.
+/// aX: Axis X of the joystick.
+///
+/// Buttons can be used as a gamepad axes and vice versa.
+///
+/// If a device with this GUID is already plugged in, SDL will generate an `events.Type.gamepad_added` event.
+///
+/// This string shows an example of a valid mapping for a gamepad:
+/// "341a3608000000000000504944564944,Afterglow PS3 Controller,a:b1,b:b2,y:b3,x:b0,start:b9,guide:b12,back:b8,dpup:h0.1,dpleft:h0.8,dpdown:h0.4,dpright:h0.2,leftshoulder:b4,rightshoulder:b5,leftstick:b10,rightstick:b11,leftx:a0,lefty:a1,rightx:a2,righty:a3,lefttrigger:b6,righttrigger:b7"
+///
+/// ## Thread Safety
+/// It is safe to call this function from any thread.
+///
+/// ## Version
+/// This function is available since SDL 3.2.0.
+pub fn addMapping(
+    mapping: [:0]const u8,
+) !bool {
+    const ret = try errors.wrapCall(c_int, c.SDL_AddGamepadMapping(mapping.ptr), -1);
+    if (ret == 0)
+        return false;
+    return true;
+}
+
+/// Load a set of gamepad mappings from a file.
+///
+/// ## Function Parameters
+/// * `file`: The mappings file to load.
+///
+/// ## Return Value
+/// Returns the number of mappings added.
+///
+/// ## Remarks
+/// You can call this function several times, if needed, to load different database files.
+///
+/// If a new mapping is loaded for an already known gamepad GUID, the later version will overwrite the one currently loaded.
+///
+/// Any new mappings for already plugged in controllers will generate an `events.Type.gamepad_added` event.
+///
+/// Mappings not belonging to the current platform or with no platform field specified will be ignored (i.e. mappings for Linux will be ignored in Windows, etc).
+///
+/// ## Thread Safety
+/// It is safe to call this function from any thread.
+///
+/// ## Version
+/// This function is available since SDL 3.2.0.
+pub fn addMappingFromFile(
+    mapping: [:0]const u8,
+) !usize {
+    const ret = try errors.wrapCall(c_int, c.SDL_AddGamepadMapping(mapping.ptr), -1);
+    return @intCast(ret);
+}
+
+/// Load a set of gamepad mappings from an IO stream.
+///
+/// ## Function Parameters
+/// * `src`: The data stream for the mappings to be added.
+/// * `close_io`: If true, closes the stream before returning even in case of error.
+///
+/// ## Return Value
+/// Returns the number of mappings added.
+///
+/// ## Remarks
+/// You can call this function several times, if needed, to load different database files.
+///
+/// If a new mapping is loaded for an already known gamepad GUID, the later version will overwrite the one currently loaded.
+///
+/// Any new mappings for already plugged in controllers will generate `events.Type.gamepad_added` events.
+///
+/// Mappings not belonging to the current platform or with no platform field specified will be ignored (i.e. mappings for Linux will be ignored in Windows, etc).
+///
+/// This function will load the text database entirely in memory before processing it, so take this into consideration if you are in a memory constrained environment.
+///
+/// ## Thread Safety
+/// It is safe to call this function from any thread.
+///
+/// ## Version
+/// This function is available since SDL 3.2.0.
+pub fn addMappingFromIo(
+    src: io_stream.Stream,
+    close_io: bool,
+) !usize {
+    const ret = try errors.wrapCall(c_int, c.SDL_AddGamepadMappingsFromIO(src.value, close_io), -1);
+    return @intCast(ret);
+}
 
 // Gamepad tests.
 test "Gamepad" {
