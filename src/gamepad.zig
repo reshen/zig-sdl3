@@ -2,6 +2,7 @@ const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const io_stream = @import("io_stream.zig");
 const joystick = @import("joystick.zig");
+const sensor = @import("sensor.zig");
 const std = @import("std");
 
 /// The list of axes available on a gamepad.
@@ -35,6 +36,28 @@ pub const Axis = enum(c_int) {
         if (self) |val|
             return @intFromEnum(val);
         return c.SDL_GAMEPAD_AXIS_INVALID;
+    }
+
+    /// Convert a string into an axis enum.
+    ///
+    /// ## Function Parameters
+    /// * `str`: String representing a gamepad axis.
+    ///
+    /// ## Return Value
+    /// Returns the axis enum corresponding to the input string, or `null` if no match was found.
+    ///
+    /// ## Remarks
+    /// This function is called internally to translate gamepad mapping strings for the underlying joystick device into the consistent gamepad mapping.
+    /// You do not normally need to call this function unless you are parsing gamepad mappings in your own code.
+    ///
+    /// Note specially that "righttrigger" and "lefttrigger" map to `gamepad.Axis.right_trigger` and `gamepad.Axis.left_trigger`, respectively.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn fromString(
+        str: [:0]const u8,
+    ) ?Axis {
+        return Axis.fromSdl(c.SDL_GetGamepadAxisFromString(str.ptr));
     }
 };
 
@@ -280,6 +303,22 @@ pub const ButtonLabel = enum(c_uint) {
 pub const Gamepad = struct {
     value: *c.SDL_Gamepad,
 
+    /// Check if a gamepad has been opened and is currently connected.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The gamepad to check.
+    ///
+    /// ## Return Value
+    /// Returns true if the gamepad has been opened and is currently connected, or false if not.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0
+    pub fn connected(
+        self: Gamepad,
+    ) bool {
+        return c.SDL_GamepadConnected(self.value);
+    }
+
     /// Close a gamepad previously opened with `Gamepad.init()`.
     ///
     /// ## Function Parameters
@@ -291,6 +330,173 @@ pub const Gamepad = struct {
         self: Gamepad,
     ) void {
         c.SDL_CloseGamepad(self.value);
+    }
+
+    /// Return the `sfSymbolsName` for a given axis on a gamepad on Apple platforms.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The gamepad to query.
+    /// * `axis`: An axis on the gamepad.
+    ///
+    /// ## Return Value
+    /// Returns the `sfSymbolsName` or `null` if the name can't be found.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getAppleSfSymbolsNameForAxis(
+        self: Gamepad,
+        axis: Axis,
+    ) ?[:0]const u8 {
+        const ret = c.SDL_GetGamepadAppleSFSymbolsNameForAxis(self.value, Axis.toSdl(axis));
+        if (ret == null)
+            return null;
+        return std.mem.span(ret);
+    }
+
+    /// Return the `sfSymbolsName` for a given button on a gamepad on Apple platforms.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The gamepad to query.
+    /// * `button`: A button on the gamepad.
+    ///
+    /// ## Return Value
+    /// Returns the `sfSymbolsName` or `null` if the name can't be found.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getAppleSfSymbolsNameForButton(
+        self: Gamepad,
+        button: Button,
+    ) ?[:0]const u8 {
+        const ret = c.SDL_GetGamepadAppleSFSymbolsNameForButton(self.value, Button.toSdl(button));
+        if (ret == null)
+            return null;
+        return std.mem.span(ret);
+    }
+
+    /// Get the current state of an axis control on a gamepad.
+    ///
+    /// ## Function Parameters
+    /// * `self`: A gamepad.
+    /// * `axis`: An axis index.
+    ///
+    /// ## Return Value
+    /// Returns axis state.
+    ///
+    /// ## Remarks
+    /// For thumbsticks, the state is a value ranging from `-32768` (up/left) to `32767` (down/right).
+    ///
+    /// Triggers range from `0` when released to `32767` when fully pressed, and never return a negative value.
+    /// Note that this differs from the value reported by the lower-level `joystick.Joystick.getAxis()`, which normally uses the full range.
+    ///
+    /// Note that for invalid gamepads or axes, this will return `0`.
+    /// Zero is also a valid value in normal operation; usually it means a centered axis.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getAxis(
+        self: Gamepad,
+        axis: Axis,
+    ) i16 {
+        return c.SDL_GetGamepadAxis(self.value, Axis.toSdl(axis));
+    }
+
+    // Can not just convert...
+    // /// Get the SDL joystick layer bindings for a gamepad.
+    // ///
+    // /// ## Function Parameters
+    // /// * `self`: A gamepad.
+    // ///
+    // /// ## Return Value
+    // /// Returns the joystick bindings.
+    // /// This returns a single allocation that should be freed with `free()` when it is no longer needed.
+    // ///
+    // /// ## Version
+    // /// This function is available since SDL 3.2.0.
+    // pub fn getBindings(
+    //     self: Gamepad,
+    // ) ![]Binding {
+    //     var count: c_int = undefined;
+    //     const src = try errors.wrapNull([*][*c]c.SDL_GamepadBinding, c.SDL_GetGamepadBindings(self.value, &count));
+    //     const dst = @as([*][])
+    // }
+
+    /// Get the current state of a button on a gamepad.
+    ///
+    /// ## Function Parameters
+    /// * `self`: A gamepad.
+    /// * `button`: An button index.
+    ///
+    /// ## Return Value
+    /// Returns true if the button is pressed, false otherwise.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getButton(
+        self: Gamepad,
+        button: Button,
+    ) bool {
+        return c.SDL_GetGamepadButton(self.value, Button.toSdl(button));
+    }
+
+    /// Query whether a gamepad has a given axis.
+    ///
+    /// ## Function Parameters
+    /// * `self`: A gamepad.
+    /// * `axis`: An axis value.
+    ///
+    /// ## Return Value
+    /// Returns true if the gamepad has this axis, false otherwise.
+    ///
+    /// ## Remarks
+    /// This merely reports whether the gamepad's mapping defined this axis, as that is all the information SDL has about the physical device.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn hasAxis(
+        self: Gamepad,
+        axis: Axis,
+    ) bool {
+        return c.SDL_GamepadHasAxis(self.value, Axis.toSdl(axis));
+    }
+
+    /// Query whether a gamepad has a given button.
+    ///
+    /// ## Function Parameters
+    /// * `self`: A gamepad.
+    /// * `button`: A button value.
+    ///
+    /// ## Return Value
+    /// Returns true if the gamepad has this button, false otherwise.
+    ///
+    /// ## Remarks
+    /// This merely reports whether the gamepad's mapping defined this button, as that is all the information SDL has about the physical device.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn hasButton(
+        self: Gamepad,
+        button: Button,
+    ) bool {
+        return c.SDL_GamepadHasButton(self.value, Button.toSdl(button));
+    }
+
+    /// Return whether a gamepad has a particular sensor.
+    ///
+    /// ## Function Parameters
+    /// * `self`: A gamepad.
+    /// * `sensor`: The type of sensor to query.
+    ///
+    /// ## Return Value
+    /// Returns true if the sensor exists, false otherwise.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn hasSensor(
+        self: Gamepad,
+        sensor_type: sensor.Type,
+    ) bool {
+        return c.SDL_GamepadHasSensor(self.value, sensor.Type.toSdl(sensor_type));
     }
 
     /// Open a gamepad for use.
@@ -307,6 +513,24 @@ pub const Gamepad = struct {
         id: joystick.ID,
     ) !Gamepad {
         return .{ .value = try errors.wrapNull(*c.SDL_Gamepad, c.SDL_OpenGamepad(id.value)) };
+    }
+
+    /// Query whether sensor data reporting is enabled for a gamepad.
+    ///
+    /// ## Function Parameters
+    /// * `self`: A gamepad.
+    /// * `sensor`: The type of sensor to query.
+    ///
+    /// ## Return Value
+    /// Returns true if the sensor is enabled, false otherwise.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn sensorEnabled(
+        self: Gamepad,
+        sensor_type: sensor.Type,
+    ) bool {
+        return c.SDL_GamepadSensorEnabled(self.value, sensor.Type.toSdl(sensor_type));
     }
 };
 
@@ -446,6 +670,31 @@ pub fn addMappingFromIo(
 ) !usize {
     const ret = try errors.wrapCall(c_int, c.SDL_AddGamepadMappingsFromIO(src.value, close_io), -1);
     return @intCast(ret);
+}
+
+/// Query the state of gamepad event processing.
+///
+/// ## Return Value
+/// Returns Returns true if gamepad events are being processed, false otherwise.
+///
+/// ## Remarks
+/// If gamepad events are disabled, you must call `gamepad.update()` yourself and check the state of the gamepad when you want gamepad information.
+///
+/// ## Version
+/// This function is available since SDL 3.2.0
+pub fn eventsEnabled() bool {
+    return c.SDL_GamepadEventsEnabled();
+}
+
+/// Manually pump gamepad updates if not using the loop.
+///
+/// ## Remarks
+/// This function is called automatically by the event loop if events are enabled. Under such circumstances, it will not be necessary to call this function.
+///
+/// ## Version
+/// This function is available since SDL 3.2.0.
+pub fn update() void {
+    c.SDL_UpdateGamepads();
 }
 
 // Gamepad tests.
