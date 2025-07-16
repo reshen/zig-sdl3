@@ -3,6 +3,7 @@ const errors = @import("errors.zig");
 const io_stream = @import("io_stream.zig");
 const joystick = @import("joystick.zig");
 const sensor = @import("sensor.zig");
+const sdl3 = @import("sdl3.zig");
 const std = @import("std");
 
 /// The list of axes available on a gamepad.
@@ -439,6 +440,188 @@ pub const Gamepad = struct {
         return c.SDL_GetGamepadButton(self.value, Button.toSdl(button));
     }
 
+    /// Get the label of a button on a gamepad.
+    ///
+    /// ## Function Parameters
+    /// * `self`: A gamepad.
+    /// * `button`: A button index.
+    ///
+    /// ## Return Value
+    /// Returns the button label.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getButtonLabel(
+        self: Gamepad,
+        button: Button,
+    ) ?ButtonLabel {
+        return ButtonLabel.fromSdl(c.SDL_GetGamepadButtonLabel(self.value, Button.toSdl(button)));
+    }
+
+    /// Get the connection state of a gamepad.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The gamepad object to query.
+    ///
+    /// ## Return Value
+    /// Returns the connection state.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getConnectionState(
+        self: Gamepad,
+    ) !?joystick.ConnectionState {
+        return try joystick.ConnectionState.fromSdl(c.SDL_GetGamepadConnectionState(self.value));
+    }
+
+    /// Get the firmware version of an opened gamepad, if available.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The gamepad object to query.
+    ///
+    /// ## Return Value
+    /// Returns the firmware version, or `null` if unavailable.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getFirmwareVersion(
+        self: Gamepad,
+    ) ?u16 {
+        const ret = c.SDL_GetGamepadFirmwareVersion(self.value);
+        if (ret == 0)
+            return null;
+        return ret;
+    }
+
+    /// Get the gamepad associated with a joystick instance ID, if it has been opened.
+    ///
+    /// ## Function Parameters
+    /// * `id`: The joystick instance ID of the gamepad.
+    ///
+    /// ## Return Value
+    /// Returns a gamepad.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getFromJoystickId(
+        id: joystick.ID,
+    ) !Gamepad {
+        return .{ .value = try errors.wrapNull(*c.SDL_Gamepad, c.SDL_GetGamepadFromID(id.value)) };
+    }
+
+    /// Get the gamepad associated with a player index.
+    ///
+    /// ## Function Parameters
+    /// * `index`: The player index, which different from the instance ID.
+    ///
+    /// ## Return Value
+    /// Returns the gamepad associated with a player index.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getFromPlayerIndex(
+        index: usize,
+    ) ?Gamepad {
+        const ret = c.SDL_GetGamepadFromPlayerIndex(@intCast(index));
+        if (ret) |val|
+            return .{ .value = val };
+        return null;
+    }
+
+    /// Get the underlying joystick from a gamepad.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The gamepad object that you want to get a joystick from.
+    ///
+    /// ## Return Value
+    /// Returns the joystick object.
+    ///
+    /// ## Remarks
+    /// This function will give you a joystick object, which allows you to use the joystick functions with a gamepad object.
+    /// This would be useful for getting a joystick's position at any given time, even if it hasn't moved (moving it would produce an event, which would have the axis' value).
+    ///
+    /// The joystick returned is owned by the gamepad.
+    /// You should not call `joystick.Joystick.deinit()` on it, for example, since doing so will likely cause SDL to crash.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getJoystick(
+        self: Gamepad,
+    ) !joystick.Joystick {
+        return .{ .value = try errors.wrapNull(*c.SDL_Joystick, c.SDL_GetGamepadJoystick(self.value)) };
+    }
+
+    /// Get the instance ID of an opened gamepad.
+    ///
+    /// ## Function Parameters
+    /// * `self`: A gamepad identifier.
+    ///
+    /// ## Return Value
+    /// Returns the instance ID of the specified gamepad.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getJoystickId(
+        self: Gamepad,
+    ) !joystick.ID {
+        return .{ .value = try errors.wrapCall(c.SDL_JoystickID, c.SDL_GetGamepadID(self.value), 0) };
+    }
+
+    /// Get the current mapping of a gamepad.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The gamepad you want to get the current mapping for.
+    ///
+    /// ## Return Value
+    /// Returns a string that has the gamepad's mapping.
+    /// This should be freed with `free()`.
+    ///
+    /// ## Remarks
+    /// Details about mappings are discussed with `gamepad.Gamepad.addMapping()`.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getMapping(
+        self: Gamepad,
+    ) ![:0]u8 {
+        return errors.wrapCallCStringMut(c.SDL_GetGamepadMapping(self.value));
+    }
+
+    /// Get the implementation-dependent name for an opened gamepad.
+    ///
+    /// ## Function Parameters
+    /// * `self`: A gamepad identifier.
+    ///
+    /// ## Return Value
+    /// Returns the implementation dependent name for the gamepad.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getName(
+        self: Gamepad,
+    ) ![:0]const u8 {
+        return errors.wrapCallCString(c.SDL_GetGamepadName(self.value));
+    }
+
+    /// Get the implementation-dependent path for an opened gamepad.
+    ///
+    /// ## Function Parameters
+    /// * `self`: A gamepad identifier.
+    ///
+    /// ## Return Value
+    /// Returns the implementation dependent path for the gamepad.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getPath(
+        self: Gamepad,
+    ) ?[:0]const u8 {
+        const ret = c.SDL_GetGamepadPath(self.value);
+        if (ret == null)
+            return null;
+        return std.mem.span(ret);
+    }
+
     /// Query whether a gamepad has a given axis.
     ///
     /// ## Function Parameters
@@ -569,6 +752,24 @@ pub const Type = enum(c_uint) {
             return @intFromEnum(val);
         return c.SDL_GAMEPAD_TYPE_UNKNOWN;
     }
+
+    /// Get the label of a button on a gamepad.
+    ///
+    /// ## Function Parameters
+    /// * `button_type`: The type of gamepad to check.
+    /// * `button`: A button index.
+    ///
+    /// ## Return Value
+    /// Returns a button label for the button.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getButtonLabelForType(
+        button_type: Type,
+        button: Button,
+    ) ButtonLabel {
+        return @enumFromInt(c.SDL_GetGamepadButtonLabelForType(toSdl(button_type), Button.toSdl(button)));
+    }
 };
 
 /// Add support for gamepads that SDL is unaware of or change the binding of an existing gamepad.
@@ -684,6 +885,85 @@ pub fn addMappingFromIo(
 /// This function is available since SDL 3.2.0
 pub fn eventsEnabled() bool {
     return c.SDL_GamepadEventsEnabled();
+}
+
+/// Get the implementation-dependent GUID of a gamepad.
+///
+/// ## Function Parameters
+/// * `id`: The joystick instance ID.
+///
+/// ## Return Value
+/// Returns the GUID of the selected gamepad.
+/// If called on an invalid index, this function returns `null`.
+///
+/// ## Remarks
+/// This can be called before any gamepads are opened.
+///
+/// ## Version
+/// This function is available since SDL 3.2.0.
+pub fn getGuidForJoystickId(
+    id: joystick.ID,
+) ?sdl3.GUID {
+    const ret = sdl3.GUID{ .value = c.SDL_GetGamepadGUIDForID(id.value) };
+    if (std.mem.allEqual(u8, &ret.value.data, 0))
+        return null;
+    return ret;
+}
+
+/// Get the gamepad mapping string for a given GUID.
+///
+/// ## Function Parameters
+/// * `guid`: A structure containing the GUID for which a mapping is desired.
+///
+/// ## Return Value
+/// Returns a mapping string.
+/// This should be freed with `free()`.
+///
+/// ## Version
+/// This function is available since SDL 3.2.0.
+pub fn getMappingForGuid(
+    guid: sdl3.GUID,
+) ![:0]u8 {
+    return errors.wrapCallCStringMut(c.SDL_GetGamepadMappingForGUID(guid.value));
+}
+
+/// Get the mapping of a gamepad.
+///
+/// ## Function Parameters
+/// * `id`: The joystick instance ID.
+///
+/// ## Return Value
+/// Returns a mapping string.
+/// This should be freed with `free()`.
+///
+/// ## Remarks
+/// This can be called before any gamepads are opened.
+///
+/// ## Version
+/// This function is available since SDL 3.2.0.
+pub fn getMappingForJoystickId(
+    id: joystick.ID,
+) ![:0]u8 {
+    return errors.wrapCallCStringMut(c.SDL_GetGamepadMappingForID(id.value));
+}
+
+/// Get the implementation dependent name of a gamepad.
+///
+/// ## Function Parameters
+/// * `id`: The joystick instance ID.
+///
+/// ## Return Value
+/// Returns the name of the selected gamepad.
+///
+/// ## Remarks
+/// This can be called before any gamepads are opened.
+///
+/// ## Version
+/// This function is available since SDL 3.2.0.
+pub fn getNameForJoystickId(
+    id: joystick.ID,
+) ![:0]const u8 {
+    return errors.wrapCallCString(c.SDL_GetGamepadNameForID(id.value));
 }
 
 /// Manually pump gamepad updates if not using the loop.
