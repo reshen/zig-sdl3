@@ -1875,6 +1875,12 @@ fn allocRealloc(mem: ?*anyopaque, size: usize) callconv(.c) ?*anyopaque {
 /// ## Function Parameters
 /// * `new_allocator`: The new allocator to use for allocations.
 ///
+/// ## Remarks
+/// It is not safe to call this function once any allocations have been made, as future calls to `free()` will use the new allocator,
+/// even if they came from an `malloc()` made with the old one!
+///
+/// If used, usually this needs to be the first call made into the SDL library, if not the very first thing done at program startup time.
+///
 /// ## Version
 /// This is provided by zig-sdl3.
 pub fn setMemoryFunctionsByAllocator(

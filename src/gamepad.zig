@@ -2,6 +2,7 @@ const c = @import("c.zig").c;
 const errors = @import("errors.zig");
 const io_stream = @import("io_stream.zig");
 const joystick = @import("joystick.zig");
+const power = @import("power.zig");
 const sensor = @import("sensor.zig");
 const sdl3 = @import("sdl3.zig");
 const std = @import("std");
@@ -59,6 +60,26 @@ pub const Axis = enum(c_int) {
         str: [:0]const u8,
     ) ?Axis {
         return Axis.fromSdl(c.SDL_GetGamepadAxisFromString(str.ptr));
+    }
+
+    /// Convert from an axis enum to a string.
+    ///
+    /// ## Function Parameters
+    /// * `self`: An enum value.
+    ///
+    /// ## Return Value
+    /// Returns a string for the given axis, or `null` if an invalid axis is specified.
+    /// The string returned is of the format used by gamepad mapping strings.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getString(
+        self: Axis,
+    ) ?[:0]const u8 {
+        const ret = c.SDL_GetGamepadStringForAxis(Axis.toSdl(self));
+        if (ret == null)
+            return null;
+        return std.mem.span(ret);
     }
 };
 
@@ -260,6 +281,26 @@ pub const Button = enum(c_int) {
         str: [:0]const u8,
     ) ?Button {
         return Button.fromSdl(c.SDL_GetGamepadButtonFromString(str.ptr));
+    }
+
+    /// Convert from a button enum to a string.
+    ///
+    /// ## Function Parameters
+    /// * `self`: An enum value.
+    ///
+    /// ## Return Value
+    /// Returns a string for the given button, or `null` if an invalid button is specified.
+    /// The string returned is of the format used by gamepad mapping strings.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getString(
+        self: Button,
+    ) ?[:0]const u8 {
+        const ret = c.SDL_GetGamepadStringForButton(Button.toSdl(self));
+        if (ret == null)
+            return null;
+        return std.mem.span(ret);
     }
 };
 
@@ -622,6 +663,220 @@ pub const Gamepad = struct {
         return std.mem.span(ret);
     }
 
+    /// Get the player index of an opened gamepad.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The gamepad object to query.
+    ///
+    /// ## Return Value
+    /// Returns the player index for gamepad, or `null` if it's not available.
+    ///
+    /// ## Remarks
+    /// For XInput gamepads this returns the XInput user index.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getPlayerIndex(
+        self: Gamepad,
+    ) ?usize {
+        const ret = c.SDL_GetGamepadPlayerIndex(self.value);
+        if (ret == -1)
+            return null;
+        return @intCast(ret);
+    }
+
+    /// Get the battery state of a gamepad.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The gamepad object to query.
+    ///
+    /// ## Return Value
+    /// Returns the power state and the percent 0 to 100 (if possible to get).
+    ///
+    /// ## Remarks
+    /// You should never take a battery status as absolute truth.
+    /// Batteries (especially failing batteries) are delicate hardware, and the values reported here are best estimates based on what that hardware reports.
+    /// It's not uncommon for older batteries to lose stored power much faster than it reports, or completely drain when reporting it has 20 percent left, etc.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getPowerInfo(
+        self: Gamepad,
+    ) !struct { state: power.PowerState, percent: ?u7 } {
+        var percent: c_int = undefined;
+        const ret = c.SDL_GetGamepadPowerInfo(
+            self.value,
+            &percent,
+        );
+        return .{ .state = @enumFromInt(try errors.wrapCall(c_int, ret, c.SDL_POWERSTATE_ERROR)), .percent = if (percent == -1) null else @intCast(percent) };
+    }
+
+    /// Get the USB product ID of an opened gamepad, if available.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The gamepad object to query.
+    ///
+    /// ## Return Value
+    /// Returns the USB product ID, or `null` if unavailable.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getProduct(
+        self: Gamepad,
+    ) ?u16 {
+        const ret = c.SDL_GetGamepadProduct(self.value);
+        if (ret == 0)
+            return null;
+        return @intCast(ret);
+    }
+
+    /// Get the product version of an opened gamepad, if available.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The gamepad object to query.
+    ///
+    /// ## Return Value
+    /// Returns the USB product version, or `null` if unavailable.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getProductVersion(
+        self: Gamepad,
+    ) ?u16 {
+        const ret = c.SDL_GetGamepadProductVersion(self.value);
+        if (ret == 0)
+            return null;
+        return @intCast(ret);
+    }
+
+    /// Get the current state of a gamepad sensor.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The gamepad to query.
+    /// * `sensor_type`: The type of sensor to query.
+    /// * `data`: Slice of data to fill with the current sensor state.
+    ///
+    /// ## Remarks
+    /// The number of values and interpretation of the data is sensor dependent.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getSensorData(
+        self: Gamepad,
+        sensor_type: sensor.Type,
+        data: []f32,
+    ) !void {
+        const ret = c.SDL_GetGamepadSensorData(
+            self.value,
+            sensor.Type.toSdl(sensor_type),
+            data.ptr,
+            @intCast(data.len),
+        );
+        return errors.wrapCallBool(ret);
+    }
+
+    /// Get the data rate (number of events per second) of a gamepad sensor.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The gamepad to query.
+    /// * `sensor_type`: The type of sensor to query.
+    ///
+    /// ## Return Value
+    /// Returns the data rate, or `null` if the data rate is not available.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getSensorDataRate(
+        self: Gamepad,
+        sensor_type: sensor.Type,
+    ) ?f32 {
+        const ret = c.SDL_GetGamepadSensorDataRate(self.value, sensor.Type.toSdl(sensor_type));
+        if (ret == 0)
+            return null;
+        return ret;
+    }
+
+    /// Get the serial number of an opened gamepad, if available.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The gamepad object to query.
+    ///
+    /// ## Return Value
+    /// Returns the serial number of the gamepad, or `null` if unavailable.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getSerial(
+        self: Gamepad,
+    ) ?[:0]const u8 {
+        const ret = c.SDL_GetGamepadSerial(
+            self.value,
+        );
+        if (ret == null)
+            return null;
+        return std.mem.span(ret);
+    }
+
+    /// Get the Steam Input handle of an opened gamepad, if available.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The gamepad object to query.
+    ///
+    /// ## Return Value
+    /// Returns the gamepad handle, or `null` if unavailable.
+    ///
+    /// ## Remarks
+    /// Returns an `InputHandle_t` for the gamepad that can be used with Steam Input API: https://partner.steamgames.com/doc/api/ISteamInput
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getSteamHandle(
+        self: Gamepad,
+    ) ?u64 {
+        const ret = c.SDL_GetGamepadSteamHandle(self.value);
+        if (ret == 0)
+            return 0;
+        return @intCast(ret);
+    }
+
+    /// Get the current state of a finger on a touchpad on a gamepad.
+    ///
+    /// ## Function Parameters
+    /// * `self`: A gamepad.
+    /// * `touchpad`: A touchpad.
+    /// * `finger`: A finger.
+    ///
+    /// ## Return Value
+    /// Returns to if the finger is down, the upper-left origin coordinates normalize from `0` to `1`, and the pressure value.
+    pub fn getTouchpadFinger(
+        self: Gamepad,
+        touchpad: usize,
+        finger: usize,
+    ) !struct { down: bool, x: f32, y: f32, pressure: f32 } {
+        var down: bool = undefined;
+        var x: f32 = undefined;
+        var y: f32 = undefined;
+        var pressure: f32 = undefined;
+        try errors.wrapCallBool(c.SDL_GetGamepadTouchpadFinger(self.value, @intCast(touchpad), @intCast(finger), &down, &x, &y, &pressure));
+        return .{ .down = down, .x = x, .y = y, .pressure = pressure };
+    }
+
+    /// Get the type of an opened gamepad.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The gamepad object to query.
+    ///
+    /// ## Return Value
+    /// Returns the gamepad type, or `null` if it's not available.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getType(
+        self: Gamepad,
+    ) ?Type {
+        return Type.fromSdl(c.SDL_GetGamepadType(self.value));
+    }
+
     /// Query whether a gamepad has a given axis.
     ///
     /// ## Function Parameters
@@ -753,6 +1008,26 @@ pub const Type = enum(c_uint) {
         return c.SDL_GAMEPAD_TYPE_UNKNOWN;
     }
 
+    /// Convert a string into a type enum.
+    ///
+    /// ## Function Parameters
+    /// * `str`: String representing a gamepad type.
+    ///
+    /// ## Return Value
+    /// Returns the type enum corresponding to the input string, or `null` if no match was found.
+    ///
+    /// ## Remarks
+    /// This function is called internally to translate gamepad mapping strings for the underlying joystick device into the consistent gamepad mapping.
+    /// You do not normally need to call this function unless you are parsing gamepad mappings in your own code.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn fromString(
+        str: [:0]const u8,
+    ) ?Type {
+        return Type.fromSdl(c.SDL_GetGamepadTypeFromString(str.ptr));
+    }
+
     /// Get the label of a button on a gamepad.
     ///
     /// ## Function Parameters
@@ -768,7 +1043,27 @@ pub const Type = enum(c_uint) {
         button_type: Type,
         button: Button,
     ) ButtonLabel {
-        return @enumFromInt(c.SDL_GetGamepadButtonLabelForType(toSdl(button_type), Button.toSdl(button)));
+        return @enumFromInt(c.SDL_GetGamepadButtonLabelForType(Type.toSdl(button_type), Button.toSdl(button)));
+    }
+
+    /// Convert from a type enum to a string.
+    ///
+    /// ## Function Parameters
+    /// * `self`: An enum value.
+    ///
+    /// ## Return Value
+    /// Returns a string for the given type, or `null` if an invalid button is specified.
+    /// The string returned is of the format used by gamepad mapping strings.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getString(
+        self: Type,
+    ) ?[:0]const u8 {
+        const ret = c.SDL_GetGamepadStringForType(Type.toSdl(self));
+        if (ret == null)
+            return null;
+        return std.mem.span(ret);
     }
 };
 
@@ -887,6 +1182,20 @@ pub fn eventsEnabled() bool {
     return c.SDL_GamepadEventsEnabled();
 }
 
+/// Get a list of currently connected gamepads.
+///
+/// ## Return Value
+/// Returns a slice of joystick instance IDs.
+/// This should be freed with `free()` when no longer needed.
+///
+/// ## Version
+/// This function is available since SDL 3.2.0.
+pub fn getGamepads() ![]joystick.ID {
+    var count: c_int = undefined;
+    const ret = try errors.wrapNull(*c.SDL_JoystickID, c.SDL_GetGamepads(&count));
+    return @as([*]joystick.ID, @ptrCast(ret))[0..@intCast(count)];
+}
+
 /// Get the implementation-dependent GUID of a gamepad.
 ///
 /// ## Function Parameters
@@ -964,6 +1273,104 @@ pub fn getNameForJoystickId(
     id: joystick.ID,
 ) ![:0]const u8 {
     return errors.wrapCallCString(c.SDL_GetGamepadNameForID(id.value));
+}
+
+/// Get the implementation dependent path of a gamepad.
+///
+/// ## Function Parameters
+/// * `id`: The joystick instance ID.
+///
+/// ## Return Value
+/// Returns the path of the selected gamepad.
+///
+/// ## Remarks
+/// This can be called before any gamepads are opened.
+///
+/// ## Version
+/// This function is available since SDL 3.2.0.
+pub fn getPathForJoystickId(
+    id: joystick.ID,
+) ![:0]const u8 {
+    return errors.wrapCallCString(c.SDL_GetGamepadPathForID(id.value));
+}
+
+/// Get the player index of a gamepad.
+///
+/// ## Function Parameters
+/// * `id`: The joystick instance ID.
+///
+/// ## Return Value
+/// Returns the player index for gamepad, or `null` if it's not available.
+///
+/// ## Remarks
+/// This can be called before any gamepads are opened.
+///
+/// ## Version
+/// This function is available since SDL 3.2.0.
+pub fn getPlayerIndexForJoystickId(
+    id: joystick.ID,
+) ?usize {
+    const ret = c.SDL_GetGamepadPlayerIndexForID(id.value);
+    if (ret == -1)
+        return null;
+    return @intCast(ret);
+}
+
+/// Get the USB product ID of a gamepad, if available.
+///
+/// ## Function Parameters
+/// * `id`: The joystick instance ID.
+///
+/// ## Return Value
+/// Returns the USB product ID, or `null` if unavailable or invalid index.
+///
+/// ## Version
+/// This function is available since SDL 3.2.0.
+pub fn getProductForJoystickId(
+    id: joystick.ID,
+) ?u16 {
+    const ret = c.SDL_GetGamepadProductForID(id.value);
+    if (ret == 0)
+        return null;
+    return @intCast(ret);
+}
+
+/// Get the product version of a gamepad, if available.
+///
+/// ## Function Parameters
+/// * `id`: The joystick instance ID.
+///
+/// ## Return Value
+/// Returns the USB version ID, or `null` if unavailable or invalid index.
+///
+/// ## Version
+/// This function is available since SDL 3.2.0.
+pub fn getProductVersionForJoystickId(
+    id: joystick.ID,
+) ?u16 {
+    const ret = c.SDL_GetGamepadProductVersionForID(id.value);
+    if (ret == 0)
+        return null;
+    return @intCast(ret);
+}
+
+/// Get the type of a gamepad.
+///
+/// ## Function Parameters
+/// * `id`: The joystick instance ID.
+///
+/// ## Return Value
+/// Returns the gamepad type.
+///
+/// ## Remarks
+/// This can be called before any gamepads are opened.
+///
+/// ## Version
+/// This function is available since SDL 3.2.0.
+pub fn getTypeForJoystickId(
+    id: joystick.ID,
+) ?Type {
+    return Type.fromSdl(c.SDL_GetGamepadTypeForID(id.value));
 }
 
 /// Manually pump gamepad updates if not using the loop.
