@@ -1063,10 +1063,6 @@ pub const Joystick = struct {
     /// ## Remarks
     /// Each call to this function cancels any previous trigger rumble effect, and calling it with `0` intensity stops any rumbling.
     ///
-    /// Note that this is rumbling of the triggers and not the game controller as a whole.
-    /// This is currently only supported on Xbox One controllers.
-    /// If you want the (more common) whole-controller rumble, use `joystick.Joystick.rumble()` instead.
-    ///
     /// This function requires you to process SDL events or call `joystick.update()` to update rumble state.
     ///
     /// ## Version
@@ -1120,6 +1116,26 @@ pub const Joystick = struct {
         return errors.wrapCallBool(ret);
     }
 
+    /// Send a joystick specific effect packet.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The joystick to affect.
+    /// * `data`: The data to send to the joystick.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn sendEffect(
+        self: Joystick,
+        data: []const u8,
+    ) !void {
+        const ret = c.SDL_SendJoystickEffect(
+            self.value,
+            data.ptr,
+            @intCast(data.len),
+        );
+        return errors.wrapCallBool(ret);
+    }
+
     /// Send a sensor update for an opened virtual joystick.
     ///
     /// ## Function Parameters
@@ -1166,7 +1182,7 @@ pub const Joystick = struct {
     ///
     /// ## Version
     /// This function is available since SDL 3.2.0.
-    pub fn setLED(
+    pub fn setLed(
         self: Joystick,
         r: u8,
         g: u8,
@@ -1646,26 +1662,6 @@ pub fn has() bool {
 /// This function is available since SDL 3.2.0.
 pub fn lock() void {
     c.SDL_LockJoysticks();
-}
-
-/// Send a joystick specific effect packet.
-///
-/// ## Function Parameters
-/// * `self`: The joystick to affect.
-/// * `data`: The data to send to the joystick.
-///
-/// ## Version
-/// This function is available since SDL 3.2.0.
-pub fn sendEffect(
-    self: Joystick,
-    data: []const u8,
-) !void {
-    const ret = c.SDL_SendJoystickEffect(
-        self.value,
-        data.ptr,
-        @intCast(data.len),
-    );
-    return errors.wrapCallBool(ret);
 }
 
 /// Set the state of joystick event processing.

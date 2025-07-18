@@ -3,6 +3,7 @@ const errors = @import("errors.zig");
 const io_stream = @import("io_stream.zig");
 const joystick = @import("joystick.zig");
 const power = @import("power.zig");
+const properties = @import("properties.zig");
 const sensor = @import("sensor.zig");
 const sdl3 = @import("sdl3.zig");
 const std = @import("std");
@@ -94,19 +95,22 @@ pub const Axis = enum(c_int) {
 /// ## Version
 /// This struct is available since SDL 3.2.0.
 pub const Binding = struct {
+    /// Pointer to the original binding.
+    /// Write to it with `gamepad.Binding.set()`.
+    original: *c.SDL_GamepadBinding,
     /// Joystick information to bind from.
     input: union(BindingType) {
         /// Joystick button index.
-        button: u32,
+        button: usize,
         /// Joystick axis index and min/max.
         axis: packed struct {
-            index: u32,
+            index: usize,
             min: i16,
             max: i16,
         },
         /// Joystick hat index and type.
         hat: packed struct {
-            index: u32,
+            index: usize,
             type: joystick.Hat,
         },
     },
@@ -124,14 +128,10 @@ pub const Binding = struct {
         hat: Button,
     },
 
-    // Size check.
-    comptime {
-        std.debug.assert(@sizeOf(Binding) <= @sizeOf(c.SDL_GamepadBinding));
-    }
-
     /// Convert from SDL in place.
-    pub fn fromSdlInPlace(ptr: *c.SDL_GamepadBinding) void {
-        const ret = Binding{
+    pub fn fromSdl(ptr: *c.SDL_GamepadBinding) Binding {
+        return .{
+            .original = ptr,
             .input = switch (ptr.input_type) {
                 c.SDL_GAMEPAD_BINDTYPE_AXIS => .{ .axis = .{
                     .index = @intCast(ptr.input.axis.axis),
@@ -157,7 +157,33 @@ pub const Binding = struct {
                 },
             },
         };
-        @as(*Binding, @alignCast(@ptrCast(ptr))).* = ret;
+    }
+
+    /// Set the original binding using values here.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The binding to set with.
+    ///
+    /// ## Version
+    /// This function is provided by zig-sdl3.
+    pub fn set(
+        self: Binding,
+    ) void {
+        var ret = c.SDL_GamepadBinding{
+            .input_type = BindingType.toSdl(@as(BindingType, self.input)),
+            .output_type = BindingType.toSdl(@as(BindingType, self.output)),
+        };
+        switch (self.input) {
+            .button => |val| ret.input.button = @intCast(val),
+            .axis => |val| ret.input.axis = .{ .axis = @intCast(val.index), .axis_min = @intCast(val.min), .axis_max = @intCast(val.max) },
+            .hat => |val| ret.input.hat = .{ .hat = @intCast(val.index), .hat_mask = @intFromEnum(val.type) },
+        }
+        switch (self.output) {
+            .button => |val| ret.output.button = Button.toSdl(val),
+            .axis => |val| ret.output.axis = .{ .axis = Axis.toSdl(val.index), .axis_min = @intCast(val.min), .axis_max = @intCast(val.max) },
+            else => {},
+        }
+        self.original.* = ret;
     }
 };
 
@@ -345,6 +371,34 @@ pub const ButtonLabel = enum(c_uint) {
 pub const Gamepad = struct {
     value: *c.SDL_Gamepad,
 
+    /// Gamepad properties.
+    ///
+    /// ## Version
+    /// This struct is provided by zig-sdl3.
+    pub const Properties = struct {
+        /// True if this gamepad has an LED that has adjustable brightness.
+        mono_led: ?bool,
+        /// True if this gamepad has an LED that has adjustable color.
+        rgb_led: ?bool,
+        /// True if this gamepad has a player LED.
+        player_led: ?bool,
+        /// True if this gamepad has left/right rumble.
+        rumble: ?bool,
+        /// True if this gamepad has simple trigger rumble.
+        trigger_rumble: ?bool,
+
+        /// Convert from SDL properties.
+        pub fn fromProperties(value: properties.Group) Properties {
+            return .{
+                .mono_led = if (value.get(c.SDL_PROP_GAMEPAD_CAP_MONO_LED_BOOLEAN)) |val| val.boolean else null,
+                .rgb_led = if (value.get(c.SDL_PROP_GAMEPAD_CAP_RGB_LED_BOOLEAN)) |val| val.boolean else null,
+                .player_led = if (value.get(c.SDL_PROP_GAMEPAD_CAP_PLAYER_LED_BOOLEAN)) |val| val.boolean else null,
+                .rumble = if (value.get(c.SDL_PROP_GAMEPAD_CAP_RUMBLE_BOOLEAN)) |val| val.boolean else null,
+                .trigger_rumble = if (value.get(c.SDL_PROP_GAMEPAD_CAP_TRIGGER_RUMBLE_BOOLEAN)) |val| val.boolean else null,
+            };
+        }
+    };
+
     /// Check if a gamepad has been opened and is currently connected.
     ///
     /// ## Function Parameters
@@ -443,25 +497,66 @@ pub const Gamepad = struct {
         return c.SDL_GetGamepadAxis(self.value, Axis.toSdl(axis));
     }
 
-    // Can not just convert...
-    // /// Get the SDL joystick layer bindings for a gamepad.
-    // ///
-    // /// ## Function Parameters
-    // /// * `self`: A gamepad.
-    // ///
-    // /// ## Return Value
-    // /// Returns the joystick bindings.
-    // /// This returns a single allocation that should be freed with `free()` when it is no longer needed.
-    // ///
-    // /// ## Version
-    // /// This function is available since SDL 3.2.0.
-    // pub fn getBindings(
-    //     self: Gamepad,
-    // ) ![]Binding {
-    //     var count: c_int = undefined;
-    //     const src = try errors.wrapNull([*][*c]c.SDL_GamepadBinding, c.SDL_GetGamepadBindings(self.value, &count));
-    //     const dst = @as([*][])
-    // }
+    /// An iterator for gamepad bindings.
+    ///
+    /// ## Version
+    /// This struct is provided by zig-sdl3.
+    pub const BindingIterator = struct {
+        value: [][*c]c.SDL_GamepadBinding,
+        pos: usize,
+
+        /// Deinitialize the iterator.
+        ///
+        /// ## Function Parameters
+        /// * `self`: The binding iterator.
+        ///
+        /// ## Version
+        /// This function is provided by zig-sdl3.
+        pub fn deinit(
+            self: BindingIterator,
+        ) void {
+            sdl3.free(self.value);
+        }
+
+        /// Return the next binding.
+        ///
+        /// ## Function Parameters
+        /// * `self`: THe binding iterator.
+        ///
+        /// ## Return Value
+        /// Returns the next binding, or `null` if at the end.
+        ///
+        /// ## Version
+        /// This function is provided by zig-sdl3.
+        pub fn next(
+            self: *BindingIterator,
+        ) ?Binding {
+            if (self.pos >= self.value.len)
+                return null;
+            const ret = Binding.fromSdl(self.value[self.pos]);
+            self.pos += 1;
+            return ret;
+        }
+    };
+
+    /// Get the SDL joystick layer bindings for a gamepad.
+    ///
+    /// ## Function Parameters
+    /// * `self`: A gamepad.
+    ///
+    /// ## Return Value
+    /// Returns a joystick bindings iterator.
+    /// You need to deinitialize the returned value!
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getBindings(
+        self: Gamepad,
+    ) !BindingIterator {
+        var count: c_int = undefined;
+        const src = try errors.wrapNull([*][*c]c.SDL_GamepadBinding, c.SDL_GetGamepadBindings(self.value, &count));
+        return .{ .value = src[0..@intCast(count)], .pos = 0 };
+    }
 
     /// Get the current state of a button on a gamepad.
     ///
@@ -644,6 +739,40 @@ pub const Gamepad = struct {
         return errors.wrapCallCString(c.SDL_GetGamepadName(self.value));
     }
 
+    /// Get the number of supported simultaneous fingers on a touchpad on a game gamepad.
+    ///
+    /// ## Function Parameters
+    /// * `self`: A gamepad.
+    /// * `touchpad`: A touchpad.
+    ///
+    /// ## Return Value
+    /// Returns number of supported simultaneous fingers.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getNumTouchpadFingers(
+        self: Gamepad,
+        touchpad: usize,
+    ) usize {
+        return @intCast(c.SDL_GetNumGamepadTouchpadFingers(self.value, @intCast(touchpad)));
+    }
+
+    /// Get the number of touchpads on a gamepad.
+    ///
+    /// ## Function Parameters
+    /// * `self`: A gamepad.
+    ///
+    /// ## Return Value
+    /// Returns number of touchpads.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getNumTouchpads(
+        self: Gamepad,
+    ) usize {
+        return @intCast(c.SDL_GetNumGamepadTouchpads(self.value));
+    }
+
     /// Get the implementation-dependent path for an opened gamepad.
     ///
     /// ## Function Parameters
@@ -747,6 +876,30 @@ pub const Gamepad = struct {
         if (ret == 0)
             return null;
         return @intCast(ret);
+    }
+
+    /// Get the properties associated with an opened gamepad.
+    pub fn getProperties(
+        self: Gamepad,
+    ) !Properties {
+        const props = c.SDL_GetGamepadProperties(self.value);
+        return Properties.fromProperties(.{ .value = try errors.wrapCall(c.SDL_PropertiesID, props, 0) });
+    }
+
+    /// Get the type of an opened gamepad, ignoring any mapping override.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The gamepad object to query.
+    ///
+    /// ## Return Value
+    /// Returns the gamepad type, or `null` if it's not available.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getRealType(
+        self: Gamepad,
+    ) ?Type {
+        return Type.fromSdl(c.SDL_GetRealGamepadType(self.value));
     }
 
     /// Get the current state of a gamepad sensor.
@@ -877,6 +1030,27 @@ pub const Gamepad = struct {
         return Type.fromSdl(c.SDL_GetGamepadType(self.value));
     }
 
+    /// Get the USB vendor ID of an opened gamepad, if available.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The gamepad object to query.
+    ///
+    /// ## Return Value
+    /// Returns the USB vendor ID, or `null` if unavailable.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn getVendor(
+        self: Gamepad,
+    ) ?u16 {
+        const ret = c.SDL_GetGamepadVendor(
+            self.value,
+        );
+        if (ret == 0)
+            return null;
+        return ret;
+    }
+
     /// Query whether a gamepad has a given axis.
     ///
     /// ## Function Parameters
@@ -953,6 +1127,78 @@ pub const Gamepad = struct {
         return .{ .value = try errors.wrapNull(*c.SDL_Gamepad, c.SDL_OpenGamepad(id.value)) };
     }
 
+    /// Start a rumble effect on a gamepad.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The gamepad to vibrate.
+    /// * `low_frequency_rumble`: The intensity of the low frequency (left) rumble motor.
+    /// * `high_frequency_rumble`: The intensity of the high frequency (right) rumble motor.
+    /// * `duration_milliseconds`: The duration of the rumble effect, in milliseconds.
+    ///
+    /// ## Remarks
+    /// Each call to this function cancels any previous trigger rumble effect, and calling it with `0` intensity stops any rumbling.
+    ///
+    /// This function requires you to process SDL events or call `joystick.update()` to update rumble state.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn rumble(
+        self: Gamepad,
+        low_frequency_rumble: u16,
+        high_frequency_rumble: u16,
+        duration_milliseconds: u32,
+    ) !void {
+        return errors.wrapCallBool(c.SDL_RumbleGamepad(self.value, low_frequency_rumble, high_frequency_rumble, duration_milliseconds));
+    }
+
+    /// Start a rumble effect in the gamepad's triggers.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The gamepad to vibrate.
+    /// * `low_frequency_rumble`: The intensity of the low frequency (left) rumble motor.
+    /// * `high_frequency_rumble`: The intensity of the high frequency (right) rumble motor.
+    /// * `duration_milliseconds`: The duration of the rumble effect, in milliseconds.
+    ///
+    /// ## Remarks
+    /// Each call to this function cancels any previous trigger rumble effect, and calling it with `0` intensity stops any rumbling.
+    ///
+    /// Note that this is rumbling of the triggers and not the game controller as a whole.
+    /// This is currently only supported on Xbox One controllers.
+    /// If you want the (more common) whole-controller rumble, use `joystick.Joystick.rumble()` instead.
+    ///
+    /// This function requires you to process SDL events or call `joystick.update()` to update rumble state.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn rumbleTriggers(
+        self: Gamepad,
+        low_frequency_rumble: u16,
+        high_frequency_rumble: u16,
+        duration_milliseconds: u32,
+    ) !void {
+        return errors.wrapCallBool(c.SDL_RumbleGamepadTriggers(self.value, low_frequency_rumble, high_frequency_rumble, duration_milliseconds));
+    }
+
+    /// Send a gamepad specific effect packet.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The gamepad to affect.
+    /// * `data`: The data to send to the gamepad.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn sendEffect(
+        self: Gamepad,
+        data: []const u8,
+    ) !void {
+        const ret = c.SDL_SendGamepadEffect(
+            self.value,
+            data.ptr,
+            @intCast(data.len),
+        );
+        return errors.wrapCallBool(ret);
+    }
+
     /// Query whether sensor data reporting is enabled for a gamepad.
     ///
     /// ## Function Parameters
@@ -969,6 +1215,68 @@ pub const Gamepad = struct {
         sensor_type: sensor.Type,
     ) bool {
         return c.SDL_GamepadSensorEnabled(self.value, sensor.Type.toSdl(sensor_type));
+    }
+
+    /// Update a gamepad's LED color.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The gamepad to update.
+    /// * `r`: The intensity of the red LED.
+    /// * `g`: The intensity of the green LED.
+    /// * `b`: The intensity of the blue LED.
+    ///
+    /// ## Remarks
+    /// An example of a joystick LED is the light on the back of a PlayStation 4's DualShock 4 controller.
+    ///
+    /// For gamepads with a single color LED, the maximum of the RGB values will be used as the LED brightness.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn setLed(
+        self: Gamepad,
+        r: u8,
+        g: u8,
+        b: u8,
+    ) !void {
+        const ret = c.SDL_SetGamepadLED(
+            self.value,
+            @intCast(r),
+            @intCast(g),
+            @intCast(b),
+        );
+        return errors.wrapCallBool(ret);
+    }
+
+    /// Set the player index of an opened gamepad.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The gamepad object to adjust.
+    /// * `index`: Player index to assign to this gamepad, or `null` to clear the player index and turn off player LEDs.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn setPlayerIndex(
+        self: Gamepad,
+        index: ?usize,
+    ) !void {
+        return errors.wrapCallBool(c.SDL_SetGamepadPlayerIndex(self.value, if (index) |val| @intCast(val) else -1));
+    }
+
+    /// Set whether data reporting for a gamepad sensor is enabled.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The gamepad to update.
+    /// * `sensor_type`: The type of sensor to enable/disable.
+    /// * `enabled`: Whether data reporting should be enabled.
+    ///
+    /// ## Version
+    /// This function is available since SDL 3.2.0.
+    pub fn setSensorEnabled(
+        self: Gamepad,
+        sensor_type: sensor.Type,
+        enabled: bool,
+    ) !void {
+        return errors.wrapCallBool(c.SDL_SetGamepadSensorEnabled(self.value, sensor.Type.toSdl(sensor_type), enabled));
     }
 };
 
@@ -1256,6 +1564,20 @@ pub fn getMappingForJoystickId(
     return errors.wrapCallCStringMut(c.SDL_GetGamepadMappingForID(id.value));
 }
 
+/// Get the current gamepad mappings.
+///
+/// ## Return Value
+/// Returns a slice of the mapping strings.
+/// This should be freed with `free()`.
+///
+/// ## Version
+/// This function is available since SDL 3.2.0.
+pub fn getMappings() ![][*:0]u8 {
+    var count: c_int = undefined;
+    const ret = try errors.wrapNull([*][*c]u8, c.SDL_GetGamepadMappings(&count));
+    return @as([*][*:0]u8, @ptrCast(ret))[0..@intCast(count)];
+}
+
 /// Get the implementation dependent name of a gamepad.
 ///
 /// ## Function Parameters
@@ -1354,6 +1676,25 @@ pub fn getProductVersionForJoystickId(
     return @intCast(ret);
 }
 
+///Get the type of a gamepad, ignoring any mapping override.
+///
+/// ## Function Parameters
+/// * `id`: The joystick instance ID.
+///
+/// ## Return Value
+/// Returns the gamepad type.
+///
+/// ## Remarks
+/// This can be called before any gamepads are opened.
+///
+/// ## Version
+/// This function is available since SDL 3.2.0.
+pub fn getRealTypeForJoystickId(
+    id: joystick.ID,
+) ?Type {
+    return Type.fromSdl(c.SDL_GetGamepadTypeForID(id.value));
+}
+
 /// Get the type of a gamepad.
 ///
 /// ## Function Parameters
@@ -1371,6 +1712,99 @@ pub fn getTypeForJoystickId(
     id: joystick.ID,
 ) ?Type {
     return Type.fromSdl(c.SDL_GetGamepadTypeForID(id.value));
+}
+
+/// Get the USB vendor ID of an opened gamepad, if available.
+///
+/// ## Function Parameters
+/// * `id`: The joystick instance ID.
+///
+/// ## Return Value
+/// Returns the USB vendor ID, or `null` if unavailable.
+///
+/// ## Version
+/// This function is available since SDL 3.2.0.
+pub fn getVendorForJoystickId(
+    id: joystick.ID,
+) ?u16 {
+    const ret = c.SDL_GetGamepadVendorForID(id.value);
+    if (ret == 0)
+        return null;
+    return ret;
+}
+
+/// Return whether a gamepad is currently connected.
+///
+/// ## Return Value
+/// Returns true if a gamepad is connected, false otherwise.
+///
+/// ## Version
+/// This function is available since SDL 3.2.0.
+pub fn hasGamepad() bool {
+    return c.SDL_HasGamepad();
+}
+
+/// Check if the given joystick is supported by the gamepad interface.
+///
+/// ## Function Parameters
+/// * `id`: The joystick instance ID.
+///
+/// ## Return Value
+/// Returns true if the given joystick is supported by the gamepad interface, false if it isn't or it's an invalid index.
+///
+/// ## Version
+/// This function is available since SDL 3.2.0.
+pub fn isJoystickGamepad(
+    id: joystick.ID,
+) bool {
+    return c.SDL_IsGamepad(id.value);
+}
+
+/// Reinitialize the SDL mapping database to its initial state.
+///
+/// Remarks
+/// This will generate gamepad events as needed if device mappings change.
+///
+/// Version
+/// This function is available since SDL 3.2.0.
+pub fn reloadMappings() !void {
+    return errors.wrapCallBool(c.SDL_ReloadGamepadMappings());
+}
+
+/// Set the state of gamepad event processing.
+///
+/// ## Function Parameters
+/// * `events_enabled`: Whether to process gamepad events or not.
+///
+/// ## Remarks
+/// If gamepad events are disabled, you must call `gamepad.update()` yourself and check the state of the gamepad when you want gamepad information.
+///
+/// ## Version
+/// This function is available since SDL 3.2.0.
+pub fn setEventsEnabled(
+    events_enabled: bool,
+) void {
+    c.SDL_SetJoystickEventsEnabled(
+        events_enabled,
+    );
+}
+
+/// Set the current mapping of a joystick or gamepad.
+///
+/// ## Function Parameters
+/// * `id`: The joystick instance ID.
+/// * `mapping`: The mapping to use for this device, or `null` to clear the mapping.
+///
+/// ## Remarks
+/// Details about mappings are discussed with `gamepad.addMapping()`.
+///
+/// ## Version
+/// This function is available since SDL 3.2.0.
+pub fn setMapping(
+    id: joystick.ID,
+    mapping: ?[:0]const u8,
+) !void {
+    return errors.wrapCallBool(c.SDL_SetGamepadMapping(id.value, if (mapping) |val| val.ptr else null));
 }
 
 /// Manually pump gamepad updates if not using the loop.

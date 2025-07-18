@@ -30,6 +30,7 @@ For monitoring how close various subsystems are to completion.
 * Scancode
 * Mouse
 * Joystick
+* Gamepad
 * Touch
 * Pen
 * Sensor
@@ -79,11 +80,10 @@ For monitoring how close various subsystems are to completion.
 * GUID
 * Misc
 
-## In Progress (3/57)
+## In Progress (2/57)
 
 ### Basics
 * Hints
 
 ### Input
 * Events
-* Gamepad
