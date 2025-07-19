@@ -35,16 +35,33 @@ Then add zig-sdl3 as a dependency and import its modules and artifact in your `b
 const sdl3 = b.dependency("sdl3", .{
     .target = target,
     .optimize = optimize,
-    .callbacks = false,
-    .ext_image = true,
+
+    // Lib options.
+    /// .callbacks = false,
+    /// .ext_image = false,
 
     // Options passed directly to https://github.com/castholm/SDL (SDL3 C Bindings):
-    //.c_sdl_preferred_linkage = .static,
-    //.c_sdl_strip = false,
-    //.c_sdl_sanitize_c = .off,
-    //.c_sdl_lto = .none,
-    //.c_sdl_emscripten_pthreads = false,
-    //.c_sdl_install_build_config_h = false,
+    // .c_sdl_preferred_linkage = .static,
+    // .c_sdl_strip = false,
+    // .c_sdl_sanitize_c = .off,
+    // .c_sdl_lto = .none,
+    // .c_sdl_emscripten_pthreads = false,
+    // .c_sdl_install_build_config_h = false,
+
+    // Options if `ext_image` is enabled:
+    // .image_enable_bmp = true,
+    // .image_enable_gif = true,
+    // .image_enable_jpg = true,
+    // .image_enable_lbm = true,
+    // .image_enable_pcx = true,
+    // .image_enable_png = true,
+    // .image_enable_pnm = true,
+    // .image_enable_qoi = true,
+    // .image_enable_svg = true,
+    // .image_enable_tga = true,
+    // .image_enable_xcf = true,
+    // .image_enable_xpm = true,
+    // .image_enable_xv = true,
 });
 ```
 Now add the modules and artifact to your target as you would normally:

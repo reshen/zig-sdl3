@@ -17,6 +17,7 @@ pub fn build(b: *std.Build) !void {
         },
     };
 
+    // C SDL options.
     const c_sdl_preferred_linkage = b.option(
         std.builtin.LinkMode,
         "c_sdl_preferred_linkage",
@@ -61,18 +62,13 @@ pub fn build(b: *std.Build) !void {
 
     const sdl_dep_lib = sdl_dep.artifact("SDL3");
 
-    const sdl_image_dep = b.dependency("sdl_image", .{
-        .target = target,
-        .optimize = optimize,
-        // TODO: Add options here...
-    });
-    const sdl_image_lib = sdl_image_dep.artifact("SDL3_image");
-
     const sdl3 = b.addModule("sdl3", .{
         .root_source_file = cfg.root_source_file,
         .target = target,
         .optimize = optimize,
     });
+
+    // SDL options.
     const extension_options = b.addOptions();
     const main_callbacks = b.option(bool, "callbacks", "Enable SDL callbacks rather than use a main function") orelse false;
     extension_options.addOption(bool, "callbacks", main_callbacks);
@@ -80,20 +76,115 @@ pub fn build(b: *std.Build) !void {
     extension_options.addOption(bool, "main", sdl3_main);
     const ext_image = b.option(bool, "ext_image", "Enable SDL_image extension") orelse false;
     extension_options.addOption(bool, "image", ext_image);
+
     // Linking zig-sdl to sdl3, makes the library much easier to use.
     sdl3.addOptions("extension_options", extension_options);
     sdl3.linkLibrary(sdl_dep_lib);
     if (ext_image) {
-        sdl3.linkLibrary(sdl_image_lib);
+        setupSdlImage(b, sdl3, sdl_dep_lib, cfg);
     }
 
-    _ = setupDocs(b, sdl3);
+    _ = setupDocs(b, sdl3, sdl_dep_lib, cfg);
     _ = setupTest(b, cfg, extension_options);
     _ = try setupExamples(b, sdl3, cfg);
     _ = try runExample(b, sdl3, cfg);
 }
 
-pub fn setupDocs(b: *std.Build, sdl3: *std.Build.Module) *std.Build.Step {
+// Most of this is copied from https://github.com/allyourcodebase/SDL_image/blob/main/build.zig.
+pub fn setupSdlImage(b: *std.Build, sdl3: *std.Build.Module, sdl_dep_lib: *std.Build.Step.Compile, cfg: std.Build.TestOptions) void {
+    const upstream = b.lazyDependency("sdl_image", .{}).?;
+
+    const target = cfg.target orelse b.standardTargetOptions(.{});
+    const lib = b.addLibrary(.{
+        .name = "SDL3_image",
+        .version = .{ .major = 3, .minor = 2, .patch = 0 },
+        .linkage = .static,
+        .root_module = b.createModule(.{
+            .target = target,
+            .optimize = cfg.optimize,
+            .link_libc = true,
+        }),
+    });
+    lib.linkLibrary(sdl_dep_lib);
+
+    // Use stb_image for loading JPEG and PNG files. Native alternatives such as
+    // Windows Imaging Component and Apple's Image I/O framework are not yet
+    // supported by this build script.
+    lib.root_module.addCMacro("USE_STBIMAGE", "");
+
+    // The following are options for supported file formats. AVIF, JXL, TIFF,
+    // and WebP are not yet supported by this build script, as they require
+    // additional dependencies.
+    if (b.option(bool, "image_enable_bmp", "Support loading BMP images") orelse true)
+        lib.root_module.addCMacro("LOAD_BMP", "");
+    if (b.option(bool, "image_enable_gif", "Support loading GIF images") orelse true)
+        lib.root_module.addCMacro("LOAD_GIF", "");
+    if (b.option(bool, "image_enable_jpg", "Support loading JPEG images") orelse true)
+        lib.root_module.addCMacro("LOAD_JPG", "");
+    if (b.option(bool, "image_enable_lbm", "Support loading LBM images") orelse true)
+        lib.root_module.addCMacro("LOAD_LBM", "");
+    if (b.option(bool, "image_enable_pcx", "Support loading PCX images") orelse true)
+        lib.root_module.addCMacro("LOAD_PCX", "");
+    if (b.option(bool, "image_enable_png", "Support loading PNG images") orelse true)
+        lib.root_module.addCMacro("LOAD_PNG", "");
+    if (b.option(bool, "image_enable_pnm", "Support loading PNM images") orelse true)
+        lib.root_module.addCMacro("LOAD_PNM", "");
+    if (b.option(bool, "image_enable_qoi", "Support loading QOI images") orelse true)
+        lib.root_module.addCMacro("LOAD_QOI", "");
+    if (b.option(bool, "image_enable_svg", "Support loading SVG images") orelse true)
+        lib.root_module.addCMacro("LOAD_SVG", "");
+    if (b.option(bool, "image_enable_tga", "Support loading TGA images") orelse true)
+        lib.root_module.addCMacro("LOAD_TGA", "");
+    if (b.option(bool, "image_enable_xcf", "Support loading XCF images") orelse true)
+        lib.root_module.addCMacro("LOAD_XCF", "");
+    if (b.option(bool, "image_enable_xpm", "Support loading XPM images") orelse true)
+        lib.root_module.addCMacro("LOAD_XPM", "");
+    if (b.option(bool, "image_enable_xv", "Support loading XV images") orelse true)
+        lib.root_module.addCMacro("LOAD_XV", "");
+
+    lib.addIncludePath(upstream.path("include"));
+    lib.addIncludePath(upstream.path("src"));
+
+    lib.addCSourceFiles(.{
+        .root = upstream.path("src"),
+        .files = &.{
+            "IMG.c",
+            "IMG_WIC.c",
+            "IMG_avif.c",
+            "IMG_bmp.c",
+            "IMG_gif.c",
+            "IMG_jpg.c",
+            "IMG_jxl.c",
+            "IMG_lbm.c",
+            "IMG_pcx.c",
+            "IMG_png.c",
+            "IMG_pnm.c",
+            "IMG_qoi.c",
+            "IMG_stb.c",
+            "IMG_svg.c",
+            "IMG_tga.c",
+            "IMG_tif.c",
+            "IMG_webp.c",
+            "IMG_xcf.c",
+            "IMG_xpm.c",
+            "IMG_xv.c",
+        },
+    });
+
+    if (target.result.os.tag == .macos) {
+        lib.addCSourceFile(.{
+            .file = upstream.path("src/IMG_ImageIO.m"),
+        });
+        lib.linkFramework("Foundation");
+        lib.linkFramework("ApplicationServices");
+    }
+
+    lib.installHeadersDirectory(upstream.path("include"), "", .{});
+
+    sdl3.linkLibrary(lib);
+}
+
+pub fn setupDocs(b: *std.Build, sdl3: *std.Build.Module, sdl_dep_lib: *std.Build.Step.Compile, cfg: std.Build.TestOptions) *std.Build.Step {
     const sdl3_lib = b.addStaticLibrary(.{
         .root_module = sdl3,
         .name = "sdl3",
@@ -103,6 +194,7 @@ pub fn setupDocs(b: *std.Build, sdl3: *std.Build.Module) *std.Build.Step {
         .install_dir = .{ .prefix = {} },
         .install_subdir = "docs",
     });
+    setupSdlImage(b, sdl3, sdl_dep_lib, cfg);
     const docs_step = b.step("docs", "Generate library documentation");
     docs_step.dependOn(&docs.step);
     return docs_step;

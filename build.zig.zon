@@ -8,8 +8,9 @@
             .hash = "sdl-0.2.5+3.2.18-7uIn9FwZfwHKOwSubcg5_CiW4fXag5IIsiV_jnLdkpDM",
         },
         .sdl_image = .{
-            .url = "git+https://github.com/allyourcodebase/SDL_image.git#b4eea3007f965a17c946e31b3ce52196b94ce64b",
-            .hash = "SDL_image-3.2.4--aJoHa0VAAC_C_du38OrOmZ4m23B5bCjXONc13NEpTYf",
+            .url = "git+https://github.com/libsdl-org/SDL_image?ref=release-3.2.4#11154afb7855293159588b245b446a4ef09e574f",
+            .hash = "N-V-__8AAJB7IgJ65BPSqjqzt7j-5xKDklR0h8c11T60iemj",
+            .lazy = true,
         },
     },
     .paths = .{
