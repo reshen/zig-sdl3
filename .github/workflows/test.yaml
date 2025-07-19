@@ -21,9 +21,9 @@ jobs:
         with:
           version: ${{ env.ZIG_VERSION }}
       - name: Build Documentation Linux
-        run: zig build docs
+        run: zig build docs -Dext_image=true
       - name: Build Documentation Windows
-        run: zig build docs -Dtarget=x86_64-windows
+        run: zig build docs -Dext_image=true -Dtarget=x86_64-windows
   examples:
     name: Build Examples
     runs-on: ubuntu-latest

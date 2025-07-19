@@ -84,7 +84,7 @@ pub fn build(b: *std.Build) !void {
         setupSdlImage(b, sdl3, sdl_dep_lib, cfg);
     }
 
-    _ = setupDocs(b, sdl3, sdl_dep_lib, cfg);
+    _ = setupDocs(b, sdl3);
     _ = setupTest(b, cfg, extension_options);
     _ = try setupExamples(b, sdl3, cfg);
     _ = try runExample(b, sdl3, cfg);
@@ -184,7 +184,7 @@ pub fn setupSdlImage(b: *std.Build, sdl3: *std.Build.Module, sdl_dep_lib: *std.B
     sdl3.linkLibrary(lib);
 }
 
-pub fn setupDocs(b: *std.Build, sdl3: *std.Build.Module, sdl_dep_lib: *std.Build.Step.Compile, cfg: std.Build.TestOptions) *std.Build.Step {
+pub fn setupDocs(b: *std.Build, sdl3: *std.Build.Module) *std.Build.Step {
     const sdl3_lib = b.addStaticLibrary(.{
         .root_module = sdl3,
         .name = "sdl3",
@@ -194,7 +194,6 @@ pub fn setupDocs(b: *std.Build, sdl3: *std.Build.Module, sdl_dep_lib: *std.Build
         .install_dir = .{ .prefix = {} },
         .install_subdir = "docs",
     });
-    setupSdlImage(b, sdl3, sdl_dep_lib, cfg);
     const docs_step = b.step("docs", "Generate library documentation");
     docs_step.dependOn(&docs.step);
     return docs_step;
