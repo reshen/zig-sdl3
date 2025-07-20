@@ -81,7 +81,8 @@ pub fn build(b: *std.Build) !void {
     sdl3.addOptions("extension_options", extension_options);
     sdl3.linkLibrary(sdl_dep_lib);
     if (ext_image) {
-        setupSdlImage(b, sdl3, sdl_dep_lib, c_sdl_preferred_linkage, cfg);
+        if (!setupSdlImage(b, sdl3, sdl_dep_lib, c_sdl_preferred_linkage, cfg))
+            return;
     }
 
     _ = setupDocs(b, sdl3);
@@ -91,8 +92,8 @@ pub fn build(b: *std.Build) !void {
 }
 
 // Most of this is copied from https://github.com/allyourcodebase/SDL_image/blob/main/build.zig.
-pub fn setupSdlImage(b: *std.Build, sdl3: *std.Build.Module, sdl_dep_lib: *std.Build.Step.Compile, linkage: std.builtin.LinkMode, cfg: std.Build.TestOptions) void {
-    const upstream = b.lazyDependency("sdl_image", .{}).?;
+pub fn setupSdlImage(b: *std.Build, sdl3: *std.Build.Module, sdl_dep_lib: *std.Build.Step.Compile, linkage: std.builtin.LinkMode, cfg: std.Build.TestOptions) bool {
+    const upstream = b.lazyDependency("sdl_image", .{}) orelse false;
 
     const target = cfg.target orelse b.standardTargetOptions(.{});
     const lib = b.addLibrary(.{
@@ -182,6 +183,7 @@ pub fn setupSdlImage(b: *std.Build, sdl3: *std.Build.Module, sdl_dep_lib: *std.B
     lib.installHeadersDirectory(upstream.path("include"), "", .{});
 
     sdl3.linkLibrary(lib);
+    return true;
 }
 
 pub fn setupDocs(b: *std.Build, sdl3: *std.Build.Module) *std.Build.Step {
