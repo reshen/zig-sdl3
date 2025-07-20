@@ -397,6 +397,19 @@ pub const CameraDevice = struct {
     device: camera.ID,
 };
 
+/// An event triggered when the clipboard contents have changed (event.clipboard.*).
+///
+/// ## Version
+/// This struct is available since SDL 3.2.0.
+pub const Clipboard = struct {
+    /// Common event information.
+    common: Common,
+    /// Are we owning the clipboard (internal update)?
+    owner: bool,
+    /// Mime types.
+    mime_types: [][:0]const u8,
+};
+
 /// Fields shared by every event.
 ///
 /// ## Version
