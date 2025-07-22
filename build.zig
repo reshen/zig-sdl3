@@ -5,7 +5,7 @@ pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const cfg = std.Build.TestOptions{
+    const cfg: Config = .{
         .name = "zig-sdl3",
         .target = target,
         .optimize = optimize,
@@ -29,12 +29,12 @@ pub fn build(b: *std.Build) !void {
         "Strip debug symbols (default: varies)",
     ) orelse (optimize == .ReleaseSmall);
     const c_sdl_sanitize_c = b.option(
-        enum { off, trap, full }, // TODO: Change to std.zig.SanitizeC after 0.15
+        std.zig.SanitizeC,
         "c_sdl_sanitize_c",
         "Detect C undefined behavior (default: trap)",
     ) orelse .trap;
     const c_sdl_lto = b.option(
-        enum { none, full, thin }, // TODO: Change to std.zig.LtoMode after 0.15
+        std.zig.LtoMode,
         "c_sdl_lto",
         "Perform link time optimization (default: false)",
     ) orelse .none;
@@ -91,10 +91,10 @@ pub fn build(b: *std.Build) !void {
 }
 
 // Most of this is copied from https://github.com/allyourcodebase/SDL_image/blob/main/build.zig.
-pub fn setupSdlImage(b: *std.Build, sdl3: *std.Build.Module, sdl_dep_lib: *std.Build.Step.Compile, linkage: std.builtin.LinkMode, cfg: std.Build.TestOptions) void {
+pub fn setupSdlImage(b: *std.Build, sdl3: *std.Build.Module, sdl_dep_lib: *std.Build.Step.Compile, linkage: std.builtin.LinkMode, cfg: Config) void {
     const upstream = b.lazyDependency("sdl_image", .{}) orelse return;
 
-    const target = cfg.target orelse b.standardTargetOptions(.{});
+    const target = cfg.target;
     const lib = b.addLibrary(.{
         .name = "SDL3_image",
         .version = .{ .major = 3, .minor = 2, .patch = 4 },
@@ -185,7 +185,7 @@ pub fn setupSdlImage(b: *std.Build, sdl3: *std.Build.Module, sdl_dep_lib: *std.B
 }
 
 pub fn setupDocs(b: *std.Build, sdl3: *std.Build.Module) *std.Build.Step {
-    const sdl3_lib = b.addStaticLibrary(.{
+    const sdl3_lib = b.addLibrary(.{
         .root_module = sdl3,
         .name = "sdl3",
     });
@@ -199,20 +199,25 @@ pub fn setupDocs(b: *std.Build, sdl3: *std.Build.Module) *std.Build.Step {
     return docs_step;
 }
 
-pub fn setupExample(b: *std.Build, sdl3: *std.Build.Module, cfg: std.Build.TestOptions, name: []const u8) !*std.Build.Step.Compile {
+pub fn setupExample(b: *std.Build, sdl3: *std.Build.Module, cfg: Config, name: []const u8) !*std.Build.Step.Compile {
+    const exe_module = b.createModule(.{
+        .root_source_file = b.path(try std.fmt.allocPrint(b.allocator, "examples/{s}.zig", .{name})),
+        .target = cfg.target,
+        .optimize = cfg.optimize,
+        .imports = &.{
+            .{ .name = "sdl3", .module = sdl3 },
+        },
+    });
     const exe = b.addExecutable(.{
         .name = name,
-        .target = cfg.target orelse b.standardTargetOptions(.{}),
-        .optimize = cfg.optimize,
-        .root_source_file = b.path(try std.fmt.allocPrint(b.allocator, "examples/{s}.zig", .{name})),
+        .root_module = exe_module,
         .version = cfg.version,
     });
-    exe.root_module.addImport("sdl3", sdl3);
     b.installArtifact(exe);
     return exe;
 }
 
-pub fn runExample(b: *std.Build, sdl3: *std.Build.Module, cfg: std.Build.TestOptions) !void {
+pub fn runExample(b: *std.Build, sdl3: *std.Build.Module, cfg: Config) !void {
     const run_example: ?[]const u8 = b.option([]const u8, "example", "The example name for running an example") orelse null;
     const run = b.step("run", "Run an example with -Dexample=<example_name> option");
     if (run_example) |example| {
@@ -222,7 +227,7 @@ pub fn runExample(b: *std.Build, sdl3: *std.Build.Module, cfg: std.Build.TestOpt
     }
 }
 
-pub fn setupExamples(b: *std.Build, sdl3: *std.Build.Module, cfg: std.Build.TestOptions) !*std.Build.Step {
+pub fn setupExamples(b: *std.Build, sdl3: *std.Build.Module, cfg: Config) !*std.Build.Step {
     const exp = b.step("examples", "Build all examples");
     const examples_dir = b.path("examples");
     var dir = (try std.fs.openDirAbsolute(examples_dir.getPath(b), .{ .iterate = true }));
@@ -238,11 +243,19 @@ pub fn setupExamples(b: *std.Build, sdl3: *std.Build.Module, cfg: std.Build.Test
     return exp;
 }
 
-pub fn setupTest(b: *std.Build, cfg: std.Build.TestOptions, extension_options: *std.Build.Step.Options) *std.Build.Step.Compile {
-    const tst = b.addTest(cfg);
+pub fn setupTest(b: *std.Build, cfg: Config, extension_options: *std.Build.Step.Options) *std.Build.Step.Compile {
+    const test_module = b.createModule(.{
+        .root_source_file = cfg.root_source_file,
+        .target = cfg.target,
+        .optimize = cfg.optimize,
+    });
+    const tst = b.addTest(.{
+        .name = cfg.name,
+        .root_module = test_module,
+    });
     tst.root_module.addOptions("extension_options", extension_options);
     const sdl_dep = b.dependency("sdl", .{
-        .target = cfg.target orelse b.standardTargetOptions(.{}),
+        .target = cfg.target,
         .optimize = cfg.optimize,
     });
     const sdl_dep_lib = sdl_dep.artifact("SDL3");
@@ -252,3 +265,11 @@ pub fn setupTest(b: *std.Build, cfg: std.Build.TestOptions, extension_options: *
     tst_step.dependOn(&tst_run.step);
     return tst;
 }
+
+const Config = struct {
+    name: []const u8,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+    root_source_file: std.Build.LazyPath,
+    version: std.SemanticVersion,
+};
