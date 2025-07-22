@@ -2,7 +2,9 @@ const sdl3 = @import("sdl3");
 const std = @import("std");
 
 pub fn main() !void {
-    const out = std.io.getStdOut().writer();
+    var stdout_buffer: [1024]u8 = undefined;
+    var stdout_file_writer = std.fs.File.stdout().writer(&stdout_buffer);
+    var out = stdout_file_writer.interface;
 
     // Paths available.
     try out.print("Application Directory: \"{s}\"\n", .{try sdl3.filesystem.getBasePath()});
@@ -29,4 +31,6 @@ pub fn main() !void {
     for (items.items) |item| {
         try out.print("Found: \"{s}\"\n", .{item});
     }
+
+    try stdout_file_writer.interface.flush();
 }

@@ -20,11 +20,20 @@ fn arrayCleanupCallback(user_data: ?*void, val: *std.ArrayList(u32)) void {
 
 fn printItems(user_data: ?*usize, props: sdl3.properties.Group, name: [:0]const u8) void {
     const index = user_data.?;
-    std.io.getStdOut().writer().print("Index: {d}, Name: \"{s}\", Type: {s}\n", .{
+
+    var stdout_buffer: [256]u8 = undefined;
+    var stdout_writer = std.fs.File.stdout().writer(&stdout_buffer);
+    var stderr_buffer: [256]u8 = undefined;
+    var stderr_writer = std.fs.File.stderr().writer(&stderr_buffer);
+
+    stdout_writer.interface.print("Index: {d}, Name: \"{s}\", Type: {s}\n", .{
         index.*,
         name,
         printPropertyType(props.getType(name)),
-    }) catch std.io.getStdErr().writer().print("Standard writer error\n", .{}) catch {};
+    }) catch stderr_writer.interface.print("Standard writer error\n", .{}) catch {};
+
+    stdout_writer.interface.flush() catch {};
+    stderr_writer.interface.flush() catch {};
     index.* += 1;
 }
 
@@ -41,7 +50,9 @@ pub fn main() !void {
     var arr = std.ArrayList(u32).init(allocator);
     try properties.setPointerPropertyWithCleanup("myArr", std.ArrayList(u32), &arr, void, arrayCleanupCallback, null);
 
-    const writer = std.io.getStdOut().writer();
+    var stdout_buffer: [1024]u8 = undefined;
+    var stdout_file_writer = std.fs.File.stdout().writer(&stdout_buffer);
+    var writer = stdout_file_writer.interface;
     try writer.print("Type of \"myStr\" is {s}\n", .{printPropertyType(properties.getType("myStr"))});
     try writer.print("Type of \"isNotThere\" is {s}\n\n", .{printPropertyType(properties.getType("isNotThere"))});
 
@@ -72,4 +83,6 @@ pub fn main() !void {
     if (properties.get("myStr")) |val| {
         try writer.print("\nValue of \"myStr\" is {s}\n", .{val.string}); // Will not print.
     }
+
+    try stdout_file_writer.interface.flush();
 }
