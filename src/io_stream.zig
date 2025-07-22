@@ -1379,21 +1379,43 @@ pub const Stream = struct {
         return ret;
     }
 
-    fn readerRead(
-        self: Stream,
-        buffer: []u8,
-    ) Error!usize {
-        const ret = try self.read(buffer);
-        if (ret) |val|
-            return val.len;
-        return 0;
-    }
-
     /// Stream reader type.
     ///
     /// ## Version
     /// This type is provided by zig-sdl3.
-    pub const Reader = std.io.Reader(Stream, Error, readerRead);
+    pub const Reader = struct {
+        stream: Stream,
+        err: ?Error = null,
+        interface: std.io.Reader,
+
+        pub fn init(stream: Stream, buffer: []u8) Reader {
+            return .{
+                .stream = stream,
+                .interface = .{
+                    .buffer = buffer,
+                    .vtable = &.{ .stream = streamFn },
+                    .seek = 0,
+                    .end = 0,
+                },
+            };
+        }
+
+        fn streamFn(r: *std.io.Reader, w: *std.io.Writer, limit: std.io.Limit) std.io.Reader.StreamError!usize {
+            const self: *@This() = @alignCast(@fieldParentPtr("interface", r));
+            const dest = limit.slice(try w.writableSliceGreedy(1));
+            const bytes_read = self.stream.read(dest) catch |err| {
+                self.err = err;
+                return error.ReadFailed;
+            };
+
+            if (bytes_read) |read_slice| {
+                w.advance(read_slice.len);
+                return read_slice.len;
+            } else {
+                return error.EndOfStream;
+            }
+        }
+    };
 
     /// Get a reader to the stream.
     ///
@@ -1407,8 +1429,9 @@ pub const Stream = struct {
     /// This function is provided by zig-sdl3.
     pub fn reader(
         self: Stream,
+        buffer: []u8,
     ) Reader {
-        return .{ .context = self };
+        return Reader.init(self, buffer);
     }
 
     /// Save all the data into an SDL data stream.
@@ -1519,25 +1542,24 @@ pub const Stream = struct {
     pub fn write(
         self: Stream,
         data: []const u8,
-        size_written: ?*usize,
-    ) !void {
+    ) !usize {
         const ret = c.SDL_WriteIO(self.value, data.ptr, data.len);
-        if (ret != data.len) {
+        if (ret < data.len) {
             const status = c.SDL_GetIOStatus(self.value);
-            const err_val: ?Error = switch (status) {
-                c.SDL_IO_STATUS_ERROR => error.Err,
-                c.SDL_IO_STATUS_NOT_READY => error.NotReady,
-                c.SDL_IO_STATUS_READONLY => error.ReadOnly,
-                c.SDL_IO_STATUS_WRITEONLY => error.WriteOnly,
-                else => null,
-            };
-            if (err_val) |err| {
-                errors.callErrorCallback();
-                if (size_written) |val|
-                    val.* = ret;
-                return err;
+            if (status != c.SDL_IO_STATUS_READY) {
+                return switch (status) {
+                    c.SDL_IO_STATUS_ERROR => error.Err,
+                    c.SDL_IO_STATUS_NOT_READY => error.NotReady,
+                    c.SDL_IO_STATUS_READONLY => error.ReadOnly,
+                    c.SDL_IO_STATUS_WRITEONLY => error.WriteOnly,
+                    else => blk: {
+                        errors.callErrorCallback();
+                        break :blk error.Err;
+                    },
+                };
             }
         }
+        return ret;
     }
 
     /// Use this function to write a signed byte to a stream.
@@ -1870,34 +1892,69 @@ pub const Stream = struct {
         ));
     }
 
-    fn writerWrite(
-        self: Stream,
-        data: []const u8,
-    ) Error!usize {
-        try self.write(data, null);
-        return data.len;
-    }
-
     /// Stream writer type.
     ///
     /// ## Version
     /// This type is provided by zig-sdl3.
-    pub const Writer = std.io.Writer(Stream, Error, writerWrite);
+    pub const Writer = struct {
+        stream: Stream,
+        err: ?Error = null,
+        interface: std.io.Writer,
+
+        pub fn init(stream: Stream, buffer: []u8) Writer {
+            return .{
+                .stream = stream,
+                .interface = .{
+                    .buffer = buffer,
+                    .vtable = &.{ .drain = drainFn },
+                },
+            };
+        }
+
+        fn doWrite(self: *@This(), buf: []const u8) std.io.Writer.Error!usize {
+            return self.stream.write(buf) catch |err| {
+                self.err = err;
+                return error.WriteFailed;
+            };
+        }
+
+        fn drainFn(w: *std.io.Writer, data: []const []const u8, splat: usize) std.io.Writer.Error!usize {
+            const self: *@This() = @alignCast(@fieldParentPtr("interface", w));
+            var written_total: usize = 0;
+
+            const buffered = w.buffered();
+            if (buffered.len > 0) {
+                const n = try self.doWrite(buffered);
+                written_total += n;
+                if (n < buffered.len) return w.consume(written_total);
+            }
+
+            if (data.len > 0) {
+                for (data[0 .. data.len - 1]) |d| {
+                    const n = try self.doWrite(d);
+                    written_total += n;
+                    if (n < d.len) return w.consume(written_total);
+                }
+
+                const pattern = data[data.len - 1];
+                for (0..splat) |_| {
+                    const n = try self.doWrite(pattern);
+                    written_total += n;
+                    if (n < pattern.len) return w.consume(written_total);
+                }
+            }
+
+            return w.consume(written_total);
+        }
+    };
 
     /// Get a writer to the stream.
     ///
-    /// ## Function Parameters
-    /// * `self`: Stream to get the writer to.
-    ///
-    /// ## Return Value
-    /// Returns a writer.
-    ///
-    /// ## Version
-    /// This function is provided by zig-sdl3.
     pub fn writer(
         self: Stream,
+        buffer: []u8,
     ) Writer {
-        return .{ .context = self };
+        return Writer.init(self, buffer);
     }
 };
 
@@ -2048,10 +2105,16 @@ test "Stream" {
 
     // Test writer/reader.
     _ = try stream.seek(0, .set);
-    try stream.writer().print("Hello {s}!", .{"World"});
+    var writer_buffer: [64]u8 = undefined;
+    var stream_writer = stream.writer(&writer_buffer);
+    try stream_writer.interface.print("Hello {s}!", .{"World"});
+    try stream_writer.interface.flush();
+
     _ = try stream.seek(0, .set);
     const hello_world = "Hello World!";
     var hello_world_buf: [hello_world.len]u8 = undefined;
-    try std.testing.expectEqual(hello_world.len, try stream.reader().readAll(&hello_world_buf));
+    var reader_buffer: [64]u8 = undefined;
+    var stream_reader = stream.reader(&reader_buffer);
+    try stream_reader.interface.readSliceAll(&hello_world_buf);
     try std.testing.expectEqualStrings(hello_world, &hello_world_buf);
 }
