@@ -20,7 +20,7 @@
           buildInputs = with pkgs; [
             zig-overlay.packages.${system}.master
 
-            # https://discord.com/channels/605571803288698900/1299003148513312778/1397450651700559872
+            # we need to link all the 'graphical' dependencies so sdl can actually initialize
             libGL
             vulkan-loader
             wayland
