@@ -17,7 +17,20 @@
       in
       {
         devShells.default = pkgs.mkShell rec {
-          buildInputs = [ zig-overlay.packages.${system}.master ];
+          buildInputs = with pkgs; [
+            zig-overlay.packages.${system}.master
+
+            # https://discord.com/channels/605571803288698900/1299003148513312778/1397450651700559872
+            libGL
+            vulkan-loader
+            wayland
+            libxkbcommon
+            libdecor
+            xorg.libX11
+            xorg.libXcursor
+            xorg.libXrandr
+            xorg.libXi
+          ];
 
           LD_LIBRARY_PATH = "${pkgs.lib.makeLibraryPath buildInputs}";
         };
