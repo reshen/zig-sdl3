@@ -1,4 +1,4 @@
-const c = @import("c.zig").c;
+const c = @import("c");
 const events = @import("events.zig");
 const root = @import("root");
 const std = @import("std");

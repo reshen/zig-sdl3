@@ -1,4 +1,4 @@
-const c = @import("c.zig").c;
+const c = @import("c");
 const std = @import("std");
 
 /// A type representing an atomic integer value.
