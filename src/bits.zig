@@ -1,4 +1,4 @@
-const c = @import("c.zig").c;
+const c = @import("c");
 const std = @import("std");
 
 /// Determine if a unsigned 32-bit value has exactly one bit set.

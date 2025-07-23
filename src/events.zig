@@ -1,5 +1,5 @@
 const audio = @import("audio.zig");
-const c = @import("c.zig").c;
+const c = @import("c");
 const camera = @import("camera.zig");
 const errors = @import("errors.zig");
 const sdl3 = @import("sdl3.zig");

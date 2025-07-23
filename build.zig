@@ -62,12 +62,6 @@ pub fn build(b: *std.Build) !void {
 
     const sdl_dep_lib = sdl_dep.artifact("SDL3");
 
-    const sdl3 = b.addModule("sdl3", .{
-        .root_source_file = cfg.root_source_file,
-        .target = target,
-        .optimize = optimize,
-    });
-
     // SDL options.
     const extension_options = b.addOptions();
     const main_callbacks = b.option(bool, "callbacks", "Enable SDL callbacks rather than use a main function") orelse false;
@@ -77,21 +71,52 @@ pub fn build(b: *std.Build) !void {
     const ext_image = b.option(bool, "ext_image", "Enable SDL_image extension") orelse false;
     extension_options.addOption(bool, "image", ext_image);
 
-    // Linking zig-sdl to sdl3, makes the library much easier to use.
+    const c_source_code = b.fmt(
+        \\#include <SDL3/SDL.h>
+        \\{s}
+        \\#include <SDL3/SDL_main.h>
+        \\#include <SDL3/SDL_vulkan.h>
+        \\
+        \\{s}
+    , .{
+        if (!sdl3_main) "#define SDL_MAIN_NOIMPL\n" else "",
+        if (ext_image) "#include <SDL3_image/SDL_image.h>\n" else "",
+    });
+    const c_source_file_step = b.addWriteFiles();
+    const c_source_path = c_source_file_step.add("c.c", c_source_code);
+
+    const translate_c = b.addTranslateC(.{
+        .root_source_file = c_source_path,
+        .target = target,
+        .optimize = optimize,
+    });
+    translate_c.addIncludePath(sdl_dep.path("include"));
+
+    const c_module = translate_c.createModule();
+
+    const sdl3 = b.addModule("sdl3", .{
+        .root_source_file = cfg.root_source_file,
+        .target = target,
+        .optimize = optimize,
+        .imports = &.{
+            .{ .name = "c", .module = c_module },
+        },
+    });
+
     sdl3.addOptions("extension_options", extension_options);
     sdl3.linkLibrary(sdl_dep_lib);
     if (ext_image) {
-        setupSdlImage(b, sdl3, sdl_dep_lib, c_sdl_preferred_linkage, cfg);
+        setupSdlImage(b, sdl3, translate_c, sdl_dep_lib, c_sdl_preferred_linkage, cfg);
     }
 
     _ = setupDocs(b, sdl3);
-    _ = setupTest(b, cfg, extension_options);
+    _ = setupTest(b, cfg, extension_options, c_module);
     _ = try setupExamples(b, sdl3, cfg);
     _ = try runExample(b, sdl3, cfg);
 }
 
 // Most of this is copied from https://github.com/allyourcodebase/SDL_image/blob/main/build.zig.
-pub fn setupSdlImage(b: *std.Build, sdl3: *std.Build.Module, sdl_dep_lib: *std.Build.Step.Compile, linkage: std.builtin.LinkMode, cfg: Config) void {
+pub fn setupSdlImage(b: *std.Build, sdl3: *std.Build.Module, translate_c: *std.Build.Step.TranslateC, sdl_dep_lib: *std.Build.Step.Compile, linkage: std.builtin.LinkMode, cfg: Config) void {
     const upstream = b.lazyDependency("sdl_image", .{}) orelse return;
 
     const target = cfg.target;
@@ -142,6 +167,7 @@ pub fn setupSdlImage(b: *std.Build, sdl3: *std.Build.Module, sdl_dep_lib: *std.B
     if (b.option(bool, "image_enable_xv", "Support loading XV images") orelse true)
         lib.root_module.addCMacro("LOAD_XV", "");
 
+    translate_c.addIncludePath(upstream.path("include"));
     lib.addIncludePath(upstream.path("include"));
     lib.addIncludePath(upstream.path("src"));
 
@@ -243,11 +269,14 @@ pub fn setupExamples(b: *std.Build, sdl3: *std.Build.Module, cfg: Config) !*std.
     return exp;
 }
 
-pub fn setupTest(b: *std.Build, cfg: Config, extension_options: *std.Build.Step.Options) *std.Build.Step.Compile {
+pub fn setupTest(b: *std.Build, cfg: Config, extension_options: *std.Build.Step.Options, c_module: *std.Build.Module) *std.Build.Step.Compile {
     const test_module = b.createModule(.{
         .root_source_file = cfg.root_source_file,
         .target = cfg.target,
         .optimize = cfg.optimize,
+        .imports = &.{
+            .{ .name = "c", .module = c_module },
+        },
     });
     const tst = b.addTest(.{
         .name = cfg.name,
