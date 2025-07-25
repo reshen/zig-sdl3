@@ -534,33 +534,6 @@ pub const Stream = struct {
         };
     }
 
-    /// Initialize a stream for compatibility with SDL.
-    ///
-    /// ## Remarks
-    /// Note the source must exist for the lifetime of this stream.
-    /// Read and write to the stream using the source you provide.
-    ///
-    /// ## Function Parameters
-    /// * `source`: The stream source to initialize from.
-    ///
-    /// ## Return Value
-    /// Returns a stream.
-    ///
-    /// ## Thread Safety
-    /// This function is not thread safe.
-    ///
-    /// ## Version
-    /// This function is available since SDL 3.2.0.
-    pub fn initFromStreamSource(
-        source: *std.io.StreamSource,
-    ) !Stream {
-        const ret = c.SDL_OpenIO(&stream_source_interface, source);
-        if (ret) |val| {
-            return .{ .value = val };
-        }
-        return error.SDLError;
-    }
-
     /// Load all the data from an SDL data stream.
     ///
     /// ## Function Parameters
@@ -1874,68 +1847,6 @@ pub const Whence = enum(c_uint) {
     end = c.SDL_IO_SEEK_END,
 };
 
-const stream_source_interface = c.SDL_IOStreamInterface{
-    .version = @sizeOf(c.SDL_IOStreamInterface),
-    .size = streamSize,
-    .seek = streamSeek,
-    .read = streamRead,
-    .write = streamWrite,
-    .flush = streamFlush,
-    .close = streamClose,
-};
-
-fn streamSize(data: ?*anyopaque) callconv(.c) i64 {
-    var stream: *std.io.StreamSource = @ptrCast(@alignCast(data.?));
-    const end_pos = stream.getEndPos() catch return -1;
-    return @intCast(end_pos);
-}
-
-fn streamSeek(data: ?*anyopaque, offset: i64, whence: c_uint) callconv(.c) i64 {
-    var stream: *std.io.StreamSource = @ptrCast(@alignCast(data.?));
-    switch (whence) {
-        c.SDL_IO_SEEK_CUR => stream.seekBy(offset) catch return -1,
-        c.SDL_IO_SEEK_SET => stream.seekTo(@intCast(offset)) catch return -1,
-        c.SDL_IO_SEEK_END => {
-            const end_pos = stream.getEndPos() catch return -1;
-            if (offset > end_pos)
-                return -1;
-            stream.seekTo(@intCast(end_pos - @as(u64, @intCast(offset)))) catch return -1;
-        },
-        else => return -1,
-    }
-    const pos = stream.getPos() catch return -1;
-    return @as(i64, @intCast(pos));
-}
-
-fn streamRead(data: ?*anyopaque, ptr: ?*anyopaque, size: usize, status: [*c]c_uint) callconv(.c) usize {
-    var stream: *std.io.StreamSource = @ptrCast(@alignCast(data.?));
-    var dest: [*]u8 = @ptrCast(ptr.?);
-    return stream.read(dest[0..size]) catch blk: {
-        status.* = c.SDL_IO_STATUS_ERROR;
-        break :blk 0;
-    };
-}
-
-fn streamWrite(data: ?*anyopaque, ptr: ?*const anyopaque, size: usize, status: [*c]c_uint) callconv(.c) usize {
-    var stream: *std.io.StreamSource = @ptrCast(@alignCast(data.?));
-    var src: [*]const u8 = @ptrCast(ptr.?);
-    return stream.write(src[0..size]) catch blk: {
-        status.* = c.SDL_IO_STATUS_ERROR;
-        break :blk 0;
-    };
-}
-
-fn streamFlush(data: ?*anyopaque, status: [*c]c_uint) callconv(.c) bool {
-    _ = data;
-    _ = status;
-    return true; // No flushing needed, idk.
-}
-
-fn streamClose(data: ?*anyopaque) callconv(.c) bool {
-    _ = data;
-    return true;
-}
-
 /// Load all the data from a file path.
 ///
 /// ## Function Parameters
@@ -1989,10 +1900,9 @@ pub fn saveFile(
 test "Stream" {
     std.testing.refAllDeclsRecursive(@This());
 
-    // Test stream source.
+    // Test stream.
     var buffer: [64]u8 = undefined;
-    var source: std.io.StreamSource = .{ .buffer = .{ .buffer = &buffer, .pos = 0 } };
-    const stream = try Stream.initFromStreamSource(&source);
+    const stream = try Stream.initFromMem(&buffer);
     defer stream.deinit() catch {};
     try stream.writeU8(7);
     try std.testing.expect(buffer[0] == 7);
@@ -2000,7 +1910,7 @@ test "Stream" {
     try std.testing.expectEqual(3, try stream.readU8());
     try std.testing.expectEqual(64, try stream.getSize());
     try std.testing.expectEqual(50, stream.seek(50, .set));
-    try std.testing.expectEqual(41, stream.seek(23, .end));
+    try std.testing.expectEqual(41, stream.seek(-23, .end));
     try std.testing.expectEqual(43, stream.seek(2, .cur));
 
     // Test writer/reader.
