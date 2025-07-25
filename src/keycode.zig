@@ -285,7 +285,7 @@ pub const Keycode = enum(c.SDL_Keycode) {
     pub fn fromScancode(
         code: scancode.Scancode,
     ) ?Keycode {
-        const ret = c.SDL_SCANCODE_TO_KEYCODE(code.toSdl());
+        const ret = c.SDL_SCANCODE_TO_KEYCODE(scancode.Scancode.toSdl(code));
         return Keycode.fromSdl(ret);
     }
 

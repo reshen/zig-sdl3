@@ -1,7 +1,7 @@
 # Checklist
 For monitoring how close various subsystems are to completion.
 
-## Done (54/57)
+## Done (56/57)
 
 ### Basics
 * Main
@@ -25,6 +25,7 @@ For monitoring how close various subsystems are to completion.
 * Camera
 
 ### Input
+* Events
 * Keyboard
 * Keycode
 * Scancode
@@ -80,10 +81,7 @@ For monitoring how close various subsystems are to completion.
 * GUID
 * Misc
 
-## In Progress (2/57)
+## In Progress (1/57)
 
 ### Basics
 * Hints
-
-### Input
-* Events

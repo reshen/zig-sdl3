@@ -422,8 +422,10 @@ pub const Scancode = enum(c.SDL_Scancode) {
     ///
     /// ## Version
     /// This function is provided by zig-sdl3.
-    pub fn toSdl(self: Scancode) c.SDL_Scancode {
-        return @intFromEnum(self);
+    pub fn toSdl(self: ?Scancode) c.SDL_Scancode {
+        if (self) |val|
+            return @intFromEnum(val);
+        return c.SDL_SCANCODE_UNKNOWN;
     }
 
     /// Create a scancode enum from an SDL scancode.
@@ -439,7 +441,9 @@ pub const Scancode = enum(c.SDL_Scancode) {
     ///
     /// ## Version
     /// This function is provided by zig-sdl3.
-    pub fn fromSdl(key_code: c.SDL_Scancode) Scancode {
+    pub fn fromSdl(key_code: c.SDL_Scancode) ?Scancode {
+        if (key_code == c.SDL_SCANCODE_UNKNOWN)
+            return null;
         return @enumFromInt(key_code);
     }
 };
