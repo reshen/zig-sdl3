@@ -1,4 +1,4 @@
-const c = @import("c.zig").c;
+const c = @import("c");
 const errors = @import("errors.zig");
 const sdl3 = @import("sdl3.zig");
 const std = @import("std");

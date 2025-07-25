@@ -1,6 +1,6 @@
 // This file was generated using `zig build bindings`. Do not manually edit!
 
-const c = @import("c.zig").c;
+const c = @import("c");
 const std = @import("std");
 
 /// SDL image version information.

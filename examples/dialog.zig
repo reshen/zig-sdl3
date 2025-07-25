@@ -27,10 +27,10 @@ fn fileCallback(user_data: ?*State, file_list: ?[]const [*:0]const u8, filter: ?
     }
     const data = user_data.?;
     if (data.is_file) {
-        data.last_file = std.fmt.allocPrintZ(data.allocator, "{s}", .{if (file_list) |val| val[0] else "[null]"}) catch "[allocation error]";
+        data.last_file = std.fmt.allocPrintSentinel(data.allocator, "{s}", .{if (file_list) |val| val[0] else "[null]"}, 0) catch "[allocation error]";
         data.last_file_filter = filter;
     } else {
-        data.last_folder = std.fmt.allocPrintZ(data.allocator, "{s}", .{if (file_list) |val| val[0] else "[null]"}) catch "[allocation error]";
+        data.last_folder = std.fmt.allocPrintSentinel(data.allocator, "{s}", .{if (file_list) |val| val[0] else "[null]"}, 0) catch "[allocation error]";
     }
     showMenu(data) catch {};
 }
@@ -64,14 +64,15 @@ fn showMenu(state: *State) !void {
         .flags = .{},
         .parent_window = state.window,
         .title = "Dialog Example",
-        .message = try std.fmt.allocPrintZ(
+        .message = try std.fmt.allocPrintSentinel(
             state.allocator,
             "Last file: {s}\nLast file filter: {s}\nLast folder: {s}",
             .{
                 if (state.last_file) |val| val else "[null]",
-                if (state.last_file_filter) |val| std.fmt.allocPrintZ(state.allocator, "{d}", .{val}) catch "[allocation error]" else "[null]",
+                if (state.last_file_filter) |val| std.fmt.allocPrintSentinel(state.allocator, "{d}", .{val}, 0) catch "[allocation error]" else "[null]",
                 if (state.last_folder) |val| val else "[null]",
             },
+            0,
         ),
     });
     switch (selected) {
