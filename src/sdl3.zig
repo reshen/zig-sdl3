@@ -1870,11 +1870,26 @@ const Allocation = struct {
     buf: void,
 };
 
-fn allocCalloc(num_members: usize, size: usize) callconv(.c) ?*anyopaque {
-    const total_buf = custom_allocator.alloc(u8, size * num_members + @sizeOf(Allocation)) catch return null;
+fn allocationSize(request_size: usize) usize {
+    var size: usize = request_size;
+    if (size < 1)
+        size = 1;
+    while (size % @min(@sizeOf(@cImport(@cInclude("stddef.h")).max_align_t), @sizeOf(?*anyopaque) * 2) != 0) // TODO: Optimize this?
+        size += 1;
+    return size;
+}
+
+fn makeAllocation(total_size: usize, comptime memset: bool) ?*anyopaque {
+    const total_buf = custom_allocator.alignedAlloc(u8, null, allocationSize(total_size) + @sizeOf(Allocation)) catch return null;
+    if (memset)
+        @memset(total_buf, 0);
     const allocation: *Allocation = @ptrCast(@alignCast(total_buf.ptr));
     allocation.size = total_buf.len;
     return &allocation.buf;
+}
+
+fn allocCalloc(num_members: usize, size: usize) callconv(.c) ?*anyopaque {
+    return makeAllocation(num_members * size, true);
 }
 
 fn allocFree(mem: ?*anyopaque) callconv(.c) void {
@@ -1884,19 +1899,18 @@ fn allocFree(mem: ?*anyopaque) callconv(.c) void {
 }
 
 fn allocMalloc(size: usize) callconv(.c) ?*anyopaque {
-    const total_buf = custom_allocator.alloc(u8, size + @sizeOf(Allocation)) catch return null;
-    const allocation: *Allocation = @ptrCast(@alignCast(total_buf.ptr));
-    allocation.size = total_buf.len;
-    return &allocation.buf;
+    return makeAllocation(size, false);
 }
 
 fn allocRealloc(mem: ?*anyopaque, size: usize) callconv(.c) ?*anyopaque {
-    const raw_ptr = mem orelse return null;
-    var allocation: *Allocation = @alignCast(@fieldParentPtr("buf", @as(*void, @ptrCast(raw_ptr))));
-    const total_buf = custom_allocator.realloc(@as([*]u8, @ptrCast(raw_ptr))[0..allocation.size], size + @sizeOf(Allocation)) catch return null;
-    allocation = @ptrCast(@alignCast(total_buf.ptr));
-    allocation.size = total_buf.len;
-    return &allocation.buf;
+    const raw_ptr = mem orelse return allocMalloc(size);
+    // const allocation: *Allocation = @alignCast(@fieldParentPtr("buf", @as(*void, @ptrCast(raw_ptr))));
+    allocFree(raw_ptr);
+    return allocMalloc(size);
+    // const total_buf = custom_allocator.realloc(@as([*]u8, @ptrCast(raw_ptr))[0..allocation.size], allocationSize(size) + @sizeOf(Allocation)) catch return null;
+    // allocation = @ptrCast(@alignCast(total_buf.ptr));
+    // allocation.size = total_buf.len;
+    // return &allocation.buf;
 }
 
 /// Replace SDL's memory allocation functions to use with an allocator.

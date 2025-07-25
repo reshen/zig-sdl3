@@ -323,7 +323,7 @@ pub fn getModState() keycode.KeyModifier {
 /// This function is available since SDL 3.2.0.
 pub fn getScancodeFromKey(
     key: keycode.Keycode,
-) ?struct { code: scancode.Scancode, key_mod: keycode.KeyModifier } {
+) ?struct { code: ?scancode.Scancode, key_mod: keycode.KeyModifier } {
     var key_mod: c.SDL_Keymod = undefined;
     const ret = c.SDL_GetScancodeFromKey(
         key.toSdl(),
@@ -353,7 +353,7 @@ pub fn getScancodeFromName(
     const ret = c.SDL_GetScancodeFromName(
         name,
     );
-    return scancode.Scancode.fromSdl(@intCast(try errors.wrapCall(c.SDL_Scancode, ret, c.SDL_SCANCODE_UNKNOWN)));
+    return scancode.Scancode.fromSdl(@intCast(try errors.wrapCall(c.SDL_Scancode, ret, c.SDL_SCANCODE_UNKNOWN))).?;
 }
 
 /// Get a human-readable name for a scancode.
