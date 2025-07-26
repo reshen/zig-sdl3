@@ -39,12 +39,12 @@ pub const Axis = enum(c_uint) {
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const ID = packed struct {
+pub const Id = packed struct {
     value: c.SDL_PenID,
 
     // Size tests.
     comptime {
-        std.debug.assert(@sizeOf(c.SDL_PenID) == @sizeOf(ID));
+        std.debug.assert(@sizeOf(c.SDL_PenID) == @sizeOf(Id));
     }
 };
 

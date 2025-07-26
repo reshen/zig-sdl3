@@ -88,12 +88,12 @@ pub const Type = enum(c_int) {
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const ID = packed struct {
+pub const Id = packed struct {
     value: c.SDL_SensorID,
 
     // Size tests.
     comptime {
-        std.debug.assert(@sizeOf(c.SDL_SensorID) == @sizeOf(ID));
+        std.debug.assert(@sizeOf(c.SDL_SensorID) == @sizeOf(Id));
     }
 
     /// Return the SDL_Sensor associated with an instance ID.
@@ -107,7 +107,7 @@ pub const ID = packed struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn getSensor(
-        self: ID,
+        self: Id,
     ) !Sensor {
         const ret = c.SDL_GetSensorFromID(
             self.value,
@@ -129,7 +129,7 @@ pub const ID = packed struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn getName(
-        self: ID,
+        self: Id,
     ) ?[:0]const u8 {
         const ret = c.SDL_GetSensorNameForID(
             self.value,
@@ -153,7 +153,7 @@ pub const ID = packed struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn getNonPortableType(
-        self: ID,
+        self: Id,
     ) ?c_int {
         const ret = c.SDL_GetSensorNonPortableTypeForID(
             self.value,
@@ -177,7 +177,7 @@ pub const ID = packed struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn getType(
-        self: ID,
+        self: Id,
     ) ?Type {
         const ret = c.SDL_GetSensorTypeForID(
             self.value,
@@ -243,11 +243,11 @@ pub const Sensor = packed struct {
     /// This function is available since SDL 3.2.0.
     pub fn getId(
         self: Sensor,
-    ) !ID {
+    ) !Id {
         const ret = c.SDL_GetSensorID(
             self.value,
         );
-        return ID{ .value = try errors.wrapCall(c.SDL_SensorID, ret, 0) };
+        return Id{ .value = try errors.wrapCall(c.SDL_SensorID, ret, 0) };
     }
 
     /// Get the implementation dependent name of a sensor.
@@ -334,7 +334,7 @@ pub const Sensor = packed struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn init(
-        id: ID,
+        id: Id,
     ) !Sensor {
         const ret = c.SDL_OpenSensor(
             id.value,
@@ -351,9 +351,9 @@ pub const Sensor = packed struct {
 ///
 /// ## Version
 /// This function is available since SDL 3.2.0.
-pub fn getSensors() ![]ID {
+pub fn getSensors() ![]Id {
     var count: c_int = undefined;
-    const ret: [*]ID = @ptrCast(try errors.wrapCallCPtr(c.SDL_SensorID, c.SDL_GetSensors(
+    const ret: [*]Id = @ptrCast(try errors.wrapCallCPtr(c.SDL_SensorID, c.SDL_GetSensors(
         &count,
     )));
     return ret[0..@intCast(count)];

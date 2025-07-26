@@ -26,7 +26,7 @@ pub const DeviceType = enum(c_uint) {
 /// This struct is available since SDL 3.2.0.
 pub const Finger = extern struct {
     /// The finger ID.
-    id: FingerID,
+    id: FingerId,
     /// The x-axis location of the touch event, normalized (0...1).
     x: f32,
     /// The y-axis location of the touch event, normalized (0...1).
@@ -56,7 +56,7 @@ pub const Finger = extern struct {
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const FingerID = packed struct {
+pub const FingerId = packed struct {
     value: c.SDL_FingerID,
 };
 
@@ -67,25 +67,25 @@ pub const FingerID = packed struct {
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const ID = packed struct {
+pub const Id = packed struct {
     value: c.SDL_TouchID,
 
     // Size tests.
     comptime {
-        std.debug.assert(@sizeOf(c.SDL_TouchID) == @sizeOf(ID));
+        std.debug.assert(@sizeOf(c.SDL_TouchID) == @sizeOf(Id));
     }
 
     /// The touch ID for touch events simulated with mouse input.
     ///
     /// ## Version
     /// This constant is available since SDL 3.2.0.
-    pub const mouse = ID{ .value = c.SDL_MOUSE_TOUCHID };
+    pub const mouse = Id{ .value = c.SDL_MOUSE_TOUCHID };
 
     /// The touch ID for touch events simulated with pen input.
     ///
     /// ## Version
     /// This constant is available since SDL 3.2.0.
-    pub const pen = ID{ .value = c.SDL_PEN_TOUCHID };
+    pub const pen = Id{ .value = c.SDL_PEN_TOUCHID };
 
     /// Get a list of active fingers for a given touch device.
     ///
@@ -99,7 +99,7 @@ pub const ID = packed struct {
     /// ## Value
     /// This function is available since SDL 3.2.0.
     pub fn getFingers(
-        self: ID,
+        self: Id,
     ) ![]*Finger {
         var count: c_int = undefined;
         const val = c.SDL_GetTouchFingers(self.value, &count);
@@ -118,7 +118,7 @@ pub const ID = packed struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn getName(
-        self: ID,
+        self: Id,
     ) ![:0]const u8 {
         return errors.wrapCallCString(c.SDL_GetTouchDeviceName(self.value));
     }
@@ -134,7 +134,7 @@ pub const ID = packed struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn getType(
-        self: ID,
+        self: Id,
     ) ?DeviceType {
         const ret = c.SDL_GetTouchDeviceType(self.value);
         if (ret == c.SDL_TOUCH_DEVICE_INVALID)
@@ -156,10 +156,10 @@ pub const ID = packed struct {
 ///
 /// ## Version
 /// This function is available since SDL 3.2.0.
-pub fn getDevices() ![]ID {
+pub fn getDevices() ![]Id {
     var count: c_int = undefined;
     const val = c.SDL_GetTouchDevices(&count);
-    const ret: [*]ID = @ptrCast(try errors.wrapCallCPtr(c.SDL_TouchID, val));
+    const ret: [*]Id = @ptrCast(try errors.wrapCallCPtr(c.SDL_TouchID, val));
     return ret[0..@intCast(count)];
 }
 

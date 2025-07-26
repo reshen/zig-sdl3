@@ -10,7 +10,7 @@ const std = @import("std");
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const ID = packed struct {
+pub const Id = packed struct {
     value: c.SDL_ThreadID,
 };
 
@@ -251,7 +251,7 @@ pub const Thread = packed struct {
     /// TODO!!!
     pub fn getId(
         self: Thread,
-    ) ID {
+    ) Id {
         return .{ .value = c.SDL_GetThreadID(self.value) };
     }
 
@@ -463,7 +463,7 @@ pub fn cleanupTls() void {
 ///
 /// ## Version
 /// This function is available since SDL 3.2.0.
-pub fn getCurrentId() ID {
+pub fn getCurrentId() Id {
     return .{ .value = c.SDL_GetCurrentThreadID() };
 }
 

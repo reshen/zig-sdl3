@@ -388,6 +388,10 @@ pub const hid_api = @import("hid_api.zig");
 /// In general these hints are just that - they may or may not be supported or applicable on any given platform,
 /// but they provide a way for an application or user to give the library a hint as to how they would like the library to work.
 pub const hints = @import("hints.zig");
+
+/// This is a simple library to load images of various formats as SDL surfaces.
+/// It can load BMP, GIF, JPEG, LBM, PCX, PNG, PNM (PPM/PGM/PBM), QOI, TGA, XCF, XPM, and simple SVG format images.
+/// It can also load AVIF, JPEG-XL, TIFF, and WebP images, depending on build options.
 pub const image = if (extension_options.image) @import("image.zig") else void;
 
 /// SDL does some preprocessor gymnastics to determine if any CPU-specific compiler intrinsics are available,

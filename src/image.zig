@@ -1,7 +1,782 @@
-// This file was generated using `zig build bindings`. Do not manually edit!
-
 const c = @import("c.zig").c;
+const errors = @import("errors.zig");
+const io_stream = @import("io_stream.zig");
+const render = @import("render.zig");
+const version = @import("version.zig");
+const surface = @import("surface.zig");
 const std = @import("std");
+
+/// Animated image support.
+///
+/// ## Remarks
+/// Currently only animated GIFs and WEBP images are supported.
+///
+/// ## Version
+/// This struct is available since SDL image 3.0.0.
+pub const Animation = struct {
+    value: c.IMG_Animation,
+
+    /// Dispose of an animation and free its resources.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The animation to dispose of.
+    ///
+    /// ## Remarks
+    /// The provided anim pointer is not valid once this call returns.
+    ///
+    /// ## Version
+    /// This function is available since SDL image 3.0.0.
+    pub fn deinit(
+        self: Animation,
+    ) void {
+        c.IMG_FreeAnimation(
+            self.value,
+        );
+    }
+
+    /// Get a frame of animation.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The animation to query.
+    /// * `index`: The index of the frame.
+    ///
+    /// ## Return Value
+    /// Returns the animation frame surface and delay, or `null` if out of bounds.
+    ///
+    /// ## Version
+    /// This function is provided by zig-sdl3.
+    pub fn getFrame(
+        self: Animation,
+        index: usize,
+    ) ?struct { frame: surface.Surface, delay: usize } {
+        if (index >= self.getNumFrames())
+            return null;
+        return .{
+            .frame = .{ .value = self.value.frames[index] },
+            .delay = @intCast(self.value.delays[index]),
+        };
+    }
+
+    /// Get the height of an animation.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The animation to query.
+    ///
+    /// ## Return Value
+    /// Returns the height of the animation.
+    ///
+    /// ## Version
+    /// This function is provided by zig-sdl3.
+    pub fn getHeight(
+        self: Animation,
+    ) usize {
+        return @intCast(self.value.h);
+    }
+
+    /// Get the number of frames of an animation.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The animation to query.
+    ///
+    /// ## Return Value
+    /// Returns the number of frames of the animation.
+    ///
+    /// ## Version
+    /// This function is provided by zig-sdl3.
+    pub fn getNumFrames(
+        self: Animation,
+    ) usize {
+        return @intCast(self.value.count);
+    }
+
+    /// Get the width of an animation.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The animation to query.
+    ///
+    /// ## Return Value
+    /// Returns the width of the animation.
+    ///
+    /// ## Version
+    /// This function is provided by zig-sdl3.
+    pub fn getWidth(
+        self: Animation,
+    ) usize {
+        return @intCast(self.value.w);
+    }
+
+    /// Load an animation from a file.
+    pub fn init(
+        file: [:0]const u8,
+    ) !Animation {
+        const ret = c.IMG_LoadAnimation(
+            file,
+        );
+        if (ret == null)
+            return error.SdlError;
+        return Animation{ .value = ret };
+    }
+
+    /// Load an animation from an SDL_IOStream.
+    pub fn initFromIo(
+        source: io_stream.Stream,
+        close_when_done: bool,
+    ) !Animation {
+        const ret = c.IMG_LoadAnimation_IO(
+            source.value,
+            close_when_done,
+        );
+        if (ret == null)
+            return error.SdlError;
+        return Animation{ .value = ret };
+    }
+
+    /// Load an animation from an SDL datasource.
+    pub fn initFromTypedIo(
+        source: io_stream.Stream,
+        close_when_done: bool,
+        file_type: [:0]const u8,
+    ) !Animation {
+        const ret = c.IMG_LoadAnimationTyped_IO(
+            source.value,
+            close_when_done,
+            file_type,
+        );
+        if (ret == null)
+            return error.SdlError;
+        return Animation{ .value = ret };
+    }
+
+    /// Load a GIF animation directly.
+    pub fn initFromGifIo(
+        source: io_stream.Stream,
+    ) !Animation {
+        const ret = c.IMG_LoadGIFAnimation_IO(
+            source.value,
+        );
+        if (ret == null)
+            return error.SdlError;
+        return Animation{ .value = ret };
+    }
+
+    /// Load a WEBP animation directly.
+    pub fn initFromWebpIo(
+        source: io_stream.Stream,
+    ) !Animation {
+        const ret = c.IMG_LoadWEBPAnimation_IO(
+            source.value,
+        );
+        if (ret == null)
+            return error.SdlError;
+        return Animation{ .value = ret };
+    }
+};
+
+/// Detect AVIF image data on a readable/seekable `io.Stream`.
+///
+/// ## Function Parameters
+/// * `src`: A seekable/readable IO stream to provide image data.
+///
+/// ## Return Value
+/// Returns true if this is AVIF data, false otherwise.
+///
+/// ## Remarks
+/// This function attempts to determine if a file is a given filetype, reading the least amount possible from the `io.Stream` (usually a few bytes).
+///
+/// There is no distinction made between "not the filetype in question" and basic i/o errors.
+///
+/// This function will always attempt to seek `src` back to where it started when this function was called, but it will not report any errors in doing so,
+/// but assuming seeking works, this means you can immediately use this with a different "is type" function, or load the image without further seeking.
+///
+/// You do not need to call this function to load data; SDL image can work to determine file type in many cases in its standard load functions.
+///
+/// ## Version
+/// This function is available since SDL image 3.0.0.
+pub fn isAvif(
+    src: io_stream.Stream,
+) bool {
+    const ret = c.IMG_isAVIF(
+        src.value,
+    );
+    return ret;
+}
+
+/// Detect BMP image data on a readable/seekable `io.Stream`.
+///
+/// ## Function Parameters
+/// * `src`: A seekable/readable IO stream to provide image data.
+///
+/// ## Return Value
+/// Returns true if this is BMP data, false otherwise.
+///
+/// ## Remarks
+/// This function attempts to determine if a file is a given filetype, reading the least amount possible from the `io.Stream` (usually a few bytes).
+///
+/// There is no distinction made between "not the filetype in question" and basic i/o errors.
+///
+/// This function will always attempt to seek `src` back to where it started when this function was called, but it will not report any errors in doing so,
+/// but assuming seeking works, this means you can immediately use this with a different "is type" function, or load the image without further seeking.
+///
+/// You do not need to call this function to load data; SDL image can work to determine file type in many cases in its standard load functions.
+///
+/// ## Version
+/// This function is available since SDL image 3.0.0.
+pub fn isBmp(
+    src: io_stream.Stream,
+) bool {
+    const ret = c.IMG_isBMP(
+        src.value,
+    );
+    return ret;
+}
+
+/// Detect CUR image data on a readable/seekable `io.Stream`.
+///
+/// ## Function Parameters
+/// * `src`: A seekable/readable IO stream to provide image data.
+///
+/// ## Return Value
+/// Returns true if this is CUR data, false otherwise.
+///
+/// ## Remarks
+/// This function attempts to determine if a file is a given filetype, reading the least amount possible from the `io.Stream` (usually a few bytes).
+///
+/// There is no distinction made between "not the filetype in question" and basic i/o errors.
+///
+/// This function will always attempt to seek `src` back to where it started when this function was called, but it will not report any errors in doing so,
+/// but assuming seeking works, this means you can immediately use this with a different "is type" function, or load the image without further seeking.
+///
+/// You do not need to call this function to load data; SDL image can work to determine file type in many cases in its standard load functions.
+///
+/// ## Version
+/// This function is available since SDL image 3.0.0.
+pub fn isCur(
+    src: io_stream.Stream,
+) bool {
+    const ret = c.IMG_isCUR(
+        src.value,
+    );
+    return ret;
+}
+
+/// Detect GIF image data on a readable/seekable `io.Stream`.
+///
+/// ## Function Parameters
+/// * `src`: A seekable/readable IO stream to provide image data.
+///
+/// ## Return Value
+/// Returns true if this is GIF data, false otherwise.
+///
+/// ## Remarks
+/// This function attempts to determine if a file is a given filetype, reading the least amount possible from the `io.Stream` (usually a few bytes).
+///
+/// There is no distinction made between "not the filetype in question" and basic i/o errors.
+///
+/// This function will always attempt to seek `src` back to where it started when this function was called, but it will not report any errors in doing so,
+/// but assuming seeking works, this means you can immediately use this with a different "is type" function, or load the image without further seeking.
+///
+/// You do not need to call this function to load data; SDL image can work to determine file type in many cases in its standard load functions.
+///
+/// ## Version
+/// This function is available since SDL image 3.0.0.
+pub fn isGif(
+    src: io_stream.Stream,
+) bool {
+    const ret = c.IMG_isGIF(
+        src.value,
+    );
+    return ret;
+}
+
+/// Detect ICO image data on a readable/seekable `io.Stream`.
+///
+/// ## Function Parameters
+/// * `src`: A seekable/readable IO stream to provide image data.
+///
+/// ## Return Value
+/// Returns true if this is ICO data, false otherwise.
+///
+/// ## Remarks
+/// This function attempts to determine if a file is a given filetype, reading the least amount possible from the `io.Stream` (usually a few bytes).
+///
+/// There is no distinction made between "not the filetype in question" and basic i/o errors.
+///
+/// This function will always attempt to seek `src` back to where it started when this function was called, but it will not report any errors in doing so,
+/// but assuming seeking works, this means you can immediately use this with a different "is type" function, or load the image without further seeking.
+///
+/// You do not need to call this function to load data; SDL image can work to determine file type in many cases in its standard load functions.
+///
+/// ## Version
+/// This function is available since SDL image 3.0.0.
+pub fn isIco(
+    src: io_stream.Stream,
+) bool {
+    const ret = c.IMG_isICO(
+        src.value,
+    );
+    return ret;
+}
+
+/// Detect JPG image data on a readable/seekable `io.Stream`.
+///
+/// ## Function Parameters
+/// * `src`: A seekable/readable IO stream to provide image data.
+///
+/// ## Return Value
+/// Returns true if this is JPG data, false otherwise.
+///
+/// ## Remarks
+/// This function attempts to determine if a file is a given filetype, reading the least amount possible from the `io.Stream` (usually a few bytes).
+///
+/// There is no distinction made between "not the filetype in question" and basic i/o errors.
+///
+/// This function will always attempt to seek `src` back to where it started when this function was called, but it will not report any errors in doing so,
+/// but assuming seeking works, this means you can immediately use this with a different "is type" function, or load the image without further seeking.
+///
+/// You do not need to call this function to load data; SDL image can work to determine file type in many cases in its standard load functions.
+///
+/// ## Version
+/// This function is available since SDL image 3.0.0.
+pub fn isJpg(
+    src: io_stream.Stream,
+) bool {
+    const ret = c.IMG_isJPG(
+        src.value,
+    );
+    return ret;
+}
+
+/// Detect JXL image data on a readable/seekable `io.Stream`.
+///
+/// ## Function Parameters
+/// * `src`: A seekable/readable IO stream to provide image data.
+///
+/// ## Return Value
+/// Returns true if this is JXL data, false otherwise.
+///
+/// ## Remarks
+/// This function attempts to determine if a file is a given filetype, reading the least amount possible from the `io.Stream` (usually a few bytes).
+///
+/// There is no distinction made between "not the filetype in question" and basic i/o errors.
+///
+/// This function will always attempt to seek `src` back to where it started when this function was called, but it will not report any errors in doing so,
+/// but assuming seeking works, this means you can immediately use this with a different "is type" function, or load the image without further seeking.
+///
+/// You do not need to call this function to load data; SDL image can work to determine file type in many cases in its standard load functions.
+///
+/// ## Version
+/// This function is available since SDL image 3.0.0.
+pub fn isJxl(
+    src: io_stream.Stream,
+) bool {
+    const ret = c.IMG_isJXL(
+        src.value,
+    );
+    return ret;
+}
+
+/// Detect LBM image data on a readable/seekable `io.Stream`.
+///
+/// ## Function Parameters
+/// * `src`: A seekable/readable IO stream to provide image data.
+///
+/// ## Return Value
+/// Returns true if this is LBM data, false otherwise.
+///
+/// ## Remarks
+/// This function attempts to determine if a file is a given filetype, reading the least amount possible from the `io.Stream` (usually a few bytes).
+///
+/// There is no distinction made between "not the filetype in question" and basic i/o errors.
+///
+/// This function will always attempt to seek `src` back to where it started when this function was called, but it will not report any errors in doing so,
+/// but assuming seeking works, this means you can immediately use this with a different "is type" function, or load the image without further seeking.
+///
+/// You do not need to call this function to load data; SDL image can work to determine file type in many cases in its standard load functions.
+///
+/// ## Version
+/// This function is available since SDL image 3.0.0.
+pub fn isLbm(
+    src: io_stream.Stream,
+) bool {
+    const ret = c.IMG_isLBM(
+        src.value,
+    );
+    return ret;
+}
+
+/// Detect PCX image data on a readable/seekable `io.Stream`.
+///
+/// ## Function Parameters
+/// * `src`: A seekable/readable IO stream to provide image data.
+///
+/// ## Return Value
+/// Returns true if this is PCX data, false otherwise.
+///
+/// ## Remarks
+/// This function attempts to determine if a file is a given filetype, reading the least amount possible from the `io.Stream` (usually a few bytes).
+///
+/// There is no distinction made between "not the filetype in question" and basic i/o errors.
+///
+/// This function will always attempt to seek `src` back to where it started when this function was called, but it will not report any errors in doing so,
+/// but assuming seeking works, this means you can immediately use this with a different "is type" function, or load the image without further seeking.
+///
+/// You do not need to call this function to load data; SDL image can work to determine file type in many cases in its standard load functions.
+///
+/// ## Version
+/// This function is available since SDL image 3.0.0.
+pub fn isPcx(
+    src: io_stream.Stream,
+) bool {
+    const ret = c.IMG_isPCX(
+        src.value,
+    );
+    return ret;
+}
+
+/// Detect PNG image data on a readable/seekable `io.Stream`.
+///
+/// ## Function Parameters
+/// * `src`: A seekable/readable IO stream to provide image data.
+///
+/// ## Return Value
+/// Returns true if this is PNG data, false otherwise.
+///
+/// ## Remarks
+/// This function attempts to determine if a file is a given filetype, reading the least amount possible from the `io.Stream` (usually a few bytes).
+///
+/// There is no distinction made between "not the filetype in question" and basic i/o errors.
+///
+/// This function will always attempt to seek `src` back to where it started when this function was called, but it will not report any errors in doing so,
+/// but assuming seeking works, this means you can immediately use this with a different "is type" function, or load the image without further seeking.
+///
+/// You do not need to call this function to load data; SDL image can work to determine file type in many cases in its standard load functions.
+///
+/// ## Version
+/// This function is available since SDL image 3.0.0.
+pub fn isPng(
+    src: io_stream.Stream,
+) bool {
+    const ret = c.IMG_isPNG(
+        src.value,
+    );
+    return ret;
+}
+
+/// Detect PNM image data on a readable/seekable `io.Stream`.
+///
+/// ## Function Parameters
+/// * `src`: A seekable/readable IO stream to provide image data.
+///
+/// ## Return Value
+/// Returns true if this is PNM data, false otherwise.
+///
+/// ## Remarks
+/// This function attempts to determine if a file is a given filetype, reading the least amount possible from the `io.Stream` (usually a few bytes).
+///
+/// There is no distinction made between "not the filetype in question" and basic i/o errors.
+///
+/// This function will always attempt to seek `src` back to where it started when this function was called, but it will not report any errors in doing so,
+/// but assuming seeking works, this means you can immediately use this with a different "is type" function, or load the image without further seeking.
+///
+/// You do not need to call this function to load data; SDL image can work to determine file type in many cases in its standard load functions.
+///
+/// ## Version
+/// This function is available since SDL image 3.0.0.
+pub fn isPnm(
+    src: io_stream.Stream,
+) bool {
+    const ret = c.IMG_isPNM(
+        src.value,
+    );
+    return ret;
+}
+
+/// Detect QOI image data on a readable/seekable `io.Stream`.
+///
+/// ## Function Parameters
+/// * `src`: A seekable/readable IO stream to provide image data.
+///
+/// ## Return Value
+/// Returns true if this is QOI data, false otherwise.
+///
+/// ## Remarks
+/// This function attempts to determine if a file is a given filetype, reading the least amount possible from the `io.Stream` (usually a few bytes).
+///
+/// There is no distinction made between "not the filetype in question" and basic i/o errors.
+///
+/// This function will always attempt to seek `src` back to where it started when this function was called, but it will not report any errors in doing so,
+/// but assuming seeking works, this means you can immediately use this with a different "is type" function, or load the image without further seeking.
+///
+/// You do not need to call this function to load data; SDL image can work to determine file type in many cases in its standard load functions.
+///
+/// ## Version
+/// This function is available since SDL image 3.0.0.
+pub fn isQoi(
+    src: io_stream.Stream,
+) bool {
+    const ret = c.IMG_isQOI(
+        src.value,
+    );
+    return ret;
+}
+
+/// Detect SVG image data on a readable/seekable `io.Stream`.
+///
+/// ## Function Parameters
+/// * `src`: A seekable/readable IO stream to provide image data.
+///
+/// ## Return Value
+/// Returns true if this is SVG data, false otherwise.
+///
+/// ## Remarks
+/// This function attempts to determine if a file is a given filetype, reading the least amount possible from the `io.Stream` (usually a few bytes).
+///
+/// There is no distinction made between "not the filetype in question" and basic i/o errors.
+///
+/// This function will always attempt to seek `src` back to where it started when this function was called, but it will not report any errors in doing so,
+/// but assuming seeking works, this means you can immediately use this with a different "is type" function, or load the image without further seeking.
+///
+/// You do not need to call this function to load data; SDL image can work to determine file type in many cases in its standard load functions.
+///
+/// ## Version
+/// This function is available since SDL image 3.0.0.
+pub fn isSvg(
+    src: io_stream.Stream,
+) bool {
+    const ret = c.IMG_isSVG(
+        src.value,
+    );
+    return ret;
+}
+
+/// Detect TIF image data on a readable/seekable `io.Stream`.
+///
+/// ## Function Parameters
+/// * `src`: A seekable/readable IO stream to provide image data.
+///
+/// ## Return Value
+/// Returns true if this is TIF data, false otherwise.
+///
+/// ## Remarks
+/// This function attempts to determine if a file is a given filetype, reading the least amount possible from the `io.Stream` (usually a few bytes).
+///
+/// There is no distinction made between "not the filetype in question" and basic i/o errors.
+///
+/// This function will always attempt to seek `src` back to where it started when this function was called, but it will not report any errors in doing so,
+/// but assuming seeking works, this means you can immediately use this with a different "is type" function, or load the image without further seeking.
+///
+/// You do not need to call this function to load data; SDL image can work to determine file type in many cases in its standard load functions.
+///
+/// ## Version
+/// This function is available since SDL image 3.0.0.
+pub fn isTif(
+    src: io_stream.Stream,
+) bool {
+    const ret = c.IMG_isTIF(
+        src.value,
+    );
+    return ret;
+}
+
+/// Detect WEBP image data on a readable/seekable `io.Stream`.
+///
+/// ## Function Parameters
+/// * `src`: A seekable/readable IO stream to provide image data.
+///
+/// ## Return Value
+/// Returns true if this is WEBP data, false otherwise.
+///
+/// ## Remarks
+/// This function attempts to determine if a file is a given filetype, reading the least amount possible from the `io.Stream` (usually a few bytes).
+///
+/// There is no distinction made between "not the filetype in question" and basic i/o errors.
+///
+/// This function will always attempt to seek `src` back to where it started when this function was called, but it will not report any errors in doing so,
+/// but assuming seeking works, this means you can immediately use this with a different "is type" function, or load the image without further seeking.
+///
+/// You do not need to call this function to load data; SDL image can work to determine file type in many cases in its standard load functions.
+///
+/// ## Version
+/// This function is available since SDL image 3.0.0.
+pub fn isWebp(
+    src: io_stream.Stream,
+) bool {
+    const ret = c.IMG_isWEBP(
+        src.value,
+    );
+    return ret;
+}
+
+/// Detect XCF image data on a readable/seekable `io.Stream`.
+///
+/// ## Function Parameters
+/// * `src`: A seekable/readable IO stream to provide image data.
+///
+/// ## Return Value
+/// Returns true if this is XCF data, false otherwise.
+///
+/// ## Remarks
+/// This function attempts to determine if a file is a given filetype, reading the least amount possible from the `io.Stream` (usually a few bytes).
+///
+/// There is no distinction made between "not the filetype in question" and basic i/o errors.
+///
+/// This function will always attempt to seek `src` back to where it started when this function was called, but it will not report any errors in doing so,
+/// but assuming seeking works, this means you can immediately use this with a different "is type" function, or load the image without further seeking.
+///
+/// You do not need to call this function to load data; SDL image can work to determine file type in many cases in its standard load functions.
+///
+/// ## Version
+/// This function is available since SDL image 3.0.0.
+pub fn isXcf(
+    src: io_stream.Stream,
+) bool {
+    const ret = c.IMG_isXCF(
+        src.value,
+    );
+    return ret;
+}
+
+/// Detect XPM image data on a readable/seekable `io.Stream`.
+///
+/// ## Function Parameters
+/// * `src`: A seekable/readable IO stream to provide image data.
+///
+/// ## Return Value
+/// Returns true if this is XPM data, false otherwise.
+///
+/// ## Remarks
+/// This function attempts to determine if a file is a given filetype, reading the least amount possible from the `io.Stream` (usually a few bytes).
+///
+/// There is no distinction made between "not the filetype in question" and basic i/o errors.
+///
+/// This function will always attempt to seek `src` back to where it started when this function was called, but it will not report any errors in doing so,
+/// but assuming seeking works, this means you can immediately use this with a different "is type" function, or load the image without further seeking.
+///
+/// You do not need to call this function to load data; SDL image can work to determine file type in many cases in its standard load functions.
+///
+/// ## Version
+/// This function is available since SDL image 3.0.0.
+pub fn isXpm(
+    src: io_stream.Stream,
+) bool {
+    const ret = c.IMG_isXPM(
+        src.value,
+    );
+    return ret;
+}
+
+/// Detect XV image data on a readable/seekable `io.Stream`.
+///
+/// ## Function Parameters
+/// * `src`: A seekable/readable IO stream to provide image data.
+///
+/// ## Return Value
+/// Returns true if this is XV data, false otherwise.
+///
+/// ## Remarks
+/// This function attempts to determine if a file is a given filetype, reading the least amount possible from the `io.Stream` (usually a few bytes).
+///
+/// There is no distinction made between "not the filetype in question" and basic i/o errors.
+///
+/// This function will always attempt to seek `src` back to where it started when this function was called, but it will not report any errors in doing so,
+/// but assuming seeking works, this means you can immediately use this with a different "is type" function, or load the image without further seeking.
+///
+/// You do not need to call this function to load data; SDL image can work to determine file type in many cases in its standard load functions.
+///
+/// ## Version
+/// This function is available since SDL image 3.0.0.
+pub fn isXv(
+    src: io_stream.Stream,
+) bool {
+    const ret = c.IMG_isXV(
+        src.value,
+    );
+    return ret;
+}
+
+/// Load an image from a filesystem path into a software surface.
+///
+/// ## Function Parameters
+/// * `path`: A path on the filesystem to load an image from.
+///
+/// ## Return Value
+/// Returns a new SDL surface.
+///
+/// ## Remarks
+/// An surface is a buffer of pixels in memory accessible by the CPU.
+/// Use this if you plan to hand the data to something else or manipulate it further in code.
+///
+/// There are no guarantees about what format the new surface data will be; in many cases, SDL image will attempt to supply a surface that exactly matches the provided image,
+/// but in others it might have to convert (either because the image is in a format that SDL doesn't directly support or because it's compressed data that could reasonably
+/// uncompress to various formats and SDL image had to pick one).
+/// You can inspect an SDL Surface for its specifics, and use `surface.Surface.convert()` to then migrate to any supported format.
+///
+/// If the image format supports a transparent pixel, SDL will set the colorkey for the surface.
+/// You can enable RLE acceleration on the surface afterwards by calling: `surface.Surface.setColorKey(image, image.getFormat().color_key);`
+///
+/// There is a separate function to read files from an SDL IO stream, if you need an i/o abstraction to provide data from anywhere instead of a simple filesystem read;
+/// that function is `loadIo()`.
+///
+/// If you are using SDL's 2D rendering API, there is an equivalent call to load images directly into a `render.Texture` for use by the GPU
+/// without using a software surface: call `image.loadTexture()` instead.
+///
+/// When done with the returned surface, the app should dispose of it with a call to `surface.Surface.deinit()`.
+///
+/// ## Version
+/// This function is available since SDL image 3.0.0.
+pub fn loadFile(
+    path: [:0]const u8,
+) !surface.Surface {
+    const ret = c.IMG_Load(
+        path,
+    );
+    return surface.Surface{ .value = try errors.wrapNull(*c.SDL_Surface, ret) };
+}
+
+/// Load an image from an SDL data source into a software surface.
+///
+/// ## Function Parameters
+/// * `src`: An SDL IO stream that data will be read from.
+/// * `close_when_done`: True to close/free the SDL IO stream before returning, false to leave it open.
+///
+/// ## Return Value
+/// Returns a new SDL surface.
+///
+/// ## Remarks
+/// An surface is a buffer of pixels in memory accessible by the CPU.
+/// Use this if you plan to hand the data to something else or manipulate it further in code.
+///
+/// There are no guarantees about what format the new surface data will be; in many cases, SDL image will attempt to supply a surface that exactly matches the provided image,
+/// but in others it might have to convert (either because the image is in a format that SDL doesn't directly support or because it's compressed data that could reasonably
+/// uncompress to various formats and SDL image had to pick one).
+/// You can inspect an SDL Surface for its specifics, and use `surface.Surface.convert()` to then migrate to any supported format.
+///
+/// If the image format supports a transparent pixel, SDL will set the colorkey for the surface.
+/// You can enable RLE acceleration on the surface afterwards by calling: `surface.Surface.setColorKey(image, image.getFormat().color_key);`
+///
+/// There is a separate function to read files from disk without having to deal with SDL IO stream: `image.loadFile("filename.jpg")` will call this function and manage those details for you,
+/// determining the file type from the filename's extension.
+///
+/// There is also `image.loadTypedIo()`, which is equivalent to this function except a file extension (like "BMP", "JPG", etc) can be specified,
+/// in case SDL_image cannot autodetect the file format.
+///
+/// If you are using SDL's 2D rendering API, there is an equivalent call to load images directly into a `render.Texture` for use by the GPU
+/// without using a software surface: call `image.loadTexture()` instead.
+///
+/// When done with the returned surface, the app should dispose of it with a call to `surface.Surface.deinit()`.
+///
+/// ## Version
+/// This function is available since SDL image 3.0.0.
+pub fn loadIo(
+    src: io_stream.Stream,
+    close_when_done: bool,
+) !surface.Surface {
+    const ret = c.IMG_Load_IO(
+        src.value,
+        close_when_done,
+    );
+    return surface.Surface{ .value = try errors.wrapNull(*c.SDL_Surface, ret) };
+}
 
 /// SDL image version information.
 pub const Version = struct {
@@ -74,112 +849,6 @@ pub const Version = struct {
     }
 };
 
-/// Animated image support.
-pub const Animation = struct {
-    value: c.IMG_Animation,
-
-    /// Load an animation from a file.
-    pub fn init(
-        file: [:0]const u8,
-    ) !Animation {
-        const ret = c.IMG_LoadAnimation(
-            file,
-        );
-        if (ret == null)
-            return error.SdlError;
-        return Animation{ .value = ret };
-    }
-
-    /// Load an animation from an SDL_IOStream.
-    pub fn initFromIo(
-        source: io_stream.Stream,
-        close_when_done: bool,
-    ) !Animation {
-        const ret = c.IMG_LoadAnimation_IO(
-            source.value,
-            close_when_done,
-        );
-        if (ret == null)
-            return error.SdlError;
-        return Animation{ .value = ret };
-    }
-
-    /// Load an animation from an SDL datasource.
-    pub fn initFromTypedIo(
-        source: io_stream.Stream,
-        close_when_done: bool,
-        file_type: [:0]const u8,
-    ) !Animation {
-        const ret = c.IMG_LoadAnimationTyped_IO(
-            source.value,
-            close_when_done,
-            file_type,
-        );
-        if (ret == null)
-            return error.SdlError;
-        return Animation{ .value = ret };
-    }
-
-    /// Dispose of an IMG_Animation and free its resources.
-    pub fn deinit(
-        self: Animation,
-    ) void {
-        const ret = c.IMG_FreeAnimation(
-            self.value,
-        );
-        _ = ret;
-    }
-
-    /// Load a GIF animation directly.
-    pub fn initFromGifIo(
-        source: io_stream.Stream,
-    ) !Animation {
-        const ret = c.IMG_LoadGIFAnimation_IO(
-            source.value,
-        );
-        if (ret == null)
-            return error.SdlError;
-        return Animation{ .value = ret };
-    }
-
-    /// Load a WEBP animation directly.
-    pub fn initFromWebpIo(
-        source: io_stream.Stream,
-    ) !Animation {
-        const ret = c.IMG_LoadWEBPAnimation_IO(
-            source.value,
-        );
-        if (ret == null)
-            return error.SdlError;
-        return Animation{ .value = ret };
-    }
-
-    /// Get the width of an animation.
-    pub fn getWidth(self: Animation) usize {
-        return @intCast(self.value.w);
-    }
-
-    /// Get the height of an animation.
-    pub fn getHeight(self: Animation) usize {
-        return @intCast(self.value.h);
-    }
-
-    /// Get number of frames of an animation.
-    pub fn getNumFrames(self: Animation) usize {
-        return @intCast(self.value.count);
-    }
-
-    /// Get a frame of animation. Returns null if out of bounds.
-    pub fn getFrame(self: Animation, index: usize) ?struct { frame: surface.Surface, delay: usize } {
-        if (index >= self.getNumFrames())
-            return null;
-        return .{
-            .frame = .{ .value = self.value.frames[index] },
-            .delay = @intCast(self.value.delays[index]),
-        };
-    }
-};
-
 /// Load an image from an SDL data source into a software surface.
 pub fn loadTypedIo(
     source: io_stream.Stream,
@@ -190,32 +859,6 @@ pub fn loadTypedIo(
         source.value,
         close_when_done,
         file_type,
-    );
-    if (ret == null)
-        return error.SdlError;
-    return surface.Surface{ .value = ret };
-}
-
-/// Load an image from a filesystem path into a software surface.
-pub fn loadFile(
-    path: [:0]const u8,
-) !surface.Surface {
-    const ret = c.IMG_Load(
-        path,
-    );
-    if (ret == null)
-        return error.SdlError;
-    return surface.Surface{ .value = ret };
-}
-
-/// Load an image from an SDL data source into a software surface.
-pub fn loadIo(
-    source: io_stream.Stream,
-    close_when_done: bool,
-) !surface.Surface {
-    const ret = c.IMG_Load_IO(
-        source.value,
-        close_when_done,
     );
     if (ret == null)
         return error.SdlError;
@@ -268,186 +911,6 @@ pub fn loadTextureTypedIo(
     if (ret == null)
         return error.SdlError;
     return render.Texture{ .value = ret };
-}
-
-/// Detect AVIF image data on a readable/seekable SDL_IOStream.
-pub fn isAvif(
-    source: io_stream.Stream,
-) bool {
-    const ret = c.IMG_isAVIF(
-        source.value,
-    );
-    return ret;
-}
-
-/// Detect ICO image data on a readable/seekable SDL_IOStream.
-pub fn isIco(
-    source: io_stream.Stream,
-) bool {
-    const ret = c.IMG_isICO(
-        source.value,
-    );
-    return ret;
-}
-
-/// Detect CUR image data on a readable/seekable SDL_IOStream.
-pub fn isCur(
-    source: io_stream.Stream,
-) bool {
-    const ret = c.IMG_isCUR(
-        source.value,
-    );
-    return ret;
-}
-
-/// Detect BMP image data on a readable/seekable SDL_IOStream.
-pub fn isBmp(
-    source: io_stream.Stream,
-) bool {
-    const ret = c.IMG_isBMP(
-        source.value,
-    );
-    return ret;
-}
-
-/// Detect GIF image data on a readable/seekable SDL_IOStream.
-pub fn isGif(
-    source: io_stream.Stream,
-) bool {
-    const ret = c.IMG_isGIF(
-        source.value,
-    );
-    return ret;
-}
-
-/// Detect JPG image data on a readable/seekable SDL_IOStream.
-pub fn isJpg(
-    source: io_stream.Stream,
-) bool {
-    const ret = c.IMG_isJPG(
-        source.value,
-    );
-    return ret;
-}
-
-/// Detect JXL image data on a readable/seekable SDL_IOStream.
-pub fn isJxl(
-    source: io_stream.Stream,
-) bool {
-    const ret = c.IMG_isJXL(
-        source.value,
-    );
-    return ret;
-}
-
-/// Detect LBM image data on a readable/seekable SDL_IOStream.
-pub fn isLbm(
-    source: io_stream.Stream,
-) bool {
-    const ret = c.IMG_isLBM(
-        source.value,
-    );
-    return ret;
-}
-
-/// Detect PCX image data on a readable/seekable SDL_IOStream.
-pub fn isPcx(
-    source: io_stream.Stream,
-) bool {
-    const ret = c.IMG_isPCX(
-        source.value,
-    );
-    return ret;
-}
-
-/// Detect PNG image data on a readable/seekable SDL_IOStream.
-pub fn isPng(
-    source: io_stream.Stream,
-) bool {
-    const ret = c.IMG_isPNG(
-        source.value,
-    );
-    return ret;
-}
-
-/// Detect PNM image data on a readable/seekable SDL_IOStream.
-pub fn isPnm(
-    source: io_stream.Stream,
-) bool {
-    const ret = c.IMG_isPNM(
-        source.value,
-    );
-    return ret;
-}
-
-/// Detect SVG image data on a readable/seekable SDL_IOStream.
-pub fn isSvg(
-    source: io_stream.Stream,
-) bool {
-    const ret = c.IMG_isSVG(
-        source.value,
-    );
-    return ret;
-}
-
-/// Detect QOI image data on a readable/seekable SDL_IOStream.
-pub fn isQoi(
-    source: io_stream.Stream,
-) bool {
-    const ret = c.IMG_isQOI(
-        source.value,
-    );
-    return ret;
-}
-
-/// Detect TIF image data on a readable/seekable SDL_IOStream.
-pub fn isTif(
-    source: io_stream.Stream,
-) bool {
-    const ret = c.IMG_isTIF(
-        source.value,
-    );
-    return ret;
-}
-
-/// Detect XCF image data on a readable/seekable SDL_IOStream.
-pub fn isXcf(
-    source: io_stream.Stream,
-) bool {
-    const ret = c.IMG_isXCF(
-        source.value,
-    );
-    return ret;
-}
-
-/// Detect XPM image data on a readable/seekable SDL_IOStream.
-pub fn isXpm(
-    source: io_stream.Stream,
-) bool {
-    const ret = c.IMG_isXPM(
-        source.value,
-    );
-    return ret;
-}
-
-/// Detect XV image data on a readable/seekable SDL_IOStream.
-pub fn isXv(
-    source: io_stream.Stream,
-) bool {
-    const ret = c.IMG_isXV(
-        source.value,
-    );
-    return ret;
-}
-
-/// Detect WEBP image data on a readable/seekable SDL_IOStream.
-pub fn isWebp(
-    source: io_stream.Stream,
-) bool {
-    const ret = c.IMG_isWEBP(
-        source.value,
-    );
-    return ret;
 }
 
 /// Load a AVIF image directly.
@@ -809,8 +1272,3 @@ pub fn saveJpgIo(
     if (!ret)
         return error.SdlError;
 }
-
-const io_stream = @import("io_stream.zig");
-const render = @import("render.zig");
-const version = @import("version.zig");
-const surface = @import("surface.zig");

@@ -184,12 +184,12 @@ pub const ConnectionState = enum(c_int) {
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const ID = packed struct {
+pub const Id = packed struct {
     value: c.SDL_JoystickID,
 
     // Size tests.
     comptime {
-        std.debug.assert(@sizeOf(c.SDL_JoystickID) == @sizeOf(ID));
+        std.debug.assert(@sizeOf(c.SDL_JoystickID) == @sizeOf(Id));
     }
 
     /// Detach a virtual joystick.
@@ -200,7 +200,7 @@ pub const ID = packed struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn deinitVirtual(
-        self: ID,
+        self: Id,
     ) !void {
         return errors.wrapCallBool(c.SDL_DetachVirtualJoystick(self.value));
     }
@@ -217,7 +217,7 @@ pub const ID = packed struct {
     /// This function is available since SDL 3.2.0.
     pub fn initVirtual(
         virtual: VirtualJoystickDescription,
-    ) !ID {
+    ) !Id {
         const virtual_sdl = virtual.toSdl();
         return .{ .value = try errors.wrapCall(c.SDL_JoystickID, c.SDL_AttachVirtualJoystick(&virtual_sdl), 0) };
     }
@@ -237,7 +237,7 @@ pub const ID = packed struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn getGuid(
-        self: ID,
+        self: Id,
     ) guid.GUID {
         const ret = c.SDL_GetJoystickGUIDForID(
             self.value,
@@ -261,7 +261,7 @@ pub const ID = packed struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn getName(
-        self: ID,
+        self: Id,
     ) ![:0]const u8 {
         const ret = c.SDL_GetJoystickNameForID(
             self.value,
@@ -283,7 +283,7 @@ pub const ID = packed struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn getPath(
-        self: ID,
+        self: Id,
     ) ![:0]const u8 {
         const ret = c.SDL_GetJoystickPathForID(
             self.value,
@@ -305,7 +305,7 @@ pub const ID = packed struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn getPlayerIndex(
-        self: ID,
+        self: Id,
     ) ?usize {
         const ret = c.SDL_GetJoystickPlayerIndexForID(
             self.value,
@@ -331,7 +331,7 @@ pub const ID = packed struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn getProduct(
-        self: ID,
+        self: Id,
     ) ?u16 {
         const ret = c.SDL_GetJoystickProductForID(
             self.value,
@@ -357,7 +357,7 @@ pub const ID = packed struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn getProductVersion(
-        self: ID,
+        self: Id,
     ) ?u16 {
         const ret = c.SDL_GetJoystickProductVersionForID(
             self.value,
@@ -382,7 +382,7 @@ pub const ID = packed struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn getType(
-        self: ID,
+        self: Id,
     ) ?Type {
         const ret = c.SDL_GetJoystickTypeForID(
             self.value,
@@ -406,7 +406,7 @@ pub const ID = packed struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn getVendor(
-        self: ID,
+        self: Id,
     ) ?u16 {
         const ret = c.SDL_GetJoystickVendorForID(
             self.value,
@@ -427,7 +427,7 @@ pub const ID = packed struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn isVirtual(
-        self: ID,
+        self: Id,
     ) bool {
         const ret = c.SDL_IsJoystickVirtual(
             self.value,
@@ -718,11 +718,11 @@ pub const Joystick = struct {
     /// This function is available since SDL 3.2.0.
     pub fn getId(
         self: Joystick,
-    ) !ID {
+    ) !Id {
         const ret = c.SDL_GetJoystickID(
             self.value,
         );
-        return ID{ .value = try errors.wrapCall(c.SDL_JoystickID, ret, 0) };
+        return Id{ .value = try errors.wrapCall(c.SDL_JoystickID, ret, 0) };
     }
 
     /// Get the implementation dependent name of a joystick.
@@ -1041,7 +1041,7 @@ pub const Joystick = struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn init(
-        id: ID,
+        id: Id,
     ) !Joystick {
         const ret = c.SDL_OpenJoystick(
             id.value,
@@ -1564,10 +1564,10 @@ pub fn eventsEnabled() bool {
 ///
 /// ## Version
 /// This function is available since SDL 3.2.0.
-pub fn get() ![]ID {
+pub fn get() ![]Id {
     var count: c_int = undefined;
     const ret = c.SDL_GetJoysticks(&count);
-    return @as([*]ID, @ptrCast(try errors.wrapNull([*]c.SDL_JoystickID, ret)))[0..@intCast(count)];
+    return @as([*]Id, @ptrCast(try errors.wrapNull([*]c.SDL_JoystickID, ret)))[0..@intCast(count)];
 }
 
 /// Get the joystick associated with an instance ID, if it has been opened.
@@ -1581,7 +1581,7 @@ pub fn get() ![]ID {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getFromId(
-    id: ID,
+    id: Id,
 ) !Joystick {
     const ret = c.SDL_GetJoystickFromID(
         id.value,

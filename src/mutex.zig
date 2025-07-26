@@ -182,7 +182,7 @@ pub const InitState = struct {
     /// This function is provided by zig-sdl3.
     pub fn getThread(
         self: *InitState,
-    ) thread.ID {
+    ) thread.Id {
         return .{ .value = self.value.thread };
     }
 

@@ -1236,7 +1236,7 @@ pub const VSync = union(enum) {
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const WindowID = c.SDL_WindowID;
+pub const WindowId = c.SDL_WindowID;
 
 /// The struct used as an opaque handle to a window.
 ///
@@ -1976,7 +1976,7 @@ pub const Window = packed struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn fromID(
-        id: WindowID,
+        id: WindowId,
     ) !Window {
         const ret = c.SDL_GetWindowFromID(id);
         return .{ .value = try errors.wrapNull(*c.SDL_Window, ret) };
@@ -2045,9 +2045,9 @@ pub const Window = packed struct {
     /// This function is available since SDL 3.2.0.
     pub fn getId(
         self: Window,
-    ) !WindowID {
+    ) !WindowId {
         const ret = c.SDL_GetWindowID(self.value);
-        return errors.wrapCall(WindowID, ret, 0);
+        return errors.wrapCall(WindowId, ret, 0);
     }
 
     /// Get a window's keyboard grab mode.
