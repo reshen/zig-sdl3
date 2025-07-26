@@ -9,7 +9,7 @@ const std = @import("std");
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const PowerState = enum(c_int) {
+pub const PowerState = enum(c.SDL_PowerState) {
     /// Can not determine power status.
     unknown = c.SDL_POWERSTATE_UNKNOWN,
     /// Not plugged in, running on battery.

@@ -261,7 +261,7 @@ pub const InitState = struct {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const InitStatus = enum(c_int) {
+pub const InitStatus = enum(c.SDL_InitStatus) {
     uninitialized = c.SDL_INIT_STATUS_UNINITIALIZED,
     initializing = c.SDL_INIT_STATUS_INITIALIZING,
     initialized = c.SDL_INIT_STATUS_INITIALIZED,

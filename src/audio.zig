@@ -85,19 +85,20 @@ pub fn StreamCallback(
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const Format = struct {
-    value: c_uint,
-    pub const unsigned_8_bit = Format{ .value = c.SDL_AUDIO_U8 };
-    pub const signed_8_bit = Format{ .value = c.SDL_AUDIO_S8 };
-    pub const signed_16_bit_little_endian = Format{ .value = c.SDL_AUDIO_S16LE };
-    pub const signed_16_bit_big_endian = Format{ .value = c.SDL_AUDIO_S16BE };
-    pub const signed_32_bit_little_endian = Format{ .value = c.SDL_AUDIO_S32LE };
-    pub const signed_32_bit_big_endian = Format{ .value = c.SDL_AUDIO_S32BE };
-    pub const floating_32_bit_little_endian = Format{ .value = c.SDL_AUDIO_F32LE };
-    pub const floating_32_bit_big_endian = Format{ .value = c.SDL_AUDIO_F32BE };
-    pub const signed_16_bit = Format{ .value = c.SDL_AUDIO_S16 };
-    pub const signed_32_bit = Format{ .value = c.SDL_AUDIO_S32 };
-    pub const floating_32_bit = Format{ .value = c.SDL_AUDIO_F32 };
+pub const Format = enum(c.SDL_AudioFormat) {
+    unsigned_8_bit = c.SDL_AUDIO_U8,
+    signed_8_bit = c.SDL_AUDIO_S8,
+    signed_16_bit_little_endian = c.SDL_AUDIO_S16LE,
+    signed_16_bit_big_endian = c.SDL_AUDIO_S16BE,
+    signed_32_bit_little_endian = c.SDL_AUDIO_S32LE,
+    signed_32_bit_big_endian = c.SDL_AUDIO_S32BE,
+    floating_32_bit_little_endian = c.SDL_AUDIO_F32LE,
+    floating_32_bit_big_endian = c.SDL_AUDIO_F32BE,
+    _,
+
+    const signed_16_bit: Format = @enumFromInt(c.SDL_AUDIO_S16);
+    const signed_32_bit: Format = @enumFromInt(c.SDL_AUDIO_S32);
+    const floating_32_bit: Format = @enumFromInt(c.SDL_AUDIO_F32);
 
     /// Define an audio format.
     ///
@@ -138,7 +139,7 @@ pub const Format = struct {
         if (float)
             ret |= c.SDL_AUDIO_MASK_FLOAT;
         ret |= @as(c_int, @intCast(bit_width));
-        return Format{ .value = @as(c_uint, @bitCast(ret)) };
+        return @enumFromInt(ret);
     }
 
     /// Retrieve the size in bits.
@@ -161,7 +162,7 @@ pub const Format = struct {
         self: Format,
     ) u8 {
         const ret = c.SDL_AUDIO_BITSIZE(
-            self.value,
+            @intFromEnum(self),
         );
         return @intCast(ret);
     }
@@ -186,7 +187,7 @@ pub const Format = struct {
         self: Format,
     ) u8 {
         const ret = c.SDL_AUDIO_BYTESIZE(
-            self.value,
+            @intFromEnum(self),
         );
         return @intCast(ret);
     }
@@ -207,7 +208,7 @@ pub const Format = struct {
     pub fn getName(
         self: Format,
     ) ?[:0]const u8 {
-        const ret: [:0]const u8 = std.mem.span(c.SDL_GetAudioFormatName(self.value));
+        const ret: [:0]const u8 = std.mem.span(c.SDL_GetAudioFormatName(@intFromEnum(self)));
         if (std.mem.eql(u8, ret, "SDL_AUDIO_UNKNOWN"))
             return null;
         return ret;
@@ -232,7 +233,7 @@ pub const Format = struct {
     pub fn getSilenceValue(
         self: Format,
     ) u8 {
-        return @intCast(c.SDL_GetSilenceValueForFormat(self.value));
+        return @intCast(c.SDL_GetSilenceValueForFormat(@intFromEnum(self)));
     }
 
     /// If the format is big endian.
@@ -255,7 +256,7 @@ pub const Format = struct {
         self: Format,
     ) bool {
         const ret = c.SDL_AUDIO_ISBIGENDIAN(
-            self.value,
+            @intFromEnum(self),
         );
         return ret != 0;
     }
@@ -280,7 +281,7 @@ pub const Format = struct {
         self: Format,
     ) bool {
         const ret = c.SDL_AUDIO_ISFLOAT(
-            self.value,
+            @intFromEnum(self),
         );
         return ret != 0;
     }
@@ -305,7 +306,7 @@ pub const Format = struct {
         self: Format,
     ) bool {
         const ret = c.SDL_AUDIO_ISINT(
-            self.value,
+            @intFromEnum(self),
         );
         return ret;
     }
@@ -330,7 +331,7 @@ pub const Format = struct {
         self: Format,
     ) bool {
         const ret = c.SDL_AUDIO_ISLITTLEENDIAN(
-            self.value,
+            @intFromEnum(self),
         );
         return ret;
     }
@@ -355,7 +356,7 @@ pub const Format = struct {
         self: Format,
     ) bool {
         const ret = c.SDL_AUDIO_ISSIGNED(
-            self.value,
+            @intFromEnum(self),
         );
         return ret != 0;
     }
@@ -380,7 +381,7 @@ pub const Format = struct {
         self: Format,
     ) bool {
         const ret = c.SDL_AUDIO_ISUNSIGNED(
-            self.value,
+            @intFromEnum(self),
         );
         return ret;
     }
@@ -1810,7 +1811,7 @@ pub const Spec = struct {
     /// Convert from an SDL value.
     pub fn fromSdl(data: c.SDL_AudioSpec) Spec {
         return .{
-            .format = Format{ .value = data.format },
+            .format = @enumFromInt(data.format),
             .num_channels = @intCast(data.channels),
             .sample_rate = @intCast(data.freq),
         };
@@ -1819,7 +1820,7 @@ pub const Spec = struct {
     /// Convert to an SDL value.
     pub fn toSdl(self: Spec) c.SDL_AudioSpec {
         return .{
-            .format = self.format.value,
+            .format = @intFromEnum(self.format),
             .channels = @intCast(self.num_channels),
             .freq = @intCast(self.sample_rate),
         };
@@ -2174,7 +2175,7 @@ pub fn mix(
     return errors.wrapCallBool(c.SDL_MixAudio(
         dst.ptr,
         src.ptr,
-        format.value,
+        @intFromEnum(format),
         @intCast(src.len),
         volume,
     ));

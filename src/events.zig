@@ -20,7 +20,7 @@ const video = @import("video.zig");
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const Action = enum(c_uint) {
+pub const Action = enum(c.SDL_EventAction) {
     /// Add events to the back of the queue.
     add,
     /// Check but don't remove events from the queue front.

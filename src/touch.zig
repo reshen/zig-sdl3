@@ -7,7 +7,7 @@ const std = @import("std");
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const DeviceType = enum(c_uint) {
+pub const DeviceType = enum(c.SDL_TouchDeviceType) {
     /// Touch screen with window-relative coordinates.
     direct = c.SDL_TOUCH_DEVICE_DIRECT,
     /// Trackpad with absolute device coordinates.

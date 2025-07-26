@@ -57,7 +57,7 @@ pub fn EnumerateCallback(
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const Type = enum(c_uint) {
+pub const Type = enum(c.SDL_PropertyType) {
     pointer = c.SDL_PROPERTY_TYPE_POINTER,
     string = c.SDL_PROPERTY_TYPE_STRING,
     number = c.SDL_PROPERTY_TYPE_NUMBER,

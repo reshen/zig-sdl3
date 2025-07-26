@@ -54,7 +54,7 @@ pub const LogOutputFunctionC = *const fn (
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const Priority = enum(c_uint) {
+pub const Priority = enum(c.SDL_LogPriority) {
     trace = c.SDL_LOG_PRIORITY_TRACE,
     verbose = c.SDL_LOG_PRIORITY_VERBOSE,
     debug = c.SDL_LOG_PRIORITY_DEBUG,

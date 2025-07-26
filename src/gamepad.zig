@@ -19,7 +19,7 @@ const std = @import("std");
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const Axis = enum(c_int) {
+pub const Axis = enum(c.SDL_GamepadAxis) {
     left_x = c.SDL_GAMEPAD_AXIS_LEFTX,
     left_y = c.SDL_GAMEPAD_AXIS_LEFTY,
     right_x = c.SDL_GAMEPAD_AXIS_RIGHTX,
@@ -195,7 +195,7 @@ pub const Binding = struct {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const BindingType = enum(c_uint) {
+pub const BindingType = enum(c.SDL_GamepadBindingType) {
     button = c.SDL_GAMEPAD_BINDTYPE_BUTTON,
     axis = c.SDL_GAMEPAD_BINDTYPE_AXIS,
     hat = c.SDL_GAMEPAD_BINDTYPE_HAT,
@@ -232,7 +232,7 @@ pub const BindingType = enum(c_uint) {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const Button = enum(c_int) {
+pub const Button = enum(c.SDL_GamepadButton) {
     /// Bottom face button (e.g. Xbox A button).
     south = c.SDL_GAMEPAD_BUTTON_SOUTH,
     /// Right face button (e.g. Xbox B button).
@@ -339,7 +339,7 @@ pub const Button = enum(c_int) {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const ButtonLabel = enum(c_uint) {
+pub const ButtonLabel = enum(c.SDL_GamepadButtonLabel) {
     a = c.SDL_GAMEPAD_BUTTON_LABEL_A,
     b = c.SDL_GAMEPAD_BUTTON_LABEL_B,
     x = c.SDL_GAMEPAD_BUTTON_LABEL_X,
@@ -1289,7 +1289,7 @@ pub const Gamepad = struct {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const Type = enum(c_uint) {
+pub const Type = enum(c.SDL_GamepadType) {
     standard = c.SDL_GAMEPAD_TYPE_STANDARD,
     xbox360 = c.SDL_GAMEPAD_TYPE_XBOX360,
     xbox_one = c.SDL_GAMEPAD_TYPE_XBOXONE,

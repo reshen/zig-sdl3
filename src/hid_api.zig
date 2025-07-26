@@ -6,7 +6,7 @@ const std = @import("std");
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const BusType = enum(c_uint) {
+pub const BusType = enum(c.SDL_hid_bus_type) {
     /// An unknown bus type.
     unknown = c.SDL_HID_API_BUS_UNKNOWN,
     /// USB bus Specifications: https://usb.org/hid.

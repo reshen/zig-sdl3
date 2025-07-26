@@ -21,7 +21,7 @@ pub const HitTest = *const fn (win: ?*c.SDL_Window, area: [*c]const c.SDL_Point,
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const SystemTheme = enum(c_uint) {
+pub const SystemTheme = enum(c.SDL_SystemTheme) {
     /// Light colored theme.
     light = c.SDL_SYSTEM_THEME_LIGHT,
     /// Dark colored theme.
@@ -476,7 +476,7 @@ pub const DisplayModeData = ?*c.SDL_DisplayModeData;
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const DisplayOrientation = enum(c_uint) {
+pub const DisplayOrientation = enum(c.SDL_DisplayOrientation) {
     /// The display is in landscape mode, with the right side up, relative to portrait mode.
     landscape = c.SDL_ORIENTATION_LANDSCAPE,
     /// The display is in landscape mode, with the left side up, relative to portrait mode.
@@ -712,7 +712,7 @@ pub const gl = struct {
     ///
     /// ## Version
     /// This enum is available since SDL 3.2.0.
-    pub const Attribute = enum(c_uint) {
+    pub const Attribute = enum(c.SDL_GLAttr) {
         /// The minimum number of bits for the red channel of the color buffer; defaults to 8.
         red_size = c.SDL_GL_RED_SIZE,
         /// The minimum number of bits for the green channel of the color buffer; defaults to 8.
@@ -772,7 +772,7 @@ pub const gl = struct {
     ///
     /// ## Version
     /// This datatype is available since SDL 3.2.0.
-    pub const Profile = enum(u32) {
+    pub const Profile = enum(c.SDL_GLProfile) {
         /// OpenGL core profile - deprecated functions are disabled.
         core = @intCast(c.SDL_GL_CONTEXT_PROFILE_CORE),
         /// OpenGL compatibility profile - deprecated functions are allowed.
@@ -871,7 +871,7 @@ pub const gl = struct {
     ///
     /// ## Version
     /// This datatype is available since SDL 3.2.0.
-    pub const ContextFlag = enum(u32) {
+    pub const ContextFlag = enum(c.SDL_GLContextFlag) {
         debug = @intCast(c.SDL_GL_CONTEXT_DEBUG_FLAG),
         forward_compatible = @intCast(c.SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG),
         robust_access = @intCast(c.SDL_GL_CONTEXT_ROBUST_ACCESS_FLAG),
@@ -882,7 +882,7 @@ pub const gl = struct {
     ///
     /// ## Version
     /// This datatype is available since SDL 3.2.0.
-    pub const ContextReleaseFlag = enum(u32) {
+    pub const ContextReleaseFlag = enum(c.SDL_GLContextReleaseFlag) {
         none = @intCast(c.SDL_GL_CONTEXT_RELEASE_BEHAVIOR_NONE),
         flush = @intCast(c.SDL_GL_CONTEXT_RELEASE_BEHAVIOR_FLUSH),
     };
@@ -891,7 +891,7 @@ pub const gl = struct {
     ///
     /// ## Version
     /// This datatype is available since SDL 3.2.0.
-    pub const ContextResetNotification = enum(u32) {
+    pub const ContextResetNotification = enum(c.SDL_GLContextResetNotification) {
         no_notification = @intCast(c.SDL_GL_CONTEXT_RESET_NO_NOTIFICATION),
         lose_context = @intCast(c.SDL_GL_CONTEXT_RESET_LOSE_CONTEXT),
     };
@@ -1154,7 +1154,7 @@ pub const gl = struct {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const HitTestResult = enum(c_uint) {
+pub const HitTestResult = enum(c.SDL_HitTestResult) {
     /// Region is normal. No special properties.
     normal = c.SDL_HITTEST_NORMAL,
     /// Region can drag entire window.
@@ -1181,7 +1181,7 @@ pub const HitTestResult = enum(c_uint) {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const FlashOperation = enum(c_uint) {
+pub const FlashOperation = enum(c.SDL_FlashOperation) {
     /// Cancel any window flash state.
     cancel = c.SDL_FLASH_CANCEL,
     /// Flash the window briefly to get attention
@@ -2235,7 +2235,7 @@ pub const Window = packed struct {
         self: Window,
     ) !pixels.Format {
         const ret = c.SDL_GetWindowPixelFormat(self.value);
-        return .{ .value = try errors.wrapCall(c_uint, ret, 0) };
+        return @enumFromInt(try errors.wrapCall(c_uint, ret, 0));
     }
 
     /// Get the position of a window.

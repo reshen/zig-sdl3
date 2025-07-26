@@ -23,7 +23,7 @@ pub const Id = packed struct {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const Priority = enum(c_uint) {
+pub const Priority = enum(c.SDL_ThreadPriority) {
     low = c.SDL_THREAD_PRIORITY_LOW,
     normal = c.SDL_THREAD_PRIORITY_NORMAL,
     high = c.SDL_THREAD_PRIORITY_HIGH,
@@ -37,7 +37,7 @@ pub const Priority = enum(c_uint) {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const State = enum(c_uint) {
+pub const State = enum(c.SDL_ThreadState) {
     /// The thread is currently running.
     alive,
     /// The thread is detached and can't be waited on.

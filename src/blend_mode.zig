@@ -10,7 +10,7 @@ const std = @import("std");
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const Factor = enum(c_uint) {
+pub const Factor = enum(c.SDL_BlendFactor) {
     /// (0, 0, 0, 0)
     zero = c.SDL_BLENDFACTOR_ZERO,
     /// (1, 1, 1, 1)
@@ -37,7 +37,7 @@ pub const Factor = enum(c_uint) {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const Operation = enum(c_uint) {
+pub const Operation = enum(c.SDL_BlendOperation) {
     /// Destination + Source. Supported by all renderers.
     add = c.SDL_BLENDOPERATION_ADD,
     /// Source - Destination. Supported by D3D, OpenGL, OpenGLES, and Vulkan.
@@ -59,34 +59,34 @@ pub const Operation = enum(c_uint) {
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const Mode = struct {
-    value: c.SDL_BlendMode,
+pub const Mode = enum(c.SDL_BlendMode) {
     /// Destination = Source.
-    pub const none = Mode{ .value = c.SDL_BLENDMODE_NONE };
+    none = c.SDL_BLENDMODE_NONE,
     /// DestinationRGB = (SourceRGB * SourceA) + (DestinationRGB * (1-SourceA)), DestinationA = SourceA + (DestinationA * (1-SourceA)).
-    pub const blend = Mode{ .value = c.SDL_BLENDMODE_BLEND };
+    blend = c.SDL_BLENDMODE_BLEND,
     /// DestinationRGBA = SourceRGBA + (DestinationRGBA * (1-SourceA)).
-    pub const blend_premultiplied = Mode{ .value = c.SDL_BLENDMODE_BLEND_PREMULTIPLIED };
+    blend_premultiplied = c.SDL_BLENDMODE_BLEND_PREMULTIPLIED,
     /// DestinationRGB = (SourceRGB * SourceA) + DestinationRGB, DestinationA = DestinationA.
-    pub const add = Mode{ .value = c.SDL_BLENDMODE_ADD };
+    add = c.SDL_BLENDMODE_ADD,
     /// DestinationRGB = SourceRGB + DestinationRGB, DestinationA = DestinationA.
-    pub const add_premultiplied = Mode{ .value = c.SDL_BLENDMODE_ADD_PREMULTIPLIED };
+    add_premultiplied = c.SDL_BLENDMODE_ADD_PREMULTIPLIED,
     /// DestinationRGB = SourceRGB * DestinationRGB, DestinationA = DestinationA.
-    pub const mod = Mode{ .value = c.SDL_BLENDMODE_MOD };
+    mod = c.SDL_BLENDMODE_MOD,
     /// DestinationRGB = (SourceRGB * DestinationRGB) + (DestinationRGB * (1-SourceA)), DestinationA = DestinationA.
-    pub const mul = Mode{ .value = c.SDL_BLENDMODE_MUL };
+    mul = c.SDL_BLENDMODE_MUL,
+    _,
 
     /// Convert from SDL. Returns null if invalid.
     pub fn fromSdl(val: c.SDL_BlendMode) ?Mode {
         if (val == c.SDL_BLENDMODE_INVALID)
             return null;
-        return .{ .value = val };
+        return @enumFromInt(val);
     }
 
     /// Convert to SDL.
     pub fn toSdl(val: ?Mode) c.SDL_BlendMode {
         if (val) |id| {
-            return id.value;
+            return @intFromEnum(id);
         }
         return c.SDL_BLENDMODE_INVALID;
     }

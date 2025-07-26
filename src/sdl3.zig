@@ -835,7 +835,7 @@ const std = @import("std");
 /// See Main callbacks in SDL3 for complete details.
 ///
 /// This enum is available since SDL 3.2.0.
-pub const AppResult = enum(c_uint) {
+pub const AppResult = enum(c.SDL_AppResult) {
     /// Value that requests that the app continue from the main callbacks.
     run = c.SDL_APP_CONTINUE,
     /// Value that requests termination with success from the main callbacks.

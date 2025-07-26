@@ -484,7 +484,7 @@ pub const Queue = struct {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const Result = enum(c_uint) {
+pub const Result = enum(c.SDL_AsyncIOResult) {
     /// Request was completed without error.
     complete = c.SDL_ASYNCIO_COMPLETE,
     /// Request failed for some reason.
@@ -497,7 +497,7 @@ pub const Result = enum(c_uint) {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const TaskType = enum(c_uint) {
+pub const TaskType = enum(c.SDL_AsyncIOTaskType) {
     /// A read operation.
     read = c.SDL_ASYNCIO_TASK_READ,
     /// A write operation.

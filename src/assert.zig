@@ -82,7 +82,7 @@ pub const HandlerC = *const fn (
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const State = enum(c_uint) {
+pub const State = enum(c.SDL_AssertState) {
     /// Retry the assert immediately.
     retry = c.SDL_ASSERTION_RETRY,
     /// Make the debugger trigger a breakpoint.

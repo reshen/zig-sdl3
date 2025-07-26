@@ -35,7 +35,7 @@ pub const Process = packed struct {
     ///
     /// ## Version
     /// This enum is available since SDL 3.2.0.
-    pub const Io = enum(c_uint) {
+    pub const Io = enum(c.SDL_ProcessIO) {
         /// The I/O stream is inherited from the application.
         inherited = c.SDL_PROCESS_STDIO_INHERITED,
         /// The I/O stream is ignored.

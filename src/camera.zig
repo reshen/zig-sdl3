@@ -23,7 +23,7 @@ pub const PermissionState = enum(c_int) {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const Position = enum(c_uint) {
+pub const Position = enum(c.SDL_CameraPosition) {
     front_facing = c.SDL_CAMERA_POSITION_FRONT_FACING,
     back_facing = c.SDL_CAMERA_POSITION_BACK_FACING,
 };
@@ -443,8 +443,8 @@ pub const Specification = struct {
     /// Convert from an SDL value.
     pub fn fromSdl(data: c.SDL_CameraSpec) Specification {
         return .{
-            .format = if (data.format == c.SDL_PIXELFORMAT_UNKNOWN) null else pixels.Format{ .value = data.format },
-            .colorspace = if (data.colorspace == c.SDL_COLORSPACE_UNKNOWN) null else pixels.Colorspace{ .value = data.colorspace },
+            .format = if (data.format == c.SDL_PIXELFORMAT_UNKNOWN) null else @enumFromInt(data.format),
+            .colorspace = if (data.colorspace == c.SDL_COLORSPACE_UNKNOWN) null else @enumFromInt(data.colorspace),
             .width = @intCast(data.width),
             .height = @intCast(data.height),
             .framerate_numerator = @intCast(data.framerate_numerator),
@@ -455,8 +455,8 @@ pub const Specification = struct {
     /// Convert to an SDL value.
     pub fn toSdl(self: Specification) c.SDL_CameraSpec {
         return .{
-            .format = if (self.format) |val| val.value else c.SDL_PIXELFORMAT_UNKNOWN,
-            .colorspace = if (self.colorspace) |val| val.value else c.SDL_COLORSPACE_UNKNOWN,
+            .format = if (self.format) |val| @intFromEnum(val) else c.SDL_PIXELFORMAT_UNKNOWN,
+            .colorspace = if (self.colorspace) |val| @intFromEnum(val) else c.SDL_COLORSPACE_UNKNOWN,
             .width = @intCast(self.width),
             .height = @intCast(self.height),
             .framerate_numerator = @intCast(self.framerate_numerator),

@@ -15,7 +15,7 @@ const video = @import("video.zig");
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const BlendFactor = enum(c_uint) {
+pub const BlendFactor = enum(c.SDL_GPUBlendFactor) {
     /// 0.
     zero = c.SDL_GPU_BLENDFACTOR_ZERO,
     /// 1.
@@ -68,7 +68,7 @@ pub const BlendFactor = enum(c_uint) {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const BlendOperation = enum(c_uint) {
+pub const BlendOperation = enum(c.SDL_GPUBlendOp) {
     /// (Source * Source Factor) + (Destination * Destination Factor).
     add = c.SDL_BLENDOPERATION_ADD,
     /// (Source * Source Factor) - (Destination * Destination Factor).
@@ -1034,7 +1034,7 @@ pub const CommandBuffer = packed struct {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const CompareOperation = enum(c_uint) {
+pub const CompareOperation = enum(c.SDL_GPUCompareOp) {
     /// The comparison always evaluates false.
     never = c.SDL_GPU_COMPAREOP_NEVER,
     /// The comparison evaluates reference < test.
@@ -1584,7 +1584,7 @@ pub const CopyPass = packed struct {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const CubeMap = enum(c_uint) {
+pub const CubeMap = enum(c.SDL_GPUCubeMapFace) {
     positive_x = c.SDL_GPU_CUBEMAPFACE_POSITIVEX,
     negative_x = c.SDL_GPU_CUBEMAPFACE_NEGATIVEX,
     positive_y = c.SDL_GPU_CUBEMAPFACE_POSITIVEY,
@@ -1597,7 +1597,7 @@ pub const CubeMap = enum(c_uint) {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const CullMode = enum(c_uint) {
+pub const CullMode = enum(c.SDL_GPUCullMode) {
     /// No triangles are culled.
     none = c.SDL_GPU_CULLMODE_NONE,
     /// Front-facing triangles are culled.
@@ -2870,7 +2870,7 @@ pub const Fence = packed struct {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const FillMode = enum(c_uint) {
+pub const FillMode = enum(c.SDL_GPUFillMode) {
     /// Polygons will be rendered via rasterization.
     fill = c.SDL_GPU_FILLMODE_FILL,
     /// Polygon edges will be drawn as line segments.
@@ -2881,7 +2881,7 @@ pub const FillMode = enum(c_uint) {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const Filter = enum(c_uint) {
+pub const Filter = enum(c.SDL_GPUFilter) {
     /// Point filtering.
     nearest = c.SDL_GPU_FILTER_NEAREST,
     /// Linear filtering.
@@ -2892,7 +2892,7 @@ pub const Filter = enum(c_uint) {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const FrontFace = enum(c_uint) {
+pub const FrontFace = enum(c.SDL_GPUFrontFace) {
     /// A triangle with counter-clockwise vertex winding will be considered front-facing.
     counter_clockwise = c.SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE,
     /// A triangle with clockwise vertex winding will be considered front-facing.
@@ -3023,7 +3023,7 @@ pub const GraphicsPipelineTargetInfo = struct {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const IndexElementSize = enum(c_uint) {
+pub const IndexElementSize = enum(c.SDL_GPUIndexElementSize) {
     /// The index elements are 16-bit.
     indices_16bit = c.SDL_GPU_INDEXELEMENTSIZE_16BIT,
     /// The index elements are 32-bit.
@@ -3128,7 +3128,7 @@ pub const IndirectDrawCommand = extern struct {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const LoadOperation = enum(c_uint) {
+pub const LoadOperation = enum(c.SDL_GPULoadOp) {
     /// The previous contents of the texture will be preserved.
     load = c.SDL_GPU_LOADOP_LOAD,
     /// The contents of the texture will be cleared to a color.
@@ -3186,7 +3186,7 @@ pub const MultisampleState = struct {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const PresentMode = enum(c_uint) {
+pub const PresentMode = enum(c.SDL_GPUPresentMode) {
     /// Waits for vblank before presenting.
     /// No tearing is possible.
     /// If there is a pending image to present, the new image is enqueued for presentation.
@@ -3217,7 +3217,7 @@ pub const PresentMode = enum(c_uint) {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const PrimitiveType = enum(c_uint) {
+pub const PrimitiveType = enum(c.SDL_GPUPrimitiveType) {
     /// A series of separate triangles.
     triangle_list = c.SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
     /// A series of connected triangles.
@@ -3752,7 +3752,7 @@ pub const RenderPass = packed struct {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const SampleCount = enum(c_uint) {
+pub const SampleCount = enum(c.SDL_GPUSampleCount) {
     no_multisampling = c.SDL_GPU_SAMPLECOUNT_1,
     msaa_2x = c.SDL_GPU_SAMPLECOUNT_2,
     msaa_4x = c.SDL_GPU_SAMPLECOUNT_4,
@@ -3771,7 +3771,7 @@ pub const Sampler = packed struct {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const SamplerAddressMode = enum(c_uint) {
+pub const SamplerAddressMode = enum(c.SDL_GPUSamplerAddressMode) {
     /// Specifies that the coordinates will wrap around.
     repeat = c.SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
     /// Specifies that the coordinates will wrap around mirrored.
@@ -3882,7 +3882,7 @@ pub const SamplerCreateInfo = struct {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const SamplerMipmapMode = enum(c_uint) {
+pub const SamplerMipmapMode = enum(c.SDL_GPUSamplerMipmapMode) {
     /// Point filtering.
     nearest = c.SDL_GPU_SAMPLERMIPMAPMODE_NEAREST,
     /// Linear filtering.
@@ -4059,7 +4059,7 @@ pub const ShaderFormatFlags = struct {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const ShaderStage = enum(c_uint) {
+pub const ShaderStage = enum(c.SDL_GPUShaderStage) {
     vertex = c.SDL_GPU_SHADERSTAGE_VERTEX,
     fragment = c.SDL_GPU_SHADERSTAGE_FRAGMENT,
 };
@@ -4068,7 +4068,7 @@ pub const ShaderStage = enum(c_uint) {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const StencilOperation = enum(c_uint) {
+pub const StencilOperation = enum(c.SDL_GPUStencilOp) {
     /// Keeps the current value.
     keep = c.SDL_GPU_STENCILOP_KEEP,
     /// Sets the value to 0.
@@ -4197,7 +4197,7 @@ pub const StorageTextureReadWriteBinding = extern struct {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const StoreOperation = enum(c_uint) {
+pub const StoreOperation = enum(c.SDL_GPUStoreOp) {
     /// The contents generated during the render pass will be written to memory.
     store = c.SDL_GPU_STOREOP_STORE,
     /// The contents generated during the render pass are not needed and may be discarded.
@@ -4219,7 +4219,7 @@ pub const StoreOperation = enum(c_uint) {
 ///
 /// It is recommended to query `video.Window.supportsGpuSwapchainComposition()` after claiming the window
 /// if you wish to change the swapchain composition from `gpu.SwapchainComposition.sdr`.
-pub const SwapchainComposition = enum(c_uint) {
+pub const SwapchainComposition = enum(c.SDL_GPUSwapchainComposition) {
     /// B8G8R8A8 or R8G8B8A8 swapchain.
     /// Pixel values are in sRGB encoding.
     sdr = c.SDL_GPU_SWAPCHAINCOMPOSITION_SDR,
@@ -4441,7 +4441,7 @@ pub const TextureCreateInfo = struct {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const TextureFormat = enum(c_uint) {
+pub const TextureFormat = enum(c.SDL_GPUTextureFormat) {
     a8_unorm = c.SDL_GPU_TEXTUREFORMAT_A8_UNORM,
     r8_unorm = c.SDL_GPU_TEXTUREFORMAT_R8_UNORM,
     r8g8_unorm = c.SDL_GPU_TEXTUREFORMAT_R8G8_UNORM,
@@ -4769,7 +4769,7 @@ pub const TextureTransferInfo = struct {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const TextureType = enum(c_uint) {
+pub const TextureType = enum(c.SDL_GPUTextureType) {
     /// The texture is a 2-dimensional image.
     two_dimensional = c.SDL_GPU_TEXTURETYPE_2D,
     /// The texture is a 2-dimensional array image.
@@ -4951,7 +4951,7 @@ pub const TransferBufferLocation = struct {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const TransferBufferUsage = enum(c_uint) {
+pub const TransferBufferUsage = enum(c.SDL_GPUTransferBufferUsage) {
     upload = c.SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
     download = c.SDL_GPU_TRANSFERBUFFERUSAGE_DOWNLOAD,
 };
@@ -5030,7 +5030,7 @@ pub const VertexBufferDescription = extern struct {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const VertexElementFormat = enum(c_uint) {
+pub const VertexElementFormat = enum(c.SDL_GPUVertexElementFormat) {
     i32x1 = c.SDL_GPU_VERTEXELEMENTFORMAT_INT,
     i32x2 = c.SDL_GPU_VERTEXELEMENTFORMAT_INT2,
     i32x3 = c.SDL_GPU_VERTEXELEMENTFORMAT_INT3,
@@ -5083,7 +5083,7 @@ pub const VertexElementFormat = enum(c_uint) {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const VertexInputRate = enum(c_uint) {
+pub const VertexInputRate = enum(c.SDL_GPUVertexInputRate) {
     /// Attribute addressing is a function of the vertex index.
     vertex = c.SDL_GPU_VERTEXINPUTRATE_VERTEX,
     /// Attribute addressing is a function of the instance index.

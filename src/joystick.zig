@@ -69,7 +69,7 @@ pub const AxisMask = packed struct(c_uint) {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const ButtonMask = packed struct(c_uint) {
+pub const ButtonMask = packed struct(c.SDL_GamepadButton) {
     /// Bottom face button (e.g. Xbox A button).
     south: bool = false,
     /// Right face button (e.g. Xbox B button).
@@ -151,7 +151,7 @@ pub const ButtonMask = packed struct(c_uint) {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const ConnectionState = enum(c_int) {
+pub const ConnectionState = enum(c.SDL_JoystickConnectionState) {
     wired = c.SDL_JOYSTICK_CONNECTION_WIRED,
     wireless = c.SDL_JOYSTICK_CONNECTION_WIRELESS,
 
@@ -1382,7 +1382,7 @@ pub const Joystick = struct {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const Type = enum(c_uint) {
+pub const Type = enum(c.SDL_JoystickType) {
     gamepad = c.SDL_JOYSTICK_TYPE_GAMEPAD,
     wheel = c.SDL_JOYSTICK_TYPE_WHEEL,
     arcade_stick = c.SDL_JOYSTICK_TYPE_ARCADE_STICK,

@@ -53,7 +53,7 @@ pub const gravity: f32 = c.SDL_STANDARD_GRAVITY;
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const Type = enum(c_int) {
+pub const Type = enum(c.SDL_SensorType) {
     /// Unknown sensor type.
     unknown = c.SDL_SENSOR_UNKNOWN,
     /// Accelerometer.

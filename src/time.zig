@@ -6,7 +6,7 @@ const std = @import("std");
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const DateFormat = enum(c_uint) {
+pub const DateFormat = enum(c.SDL_DateFormat) {
     /// Year/Month/Day.
     year_month_day = c.SDL_DATE_FORMAT_YYYYMMDD,
     /// Day/Month/Year.
@@ -52,7 +52,7 @@ pub const Month = enum(c_int) {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const TimeFormat = enum(c_uint) {
+pub const TimeFormat = enum(c.SDL_TimeFormat) {
     /// 24 hour time.
     twenty_four_hour = c.SDL_TIME_FORMAT_24HR,
     /// 12 hour time.

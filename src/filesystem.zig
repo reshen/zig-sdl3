@@ -175,7 +175,7 @@ pub fn EnumerateDirectoryCallback(comptime UserData: type) type {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const EnumerationResult = enum(c_uint) {
+pub const EnumerationResult = enum(c.SDL_EnumerationResult) {
     /// Value that requests that enumeration continue.
     run = c.SDL_ENUM_CONTINUE,
     /// Value that requests that enumeration stop, successfully.
@@ -209,7 +209,7 @@ pub const EnumerationResult = enum(c_uint) {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const Folder = enum(c_uint) {
+pub const Folder = enum(c.SDL_Folder) {
     /// The folder which contains all of the current user's data, preferences, and documents.
     /// It usually contains most of the other folders.
     /// If a requested folder does not exist, the home folder can be considered a safe fallback to store a user's documents.
@@ -310,7 +310,7 @@ pub const PathInfo = struct {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const PathType = enum(c_uint) {
+pub const PathType = enum(c.SDL_PathType) {
     /// A normal file.
     file = c.SDL_PATHTYPE_FILE,
     /// A directory.

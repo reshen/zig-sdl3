@@ -1808,7 +1808,7 @@ pub const Stream = struct {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const Whence = enum(c_uint) {
+pub const Whence = enum(c.SDL_IOWhence) {
     /// Seek from the beginning of data.
     set = c.SDL_IO_SEEK_SET,
     /// Seek relative to current read point.

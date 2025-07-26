@@ -5,7 +5,7 @@ const std = @import("std");
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const Sandbox = enum(c_uint) {
+pub const Sandbox = enum(c.SDL_Sandbox) {
     unknown_container = c.SDL_SANDBOX_UNKNOWN_CONTAINER,
     flatpak = c.SDL_SANDBOX_FLATPAK,
     snap = c.SDL_SANDBOX_SNAP,

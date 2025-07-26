@@ -54,7 +54,7 @@ pub const CallbackC = *const fn (
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const Priority = enum(c_uint) {
+pub const Priority = enum(c.SDL_HintPriority) {
     default = c.SDL_HINT_DEFAULT,
     normal = c.SDL_HINT_NORMAL,
     override = c.SDL_HINT_OVERRIDE,

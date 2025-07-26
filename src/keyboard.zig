@@ -14,7 +14,7 @@ const video = @import("video.zig");
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const Capitalization = enum(c_uint) {
+pub const Capitalization = enum(c.SDL_Capitalization) {
     /// No capitalization will be done.
     none,
     /// The first letter of sentences will be capitalized.
@@ -79,7 +79,7 @@ pub const TextInputProperties = struct {
 ///
 /// ## Version
 /// This enum is available since SDL 3.2.0.
-pub const TextInputType = enum(c_uint) {
+pub const TextInputType = enum(c.SDL_TextInputType) {
     /// The input is text.
     text = c.SDL_TEXTINPUT_TYPE_TEXT,
     /// The input is a person's name.
