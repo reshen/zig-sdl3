@@ -4,13 +4,12 @@ zig-sdl3
 A lightweight wrapper to zig-ify SDL3.
 
 > [!WARNING]
-> This is not production ready and currently in development!
->
-> I'm hoping to be done soon, great progress has been made so far!
->
-> See the [checklist](checklist.md) for more details on progress.
+> While all of the subsystems are done, it is not quite production ready as certain bugs, namings, and examples have not been ironed out!
 >
 > However, most of the library is stable and usable!
+> If you're a hobbyist, you are recommended to try it out so that I can get early feedback for bugs and changes!
+>
+> See the [milestones](https://github.com/Gota7/zig-sdl3/milestones) for more details on progress.
 
 # Documentation
 [https://gota7.github.io/zig-sdl3/](https://gota7.github.io/zig-sdl3/)
