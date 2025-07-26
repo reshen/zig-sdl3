@@ -150,9 +150,9 @@ pub const Colorspace = enum(c.SDL_Colorspace) {
     _,
 
     /// The default colorspace for RGB surfaces if no colorspace is specified.
-    const rgb_default: Colorspace = @enumFromInt(c.SDL_COLORSPACE_RGB_DEFAULT);
+    pub const rgb_default: Colorspace = @enumFromInt(c.SDL_COLORSPACE_RGB_DEFAULT);
     /// The default colorspace for YUV surfaces if no colorspace is specified.
-    const yuv_default: Colorspace = @enumFromInt(c.SDL_COLORSPACE_YUV_DEFAULT);
+    pub const yuv_default: Colorspace = @enumFromInt(c.SDL_COLORSPACE_YUV_DEFAULT);
 
     /// Convert from SDL.
     pub fn fromSdl(val: c.SDL_Colorspace) ?Colorspace {
@@ -644,14 +644,14 @@ pub const Format = enum(c.SDL_PixelFormat) {
     // MJPG is in SDL 3.4.0?
     _,
 
-    const array_rgba_32: Format = @enumFromInt(c.SDL_PIXELFORMAT_RGBA32);
-    const array_argb_32: Format = @enumFromInt(c.SDL_PIXELFORMAT_ARGB32);
-    const array_bgra_32: Format = @enumFromInt(c.SDL_PIXELFORMAT_BGRA32);
-    const array_abgr_32: Format = @enumFromInt(c.SDL_PIXELFORMAT_ABGR32);
-    const array_rgbx_32: Format = @enumFromInt(c.SDL_PIXELFORMAT_RGBX32);
-    const array_xrgb_32: Format = @enumFromInt(c.SDL_PIXELFORMAT_XRGB32);
-    const array_bgrx_32: Format = @enumFromInt(c.SDL_PIXELFORMAT_BGRX32);
-    const array_xbgr_32: Format = @enumFromInt(c.SDL_PIXELFORMAT_XBGR32);
+    pub const array_rgba_32: Format = @enumFromInt(c.SDL_PIXELFORMAT_RGBA32);
+    pub const array_argb_32: Format = @enumFromInt(c.SDL_PIXELFORMAT_ARGB32);
+    pub const array_bgra_32: Format = @enumFromInt(c.SDL_PIXELFORMAT_BGRA32);
+    pub const array_abgr_32: Format = @enumFromInt(c.SDL_PIXELFORMAT_ABGR32);
+    pub const array_rgbx_32: Format = @enumFromInt(c.SDL_PIXELFORMAT_RGBX32);
+    pub const array_xrgb_32: Format = @enumFromInt(c.SDL_PIXELFORMAT_XRGB32);
+    pub const array_bgrx_32: Format = @enumFromInt(c.SDL_PIXELFORMAT_BGRX32);
+    pub const array_xbgr_32: Format = @enumFromInt(c.SDL_PIXELFORMAT_XBGR32);
 
     /// Convert from an SDL value.
     pub fn fromSdl(value: c.SDL_PixelFormat) ?Format {
