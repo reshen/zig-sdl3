@@ -1,7 +1,10 @@
 const sdl3 = @import("sdl3");
 const std = @import("std");
 
-fn printPropertyType(typ: ?sdl3.properties.Type) []const u8 {
+/// Simple property to string example function.
+fn printPropertyType(
+    typ: ?sdl3.properties.Type,
+) []const u8 {
     if (typ) |val|
         return switch (val) {
             .pointer => "pointer",
@@ -13,12 +16,21 @@ fn printPropertyType(typ: ?sdl3.properties.Type) []const u8 {
     return "[does not exist]";
 }
 
-fn arrayCleanupCallback(user_data: ?*void, val: *std.ArrayList(u32)) void {
+/// Callback for cleaning up an array property.
+fn arrayCleanupCallback(
+    user_data: ?*void,
+    val: *std.ArrayList(u32),
+) void {
     _ = user_data;
     val.deinit();
 }
 
-fn printItems(user_data: ?*usize, props: sdl3.properties.Group, name: [:0]const u8) void {
+/// Callback to print items in a properties group.
+fn printItems(
+    user_data: ?*usize,
+    props: sdl3.properties.Group,
+    name: [:0]const u8,
+) void {
     const index = user_data.?;
 
     var stdout_buffer: [256]u8 = undefined;
@@ -38,6 +50,8 @@ fn printItems(user_data: ?*usize, props: sdl3.properties.Group, name: [:0]const 
 }
 
 pub fn main() !void {
+
+    // Example setting some properties.
     const properties = try sdl3.properties.Group.init();
     defer properties.deinit();
     var num: u32 = 3;
@@ -46,7 +60,8 @@ pub fn main() !void {
     try properties.set("myNumPtr", .{ .pointer = &num });
     try properties.set("myStr", .{ .string = "Hello World!" });
 
-    const allocator = std.heap.c_allocator;
+    // Set an array list property with automatic cleanup.
+    const allocator = std.heap.smp_allocator;
     var arr = std.ArrayList(u32).init(allocator);
     try properties.setPointerPropertyWithCleanup("myArr", std.ArrayList(u32), &arr, void, arrayCleanupCallback, null);
 
@@ -56,9 +71,11 @@ pub fn main() !void {
     try writer.print("Type of \"myStr\" is {s}\n", .{printPropertyType(properties.getType("myStr"))});
     try writer.print("Type of \"isNotThere\" is {s}\n\n", .{printPropertyType(properties.getType("isNotThere"))});
 
+    // Show enumerating properties with a callback.
     var index: usize = 0;
     try properties.enumerateProperties(usize, printItems, &index);
 
+    // Show results after copying properties to the global ones.
     try writer.print("\nNotice that since \"myArr\" has a custom deleter that it is not present!\n", .{});
     const global_properties = try sdl3.properties.getGlobal();
     try properties.copyTo(global_properties);
@@ -71,12 +88,14 @@ pub fn main() !void {
         index += 1;
     }
 
+    // Clearing properties example.
     try writer.print("\nYou can clear items\n", .{});
     index = 0;
     try properties.clear("myNumPtr");
     try properties.clear("myStr");
     try properties.enumerateProperties(usize, printItems, &index);
 
+    // Fetching properties example.
     if (properties.get("myBool")) |val| {
         try writer.print("\nValue of \"myBool\" is {s}\n", .{if (val.boolean) "true" else "false"});
     }
