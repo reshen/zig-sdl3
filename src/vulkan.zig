@@ -13,12 +13,12 @@ pub const Instance = c.VkInstance;
 pub const PhysicalDevice = c.VkPhysicalDevice;
 
 /// Vulkan surface handle.
-pub const SurfaceKHR = c.VkSurfaceKHR;
+pub const SurfaceKhr = c.VkSurfaceKHR;
 
 /// Vulkan surface.
 pub const Surface = struct {
     instance: Instance,
-    surface: SurfaceKHR,
+    surface: SurfaceKhr,
     allocator: ?AllocationCallbacks,
 
     /// Destroy the Vulkan rendering surface of a window.
