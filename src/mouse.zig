@@ -30,7 +30,7 @@ const video = @import("video.zig");
 pub fn MotionTransformCallback(
     comptime UserData: type,
 ) type {
-    return *const fn (user_data: ?*UserData, timestamp: u64, window: ?video.Window, id: ID, x: *f32, y: *f32) void;
+    return *const fn (user_data: ?*UserData, timestamp: u64, window: ?video.Window, id: Id, x: *f32, y: *f32) void;
 }
 
 /// Enum identifying mouse buttons
@@ -90,35 +90,35 @@ pub const ButtonFlags = struct {
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const ID = packed struct {
+pub const Id = packed struct {
     value: c.SDL_MouseID,
 
     // Size tests.
     comptime {
-        std.debug.assert(@sizeOf(c.SDL_MouseID) == @sizeOf(ID));
+        std.debug.assert(@sizeOf(c.SDL_MouseID) == @sizeOf(Id));
     }
 
     /// The `mouse.ID` for mouse events simulated with pen input.
     ///
     /// ## Version
     /// This constant is available since SDL 3.2.0.
-    pub const pen = ID{ .value = c.SDL_PEN_MOUSEID };
+    pub const pen = Id{ .value = c.SDL_PEN_MOUSEID };
 
     /// The `mouse.ID` for mouse events simulated with touch input.
     ///
     /// ## Version
     /// This constant is available since SDL 3.2.0.
-    pub const touch = ID{ .value = c.SDL_TOUCH_MOUSEID };
+    pub const touch = Id{ .value = c.SDL_TOUCH_MOUSEID };
 
     /// Get from an SDL value.
-    pub fn fromSdl(value: c.SDL_MouseID) ?ID {
+    pub fn fromSdl(value: c.SDL_MouseID) ?Id {
         if (value == 0)
             return null;
         return .{ .value = value };
     }
 
     /// Get an SDL value.
-    pub fn toSdl(self: ?ID) c.SDL_MouseID {
+    pub fn toSdl(self: ?Id) c.SDL_MouseID {
         if (self) |val| {
             return val.value;
         }
@@ -139,7 +139,7 @@ pub const ID = packed struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn getName(
-        self: ID,
+        self: Id,
     ) !?[:0]const u8 {
         const ret = try errors.wrapCallCString(c.SDL_GetMouseNameForID(self.value));
         if (std.mem.eql(u8, ret, ""))
@@ -513,10 +513,10 @@ pub fn getGlobalState() struct { flags: ButtonFlags, x: f32, y: f32 } {
 ///
 /// ## Version
 /// This function is available since SDL 3.2.0.
-pub fn getMice() ![]ID {
+pub fn getMice() ![]Id {
     var len: c_int = undefined;
     const val = c.SDL_GetMice(&len);
-    const ret: [*]ID = @ptrCast(try errors.wrapCallCPtr(u32, val));
+    const ret: [*]Id = @ptrCast(try errors.wrapCallCPtr(u32, val));
     return ret[0..@intCast(len)];
 }
 

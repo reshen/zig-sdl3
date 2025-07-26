@@ -35,12 +35,12 @@ pub const Position = enum(c_uint) {
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const ID = packed struct {
+pub const Id = packed struct {
     value: c.SDL_CameraID,
 
     // Size tests.
     comptime {
-        std.debug.assert(@sizeOf(c.SDL_CameraID) == @sizeOf(ID));
+        std.debug.assert(@sizeOf(c.SDL_CameraID) == @sizeOf(Id));
     }
 
     /// Get a list of currently connected camera devices.
@@ -54,13 +54,13 @@ pub const ID = packed struct {
     ///
     /// ## Version
     /// This function is available since SDL 3.2.0.
-    pub fn getAll() ![]ID {
+    pub fn getAll() ![]Id {
         var count: c_int = undefined;
         const val = c.SDL_GetCameras(
             &count,
         );
         const ret = try errors.wrapCallCPtr(c.SDL_CameraID, val);
-        return @as([*]ID, @ptrCast(ret))[0..@intCast(count)];
+        return @as([*]Id, @ptrCast(ret))[0..@intCast(count)];
     }
 
     /// Get the human-readable device name for a camera.
@@ -77,7 +77,7 @@ pub const ID = packed struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn getName(
-        self: ID,
+        self: Id,
     ) ![:0]const u8 {
         const ret = c.SDL_GetCameraName(
             self.value,
@@ -103,7 +103,7 @@ pub const ID = packed struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn getPosition(
-        self: ID,
+        self: Id,
     ) ?Position {
         const ret = c.SDL_GetCameraPosition(
             self.value,
@@ -140,7 +140,7 @@ pub const ID = packed struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn getSupportedFormats(
-        self: ID,
+        self: Id,
         allocator: std.mem.Allocator,
     ) ![]Specification {
         var count: c_int = undefined;
@@ -279,11 +279,11 @@ pub const Camera = packed struct {
     /// This function is available since SDL 3.2.0.
     pub fn getID(
         self: Camera,
-    ) !ID {
+    ) !Id {
         const ret = c.SDL_GetCameraID(
             self.value,
         );
-        return ID{ .value = try errors.wrapCall(c.SDL_CameraID, ret, 0) };
+        return Id{ .value = try errors.wrapCall(c.SDL_CameraID, ret, 0) };
     }
 
     /// Query if camera access has been approved by the user.
@@ -379,7 +379,7 @@ pub const Camera = packed struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn init(
-        id: ID,
+        id: Id,
         specification: ?Specification,
     ) !Camera {
         const specification_sdl: ?c.SDL_CameraSpec = if (specification) |val| val.toSdl() else null;
@@ -552,7 +552,7 @@ test "Camera" {
     _ = getCurrentDriverName();
 
     // ID functions.
-    const ids_raw: ?[]ID = ID.getAll() catch null;
+    const ids_raw: ?[]Id = Id.getAll() catch null;
     if (ids_raw) |ids| {
         defer sdl3.free(ids.ptr);
         for (ids) |id| {

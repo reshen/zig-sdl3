@@ -640,7 +640,7 @@ pub const Gamepad = struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn getFromJoystickId(
-        id: joystick.ID,
+        id: joystick.Id,
     ) !Gamepad {
         return .{ .value = try errors.wrapNull(*c.SDL_Gamepad, c.SDL_GetGamepadFromID(id.value)) };
     }
@@ -699,7 +699,7 @@ pub const Gamepad = struct {
     /// This function is available since SDL 3.2.0.
     pub fn getJoystickId(
         self: Gamepad,
-    ) !joystick.ID {
+    ) !joystick.Id {
         return .{ .value = try errors.wrapCall(c.SDL_JoystickID, c.SDL_GetGamepadID(self.value), 0) };
     }
 
@@ -1122,7 +1122,7 @@ pub const Gamepad = struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn init(
-        id: joystick.ID,
+        id: joystick.Id,
     ) !Gamepad {
         return .{ .value = try errors.wrapNull(*c.SDL_Gamepad, c.SDL_OpenGamepad(id.value)) };
     }
@@ -1498,10 +1498,10 @@ pub fn eventsEnabled() bool {
 ///
 /// ## Version
 /// This function is available since SDL 3.2.0.
-pub fn getGamepads() ![]joystick.ID {
+pub fn getGamepads() ![]joystick.Id {
     var count: c_int = undefined;
     const ret = try errors.wrapNull(*c.SDL_JoystickID, c.SDL_GetGamepads(&count));
-    return @as([*]joystick.ID, @ptrCast(ret))[0..@intCast(count)];
+    return @as([*]joystick.Id, @ptrCast(ret))[0..@intCast(count)];
 }
 
 /// Get the implementation-dependent GUID of a gamepad.
@@ -1519,7 +1519,7 @@ pub fn getGamepads() ![]joystick.ID {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getGuidForJoystickId(
-    id: joystick.ID,
+    id: joystick.Id,
 ) ?sdl3.GUID {
     const ret = sdl3.GUID{ .value = c.SDL_GetGamepadGUIDForID(id.value) };
     if (std.mem.allEqual(u8, &ret.value.data, 0))
@@ -1559,7 +1559,7 @@ pub fn getMappingForGuid(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getMappingForJoystickId(
-    id: joystick.ID,
+    id: joystick.Id,
 ) ![:0]u8 {
     return errors.wrapCallCStringMut(c.SDL_GetGamepadMappingForID(id.value));
 }
@@ -1592,7 +1592,7 @@ pub fn getMappings() ![][*:0]u8 {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getNameForJoystickId(
-    id: joystick.ID,
+    id: joystick.Id,
 ) ![:0]const u8 {
     return errors.wrapCallCString(c.SDL_GetGamepadNameForID(id.value));
 }
@@ -1611,7 +1611,7 @@ pub fn getNameForJoystickId(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getPathForJoystickId(
-    id: joystick.ID,
+    id: joystick.Id,
 ) ![:0]const u8 {
     return errors.wrapCallCString(c.SDL_GetGamepadPathForID(id.value));
 }
@@ -1630,7 +1630,7 @@ pub fn getPathForJoystickId(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getPlayerIndexForJoystickId(
-    id: joystick.ID,
+    id: joystick.Id,
 ) ?usize {
     const ret = c.SDL_GetGamepadPlayerIndexForID(id.value);
     if (ret == -1)
@@ -1649,7 +1649,7 @@ pub fn getPlayerIndexForJoystickId(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getProductForJoystickId(
-    id: joystick.ID,
+    id: joystick.Id,
 ) ?u16 {
     const ret = c.SDL_GetGamepadProductForID(id.value);
     if (ret == 0)
@@ -1668,7 +1668,7 @@ pub fn getProductForJoystickId(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getProductVersionForJoystickId(
-    id: joystick.ID,
+    id: joystick.Id,
 ) ?u16 {
     const ret = c.SDL_GetGamepadProductVersionForID(id.value);
     if (ret == 0)
@@ -1690,7 +1690,7 @@ pub fn getProductVersionForJoystickId(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getRealTypeForJoystickId(
-    id: joystick.ID,
+    id: joystick.Id,
 ) ?Type {
     return Type.fromSdl(c.SDL_GetGamepadTypeForID(id.value));
 }
@@ -1709,7 +1709,7 @@ pub fn getRealTypeForJoystickId(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getTypeForJoystickId(
-    id: joystick.ID,
+    id: joystick.Id,
 ) ?Type {
     return Type.fromSdl(c.SDL_GetGamepadTypeForID(id.value));
 }
@@ -1725,7 +1725,7 @@ pub fn getTypeForJoystickId(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getVendorForJoystickId(
-    id: joystick.ID,
+    id: joystick.Id,
 ) ?u16 {
     const ret = c.SDL_GetGamepadVendorForID(id.value);
     if (ret == 0)
@@ -1755,7 +1755,7 @@ pub fn hasGamepad() bool {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn isJoystickGamepad(
-    id: joystick.ID,
+    id: joystick.Id,
 ) bool {
     return c.SDL_IsGamepad(id.value);
 }
@@ -1801,7 +1801,7 @@ pub fn setEventsEnabled(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn setMapping(
-    id: joystick.ID,
+    id: joystick.Id,
     mapping: ?[:0]const u8,
 ) !void {
     return errors.wrapCallBool(c.SDL_SetGamepadMapping(id.value, if (mapping) |val| val.ptr else null));

@@ -512,7 +512,7 @@ pub const CameraDevice = struct {
     /// Common event information.
     common: Common,
     /// The device being added or removed or changing.
-    device: camera.ID,
+    device: camera.Id,
 
     /// Convert from SDL.
     pub fn fromSdl(val: c.SDL_Event) CameraDevice {
@@ -649,7 +649,7 @@ pub const Drop = struct {
     /// Common event information.
     common: Common,
     /// The window that was dropped on, if any.
-    window: ?video.WindowID,
+    window: ?video.WindowId,
     /// X coordinate, relative to window.
     x: f32,
     /// Y coordinate, relative to window.
@@ -687,7 +687,7 @@ pub const DropBegin = struct {
     /// Common event information.
     common: Common,
     /// The window that was dropped on, if any.
-    window: ?video.WindowID,
+    window: ?video.WindowId,
     /// The source app that sent this drop event, or `null` if that isn't available.
     source: ?[:0]const u8,
 
@@ -717,7 +717,7 @@ pub const DropFile = struct {
     /// Common event information.
     common: Common,
     /// The window that was dropped on, if any.
-    window: ?video.WindowID,
+    window: ?video.WindowId,
     /// X coordinate, relative to window.
     x: f32,
     /// Y coordinate, relative to window.
@@ -759,7 +759,7 @@ pub const DropText = struct {
     /// Common event information.
     common: Common,
     /// The window that was dropped on, if any.
-    window: ?video.WindowID,
+    window: ?video.WindowId,
     /// X coordinate, relative to window.
     x: f32,
     /// Y coordinate, relative to window.
@@ -801,7 +801,7 @@ pub const GamepadAxis = struct {
     /// Common event information.
     common: Common,
     /// The joystick instance id.
-    id: joystick.ID,
+    id: joystick.Id,
     /// The gamepad axis.
     axis: gamepad.Axis,
     /// The axis value.
@@ -835,7 +835,7 @@ pub const GamepadButton = struct {
     /// Common event information.
     common: Common,
     /// The joystick instance id.
-    id: joystick.ID,
+    id: joystick.Id,
     /// The gamepad button.
     button: gamepad.Button,
     /// True if the button is pressed.
@@ -869,7 +869,7 @@ pub const GamepadDevice = struct {
     /// Common event information.
     common: Common,
     /// The joystick instance id.
-    id: joystick.ID,
+    id: joystick.Id,
 
     /// Convert from SDL.
     pub fn fromSdl(val: c.SDL_Event) GamepadDevice {
@@ -895,7 +895,7 @@ pub const GamepadSensor = struct {
     /// Common event information.
     common: Common,
     /// The joystick instance id.
-    id: joystick.ID,
+    id: joystick.Id,
     /// The type of the sensor.
     sensor_type: sensor.Type,
     /// Up to 3 values from the sensor.
@@ -933,7 +933,7 @@ pub const GamepadTouchpad = struct {
     /// Common event information.
     common: Common,
     /// The joystick instance id.
-    id: joystick.ID,
+    id: joystick.Id,
     /// The index of the touchpad.
     touchpad: usize,
     /// The index of the finger on the touchpad.
@@ -979,7 +979,7 @@ pub const JoystickAxis = struct {
     /// Common event information.
     common: Common,
     /// The joystick instance id.
-    id: joystick.ID,
+    id: joystick.Id,
     /// The joystick axis index.
     index: usize,
     /// The axis value.
@@ -1013,7 +1013,7 @@ pub const JoystickBall = struct {
     /// Common event information.
     common: Common,
     /// The joystick instance id.
-    id: joystick.ID,
+    id: joystick.Id,
     /// The joystick axis index.
     index: usize,
     /// The relative motion in the X direction.
@@ -1051,7 +1051,7 @@ pub const JoystickBattery = struct {
     /// Common event information.
     common: Common,
     /// The joystick instance id.
-    id: joystick.ID,
+    id: joystick.Id,
     /// The joystick battery state.
     state: power.PowerState,
     /// The joystick battery percent charge remaining.
@@ -1085,7 +1085,7 @@ pub const JoystickButton = struct {
     /// Common event information.
     common: Common,
     /// The joystick instance id.
-    id: joystick.ID,
+    id: joystick.Id,
     /// The joystick button index.
     index: usize,
     /// True if the button is pressed.
@@ -1122,7 +1122,7 @@ pub const JoystickDevice = struct {
     /// Common event information.
     common: Common,
     /// The joystick instance id.
-    id: joystick.ID,
+    id: joystick.Id,
 
     /// Convert from SDL.
     pub fn fromSdl(val: c.SDL_Event) JoystickDevice {
@@ -1151,7 +1151,7 @@ pub const JoystickHat = struct {
     /// Common event information.
     common: Common,
     /// The joystick instance id.
-    id: joystick.ID,
+    id: joystick.Id,
     /// The joystick hat index.
     index: usize,
     /// The hat position value.
@@ -1185,7 +1185,7 @@ pub const KeyboardDevice = struct {
     /// Common event information.
     common: Common,
     /// The keyboard instance id.
-    id: keyboard.ID,
+    id: keyboard.Id,
 
     /// Convert from SDL.
     pub fn fromSdl(val: c.SDL_Event) KeyboardDevice {
@@ -1215,9 +1215,9 @@ pub const Keyboard = struct {
     /// Common event information.
     common: Common,
     /// The window with keyboard focus, if any.
-    window_id: ?video.WindowID = null,
+    window_id: ?video.WindowId = null,
     /// The keyboard instance ID, or `null` if unknown or virtual.
-    id: ?keyboard.ID,
+    id: ?keyboard.Id,
     /// SDL physical key code.
     scancode: ?scancode.Scancode,
     /// SDL virtual key code.
@@ -1269,9 +1269,9 @@ pub const MouseButton = struct {
     /// Common event information.
     common: Common,
     /// The window with mouse focus, if any.
-    window_id: ?video.WindowID = null,
-    /// The mouse instance ID in relative mode, `mouse.ID.touch` for touch events, or `null`.
-    id: ?mouse.ID = null,
+    window_id: ?video.WindowId = null,
+    /// The mouse instance ID in relative mode, `mouse.Id.touch` for touch events, or `null`.
+    id: ?mouse.Id = null,
     /// The mouse button index.
     button: mouse.Button,
     /// If the button is pressed.
@@ -1319,7 +1319,7 @@ pub const MouseDevice = struct {
     /// Common event information.
     common: Common,
     /// The mouse instance id.
-    id: mouse.ID,
+    id: mouse.Id,
 
     /// Convert from SDL.
     pub fn fromSdl(val: c.SDL_Event) MouseDevice {
@@ -1345,9 +1345,9 @@ pub const MouseMotion = struct {
     /// Common event information.
     common: Common,
     /// Associated window if any.
-    window_id: ?video.WindowID = null,
-    /// The mouse instance ID in relative mode, `mouse.ID.touch` for touch events, or `null`.
-    id: ?mouse.ID = null,
+    window_id: ?video.WindowId = null,
+    /// The mouse instance ID in relative mode, `mouse.Id.touch` for touch events, or `null`.
+    id: ?mouse.Id = null,
     /// The current button state.
     state: mouse.ButtonFlags,
     /// X coordinate, relative to window.
@@ -1395,9 +1395,9 @@ pub const MouseWheel = struct {
     /// Common event information.
     common: Common,
     /// Associated window if any.
-    window_id: ?video.WindowID = null,
-    /// The mouse instance ID in relative mode, `mouse.ID.touch?` for touch events, or `null`.
-    id: ?mouse.ID = null,
+    window_id: ?video.WindowId = null,
+    /// The mouse instance ID in relative mode, `mouse.Id.touch?` for touch events, or `null`.
+    id: ?mouse.Id = null,
     /// The amount scrolled horizontally, positive to the right and negative to the left.
     scroll_x: f32,
     /// The amount scrolled vertically, positive away from the user and negative toward the user.
@@ -1455,9 +1455,9 @@ pub const PenAxis = struct {
     /// Common event information.
     common: Common,
     /// The window with pen focus, if any.
-    window_id: ?video.WindowID,
+    window_id: ?video.WindowId,
     /// The pen instance id.
-    id: pen.ID,
+    id: pen.Id,
     /// Complete pen input state at time of event.
     state: pen.InputFlags,
     /// X coordinate, relative to window.
@@ -1505,9 +1505,9 @@ pub const PenButton = struct {
     /// Common event information.
     common: Common,
     /// The window with mouse focus, if any.
-    window_id: ?video.WindowID = null,
+    window_id: ?video.WindowId = null,
     /// The pen instance id.
-    id: pen.ID,
+    id: pen.Id,
     /// Complete pen input state at time of event.
     state: pen.InputFlags,
     /// X coordinate, relative to window.
@@ -1555,9 +1555,9 @@ pub const PenMotion = struct {
     /// Common event information.
     common: Common,
     /// The window with mouse focus, if any.
-    window_id: ?video.WindowID = null,
+    window_id: ?video.WindowId = null,
     /// The pen instance id.
-    id: pen.ID,
+    id: pen.Id,
     /// Complete pen input state at time of event.
     state: pen.InputFlags,
     /// X coordinate, relative to window.
@@ -1605,9 +1605,9 @@ pub const PenProximity = struct {
     /// Common event information.
     common: Common,
     /// The window with mouse focus, if any.
-    window_id: ?video.WindowID = null,
+    window_id: ?video.WindowId = null,
     /// The pen instance id.
-    id: pen.ID,
+    id: pen.Id,
 
     /// Convert from SDL.
     pub fn fromSdl(val: c.SDL_Event) PenProximity {
@@ -1638,9 +1638,9 @@ pub const PenTouch = struct {
     /// Common event information.
     common: Common,
     /// The window with mouse focus, if any.
-    window_id: ?video.WindowID = null,
+    window_id: ?video.WindowId = null,
     /// The pen instance id.
-    id: pen.ID,
+    id: pen.Id,
     /// Complete pen input state at time of event.
     state: pen.InputFlags,
     /// X coordinate, relative to window.
@@ -1709,7 +1709,7 @@ pub const Render = struct {
     /// Common event information.
     common: Common,
     /// The window with mouse focus, if any.
-    window_id: video.WindowID,
+    window_id: video.WindowId,
 
     /// Convert from SDL.
     pub fn fromSdl(val: c.SDL_Event) Render {
@@ -1735,7 +1735,7 @@ pub const Sensor = struct {
     /// Common event information.
     common: Common,
     /// The instance ID of the sensor.
-    id: sensor.ID,
+    id: sensor.Id,
     /// Up to 6 values from the sensor, additional values can be queried using `sensor.Sensor.getData()`.
     data: [6]f32,
     /// The timestamp of the sensor reading in nanoseconds, not necessarily synchronized with the system clock.
@@ -1773,7 +1773,7 @@ pub const TextEditing = struct {
     /// Common event information.
     common: Common,
     /// The window with keyboard focus, if any.
-    window_id: ?video.WindowID = null,
+    window_id: ?video.WindowId = null,
     /// The editing text.
     text: [:0]const u8,
     /// The start cursor of selected editing text.
@@ -1811,7 +1811,7 @@ pub const TextEditingCandidates = struct {
     /// Common event information.
     common: Common,
     /// The window with keyboard focus, if any.
-    window_id: ?video.WindowID = null,
+    window_id: ?video.WindowId = null,
     /// The list of candidates, or `null` if there are no candidates available.
     candidates: ?[]const [*:0]const u8,
     /// The index of the selected candidate.
@@ -1858,7 +1858,7 @@ pub const TextInput = struct {
     /// Common event information.
     common: Common,
     /// The window with keyboard focus, if any.
-    window_id: ?video.WindowID = null,
+    window_id: ?video.WindowId = null,
     /// The input text, UTF-8 encoded.
     text: [:0]const u8,
 
@@ -1897,8 +1897,8 @@ pub const TouchFinger = struct {
     /// Common event information.
     common: Common,
     /// The touch device id.
-    id: touch.ID,
-    finger_id: touch.FingerID,
+    id: touch.Id,
+    finger_id: touch.FingerId,
     /// Normalized in the range `0` to `1`.
     x: f32,
     /// Normalized in the range `0` to `1`.
@@ -1910,7 +1910,7 @@ pub const TouchFinger = struct {
     /// Normalized in the range `0` to `1`.
     pressure: f32,
     /// The window with keyboard focus, if any.
-    window_id: ?video.WindowID = null,
+    window_id: ?video.WindowId = null,
 
     /// Convert from SDL.
     pub fn fromSdl(val: c.SDL_Event) TouchFinger {
@@ -1997,7 +1997,7 @@ pub const User = struct {
     /// The event type.
     event_type: c.SDL_EventType,
     /// Associated window if any.
-    window_id: ?video.WindowID = null,
+    window_id: ?video.WindowId = null,
     /// User defined event code.
     code: i32,
     /// User defined pointer 1.
@@ -2036,7 +2036,7 @@ pub const Window = struct {
     /// Common event information.
     common: Common,
     /// Associated window.
-    id: video.WindowID,
+    id: video.WindowId,
 
     /// Convert from SDL.
     pub fn fromSdl(val: c.SDL_Event) Window {
@@ -2062,7 +2062,7 @@ pub const WindowDisplayChanged = struct {
     /// Common event information.
     common: Common,
     /// Associated window.
-    id: video.WindowID,
+    id: video.WindowId,
     /// Display window was moved to.
     display: video.Display,
 
@@ -2092,7 +2092,7 @@ pub const WindowExposed = struct {
     /// Common event information.
     common: Common,
     /// Associated window.
-    id: video.WindowID,
+    id: video.WindowId,
     live_resize: bool,
 
     /// Convert from SDL.
@@ -2121,7 +2121,7 @@ pub const WindowMoved = struct {
     /// Common event information.
     common: Common,
     /// Associated window.
-    id: video.WindowID,
+    id: video.WindowId,
     x: i32,
     y: i32,
 
@@ -2153,7 +2153,7 @@ pub const WindowPixelSizeChanged = struct {
     /// Common event information.
     common: Common,
     /// Associated window.
-    id: video.WindowID,
+    id: video.WindowId,
     width: i32,
     height: i32,
 
@@ -2185,7 +2185,7 @@ pub const WindowResized = struct {
     /// Common event information.
     common: Common,
     /// Associated window.
-    id: video.WindowID,
+    id: video.WindowId,
     width: i32,
     height: i32,
 
