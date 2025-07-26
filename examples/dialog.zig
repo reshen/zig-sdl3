@@ -1,6 +1,7 @@
 const sdl3 = @import("sdl3");
 const std = @import("std");
 
+/// State used for the application.
 const State = struct {
     allocator: std.mem.Allocator,
     window: sdl3.video.Window,
@@ -12,7 +13,14 @@ const State = struct {
 };
 
 // Called whenever a native dialog is shown.
-fn fileCallback(user_data: ?*State, file_list: ?[]const [*:0]const u8, filter: ?usize, err: bool) void {
+fn fileCallback(
+    user_data: ?*State,
+    file_list: ?[]const [*:0]const u8,
+    filter: ?usize,
+    err: bool,
+) void {
+
+    // Error encountered, reset.
     if (err) {
         if (user_data) |user| {
             if (user.is_file) {
@@ -25,6 +33,8 @@ fn fileCallback(user_data: ?*State, file_list: ?[]const [*:0]const u8, filter: ?
         showMenu(@alignCast(@ptrCast(user_data))) catch {};
         return;
     }
+
+    // Set new data.
     const data = user_data.?;
     if (data.is_file) {
         data.last_file = std.fmt.allocPrintZ(data.allocator, "{s}", .{if (file_list) |val| val[0] else "[null]"}) catch "[allocation error]";
@@ -36,7 +46,9 @@ fn fileCallback(user_data: ?*State, file_list: ?[]const [*:0]const u8, filter: ?
 }
 
 // Logic for showing the main menu popup.
-fn showMenu(state: *State) !void {
+fn showMenu(
+    state: *State,
+) !void {
     const selected = try sdl3.message_box.show(.{
         .buttons = &.{
             .{
@@ -74,6 +86,8 @@ fn showMenu(state: *State) !void {
             },
         ),
     });
+
+    // Match the buttons earlier to actions.
     switch (selected) {
         -1 => state.quit = true,
         0 => {
@@ -116,29 +130,32 @@ fn showMenu(state: *State) !void {
 }
 
 pub fn main() !void {
+    defer sdl3.shutdown();
 
     // Memory is used pretty terribly in this app with constant leaks but it's just an example.
     var arena = std.heap.ArenaAllocator.init(std.heap.smp_allocator);
     defer arena.deinit();
     const allocator = arena.allocator();
 
-    defer sdl3.shutdown();
-
+    // Initialize SDL.
     const init_flags = sdl3.InitFlags{ .video = true };
     try sdl3.init(init_flags);
     defer sdl3.quit(init_flags);
 
+    // Setup the window.
     const window = try sdl3.video.Window.init("Dialog Example Backing", 500, 300, .{
         .transparent = true,
     });
     defer window.deinit();
 
+    // Setup main state and show menu.
     var state = State{
         .allocator = allocator,
         .window = window,
     };
     try showMenu(&state);
 
+    // Wait until quit.
     while (!state.quit) {
         switch (try sdl3.events.waitAndPop()) {
             .terminating => break,

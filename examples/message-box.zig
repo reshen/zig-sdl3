@@ -1,6 +1,8 @@
 const sdl3 = @import("sdl3");
 
 fn playGame() !bool {
+
+    // Ask the question.
     const val = try sdl3.message_box.show(.{
         .flags = .{},
         .title = "Question:",
@@ -27,6 +29,8 @@ fn playGame() !bool {
         } },
         .color_scheme = null,
     });
+
+    // Purple is the only correct answer, show wrong answer and show a custom color scheme.
     if (val != 1) {
         _ = try sdl3.message_box.show(.{
             .flags = .{ .buttons_right_to_left = true },
@@ -48,7 +52,10 @@ fn playGame() !bool {
             },
         });
         return false;
-    } else {
+    }
+
+    // Purple has been answered, show popup with custom color scheme.
+    else {
         _ = try sdl3.message_box.show(.{
             .flags = .{ .buttons_left_to_right = true },
             .title = "Correct!",
@@ -74,6 +81,8 @@ fn playGame() !bool {
 
 pub fn main() !void {
     try sdl3.message_box.showSimple(.{}, "Start!", "Get ready to play the game.", null);
+
+    // Play game until the correct guess is answered.
     while (true) {
         if (try playGame())
             break;

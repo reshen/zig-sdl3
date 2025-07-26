@@ -1,9 +1,9 @@
 const sdl3 = @import("sdl3");
 const std = @import("std");
 
+const FPS = 60;
 const SCREEN_WIDTH = 640;
 const SCREEN_HEIGHT = 480;
-const FPS = 60;
 
 pub fn main() !void {
     defer sdl3.shutdown();
