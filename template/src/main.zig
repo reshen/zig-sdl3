@@ -139,7 +139,7 @@ pub fn init(
     errdefer tree_tex.deinit();
 
     // Prove error handling works.
-    const dummy: ?sdl3.video.Window = sdl3.video.Window.fromID(99999) catch null;
+    const dummy: ?sdl3.video.Window = sdl3.video.Window.fromId(99999) catch null;
     _ = dummy;
 
     // Set app state.
