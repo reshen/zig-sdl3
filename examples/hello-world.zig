@@ -3,26 +3,39 @@ const std = @import("std");
 
 const SCREEN_WIDTH = 640;
 const SCREEN_HEIGHT = 480;
+const FPS = 60;
 
 pub fn main() !void {
     defer sdl3.shutdown();
 
+    // Initialize SDL with subsystems you need here.
     const init_flags = sdl3.InitFlags{ .video = true };
     try sdl3.init(init_flags);
     defer sdl3.quit(init_flags);
 
+    // Initial window setup.
     const window = try sdl3.video.Window.init("Hello SDL3", SCREEN_WIDTH, SCREEN_HEIGHT, .{});
     defer window.deinit();
 
-    const surface = try window.getSurface();
-    try surface.fillRect(null, surface.mapRgb(128, 30, 255));
-    try window.updateSurface();
+    // Useful for limiting the FPS and getting the delta time.
+    var fps_capper = sdl3.extras.FramerateCapper(f32){ .mode = .{ .limited = FPS } };
 
     while (true) {
-        switch (try sdl3.events.waitAndPop()) {
-            .quit => break,
-            .terminating => break,
-            else => {},
-        }
+
+        // Update logic.
+        const surface = try window.getSurface();
+        try surface.fillRect(null, surface.mapRgb(128, 30, 255));
+        try window.updateSurface();
+
+        // Event logic.
+        if (sdl3.events.poll()) |event|
+            switch (event) {
+                .quit => break,
+                .terminating => break,
+                else => {},
+            };
+
+        // Delay to limit the FPS, returned delta time not needed.
+        _ = fps_capper.delay();
     }
 }

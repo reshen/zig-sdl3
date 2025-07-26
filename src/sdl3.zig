@@ -284,6 +284,9 @@ pub const errors = @import("errors.zig");
 /// `events.register()` can guarantee that these events have a type that isn't in use by other parts of the system.
 pub const events = @import("events.zig");
 
+/// Extra utilities provided by zig-sdl3 for convenience.
+pub const extras = @import("extras.zig");
+
 /// SDL offers an API for examining and manipulating the system's filesystem.
 /// This covers most things one would need to do with directories, except for actual file I/O (which is covered by `io_stream` and `async_io` instead).
 ///
