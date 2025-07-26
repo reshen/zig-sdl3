@@ -341,10 +341,10 @@ pub fn ThreadFunction(
     ) c_int;
 }
 
-/// The callback used to cleanup data passed to `thread.TLSID.set()`.
+/// The callback used to cleanup data passed to `thread.TlsId.set()`.
 ///
 /// ## Function Parameters
-/// * `value`: A pointer previously handed to `thread.TLSID.set()`.
+/// * `value`: A pointer previously handed to `thread.TlsId.set()`.
 ///
 /// ## Remarks
 /// This is called when a thread exits, to allow an app to free any resources.
@@ -366,7 +366,7 @@ pub fn TlsDestructorCallback(
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
-pub const TLSID = struct {
+pub const TlsId = struct {
     value: c.SDL_TLSID,
 
     /// Initialize thread local storage.
@@ -379,7 +379,7 @@ pub const TLSID = struct {
     ///
     /// ## Version
     /// This function is available since SDL 3.2.0.
-    pub fn init() TLSID {
+    pub fn init() TlsId {
         return .{ .value = .{} };
     }
 
@@ -397,7 +397,7 @@ pub const TLSID = struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn get(
-        self: *TLSID,
+        self: *TlsId,
     ) !*anyopaque {
         return errors.wrapNull(*anyopaque, c.SDL_GetTLS(&self.value));
     }
@@ -423,7 +423,7 @@ pub const TLSID = struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn set(
-        self: *TLSID,
+        self: *TlsId,
         comptime ValueType: type,
         value: ?*const ValueType,
         comptime destructor: ?TlsDestructorCallback(ValueType),
@@ -507,7 +507,7 @@ test "Thread" {
     const t2 = try Thread.initWithProperties(void, threadFunc, .{});
     t2.detach();
 
-    var id = TLSID.init();
+    var id = TlsId.init();
     _ = id.get() catch {};
     id.set(void, null, null) catch {};
 

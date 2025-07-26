@@ -341,7 +341,7 @@ pub const gpu = @import("gpu.zig");
 /// A GUID is a 128-bit value that represents something that is uniquely identifiable by this value: "globally unique."
 ///
 /// SDL provides functions to convert a GUID to/from a stri
-pub const GUID = @import("guid.zig").GUID;
+pub const Guid = @import("guid.zig").Guid;
 
 /// The SDL haptic subsystem manages haptic (force feedback) devices.
 ///
@@ -426,7 +426,7 @@ pub const io_stream = @import("io_stream.zig");
 /// For XInput controllers this returns the XInput user index.
 /// Many joysticks will not be able to supply this information.
 ///
-/// The `GUID` is used as a stable 128-bit identifier for a joystick device that does not change over time.
+/// The `Guid` is used as a stable 128-bit identifier for a joystick device that does not change over time.
 /// It identifies class of the device (a X360 wired controller for example).
 /// This identifier is platform dependent.
 ///

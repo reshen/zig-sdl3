@@ -238,7 +238,7 @@ pub const Id = packed struct {
     /// This function is available since SDL 3.2.0.
     pub fn getGuid(
         self: Id,
-    ) guid.GUID {
+    ) guid.Guid {
         const ret = c.SDL_GetJoystickGUIDForID(
             self.value,
         );
@@ -675,7 +675,7 @@ pub const Joystick = struct {
     /// This function is available since SDL 3.2.0.
     pub fn getGuid(
         self: Joystick,
-    ) guid.GUID {
+    ) guid.Guid {
         const ret = c.SDL_GetJoystickGUID(
             self.value,
         );
@@ -1620,7 +1620,7 @@ pub fn getFromIndex(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getGuidInfo(
-    guid_val: guid.GUID,
+    guid_val: guid.Guid,
 ) struct { vendor: ?u16, product: ?u16, version: ?u16, crc16: ?u16 } {
     var vendor: u16 = undefined;
     var product: u16 = undefined;

@@ -13,7 +13,7 @@ const std = @import("std");
 ///
 /// ## Version
 /// This struct is available since SDL 3.2.0.
-pub const GUID = struct {
+pub const Guid = struct {
     value: c.SDL_GUID,
 
     /// Convert a GUID string into a GUID structure.
@@ -35,11 +35,11 @@ pub const GUID = struct {
     /// This function is available since SDL 3.2.0.
     pub fn fromString(
         str: [:0]const u8,
-    ) GUID {
+    ) Guid {
         const ret = c.SDL_StringToGUID(
             str,
         );
-        return GUID{ .value = ret };
+        return Guid{ .value = ret };
     }
 
     /// Get an ASCII string representation for a given `GUID`.
@@ -54,7 +54,7 @@ pub const GUID = struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn toString(
-        self: GUID,
+        self: Guid,
         str: *[33:0]u8,
     ) void {
         const ret = c.SDL_GUIDToString(
@@ -70,13 +70,13 @@ pub const GUID = struct {
 test "GUID" {
     std.testing.refAllDeclsRecursive(@This());
 
-    const guid = GUID{
+    const guid = Guid{
         .value = .{
             .data = [_]u8{ 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF },
         },
     };
     var buf: [33:0]u8 = undefined;
     guid.toString(&buf);
-    const guid_new = GUID.fromString(&buf);
+    const guid_new = Guid.fromString(&buf);
     try std.testing.expectEqual(guid, guid_new);
 }

@@ -277,7 +277,7 @@ pub const Camera = packed struct {
     ///
     /// ## Version
     /// This function is available since SDL 3.2.0.
-    pub fn getID(
+    pub fn getId(
         self: Camera,
     ) !Id {
         const ret = c.SDL_GetCameraID(
@@ -567,7 +567,7 @@ test "Camera" {
             const cam_raw: ?Camera = Camera.init(id, null) catch null;
             if (cam_raw) |cam| {
                 defer cam.deinit();
-                _ = cam.getID() catch {};
+                _ = cam.getId() catch {};
                 _ = cam.getFormat() catch {};
                 _ = cam.getPermissionState();
                 _ = cam.getProperties() catch {};

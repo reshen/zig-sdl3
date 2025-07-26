@@ -1520,8 +1520,8 @@ pub fn getGamepads() ![]joystick.Id {
 /// This function is available since SDL 3.2.0.
 pub fn getGuidForJoystickId(
     id: joystick.Id,
-) ?sdl3.GUID {
-    const ret = sdl3.GUID{ .value = c.SDL_GetGamepadGUIDForID(id.value) };
+) ?sdl3.Guid {
+    const ret = sdl3.Guid{ .value = c.SDL_GetGamepadGUIDForID(id.value) };
     if (std.mem.allEqual(u8, &ret.value.data, 0))
         return null;
     return ret;
@@ -1539,7 +1539,7 @@ pub fn getGuidForJoystickId(
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getMappingForGuid(
-    guid: sdl3.GUID,
+    guid: sdl3.Guid,
 ) ![:0]u8 {
     return errors.wrapCallCStringMut(c.SDL_GetGamepadMappingForGUID(guid.value));
 }

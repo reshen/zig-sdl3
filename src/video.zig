@@ -1975,7 +1975,7 @@ pub const Window = packed struct {
     ///
     /// ## Version
     /// This function is available since SDL 3.2.0.
-    pub fn fromID(
+    pub fn fromId(
         id: WindowId,
     ) !Window {
         const ret = c.SDL_GetWindowFromID(id);
