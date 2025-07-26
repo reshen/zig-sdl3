@@ -130,7 +130,7 @@ pub fn setupSdlImage(b: *std.Build, sdl3: *std.Build.Module, translate_c: *std.B
             .link_libc = true,
         }),
     });
-    lib.linkLibrary(sdl_dep_lib);
+    lib.root_module.linkLibrary(sdl_dep_lib);
 
     // Use stb_image for loading JPEG and PNG files. Native alternatives such as
     // Windows Imaging Component and Apple's Image I/O framework are not yet
@@ -168,10 +168,10 @@ pub fn setupSdlImage(b: *std.Build, sdl3: *std.Build.Module, translate_c: *std.B
         lib.root_module.addCMacro("LOAD_XV", "");
 
     translate_c.addIncludePath(upstream.path("include"));
-    lib.addIncludePath(upstream.path("include"));
-    lib.addIncludePath(upstream.path("src"));
+    lib.root_module.addIncludePath(upstream.path("include"));
+    lib.root_module.addIncludePath(upstream.path("src"));
 
-    lib.addCSourceFiles(.{
+    lib.root_module.addCSourceFiles(.{
         .root = upstream.path("src"),
         .files = &.{
             "IMG.c",
@@ -198,11 +198,11 @@ pub fn setupSdlImage(b: *std.Build, sdl3: *std.Build.Module, translate_c: *std.B
     });
 
     if (target.result.os.tag == .macos) {
-        lib.addCSourceFile(.{
+        lib.root_module.addCSourceFile(.{
             .file = upstream.path("src/IMG_ImageIO.m"),
         });
-        lib.linkFramework("Foundation");
-        lib.linkFramework("ApplicationServices");
+        lib.root_module.linkFramework("Foundation", .{});
+        lib.root_module.linkFramework("ApplicationServices", .{});
     }
 
     lib.installHeadersDirectory(upstream.path("include"), "", .{});
@@ -288,7 +288,7 @@ pub fn setupTest(b: *std.Build, cfg: Config, extension_options: *std.Build.Step.
         .optimize = cfg.optimize,
     });
     const sdl_dep_lib = sdl_dep.artifact("SDL3");
-    tst.linkLibrary(sdl_dep_lib);
+    tst.root_module.linkLibrary(sdl_dep_lib);
     const tst_run = b.addRunArtifact(tst);
     const tst_step = b.step("test", "Run all tests");
     tst_step.dependOn(&tst_run.step);
