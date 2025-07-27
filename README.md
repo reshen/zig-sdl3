@@ -77,9 +77,9 @@ Simple hello world:
 const sdl3 = @import("sdl3");
 const std = @import("std");
 
-const SCREEN_WIDTH = 640;
-const SCREEN_HEIGHT = 480;
-const FPS = 60;
+const fps = 60;
+const screen_width = 640;
+const screen_height = 480;
 
 pub fn main() !void {
     defer sdl3.shutdown();
@@ -90,13 +90,17 @@ pub fn main() !void {
     defer sdl3.quit(init_flags);
 
     // Initial window setup.
-    const window = try sdl3.video.Window.init("Hello SDL3", SCREEN_WIDTH, SCREEN_HEIGHT, .{});
+    const window = try sdl3.video.Window.init("Hello SDL3", screen_width, screen_height, .{});
     defer window.deinit();
 
     // Useful for limiting the FPS and getting the delta time.
-    var fps_capper = sdl3.extras.FramerateCapper(f32){ .mode = .{ .limited = FPS } };
+    var fps_capper = sdl3.extras.FramerateCapper(f32){ .mode = .{ .limited = fps } };
 
     while (true) {
+
+        // Delay to limit the FPS, returned delta time not needed.
+        const dt = fps_capper.delay();
+        _ = dt;
 
         // Update logic.
         const surface = try window.getSurface();
@@ -110,9 +114,6 @@ pub fn main() !void {
                 .terminating => break,
                 else => {},
             };
-
-        // Delay to limit the FPS, returned delta time not needed.
-        _ = fps_capper.delay();
     }
 }
 ```
