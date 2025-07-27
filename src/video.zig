@@ -5,6 +5,7 @@ const properties = @import("properties.zig");
 const rect = @import("rect.zig");
 const std = @import("std");
 const surface = @import("surface.zig");
+const video = @import("video.zig");
 
 /// Callback used for hit-testing.
 ///
@@ -15,7 +16,16 @@ const surface = @import("surface.zig");
 ///
 /// ## Return Value
 /// Returns a hit test value.
-pub const HitTest = *const fn (win: ?*c.SDL_Window, area: [*c]const c.SDL_Point, user_data: ?*anyopaque) callconv(.c) c.SDL_HitTestResult;
+///
+/// ## Version
+/// This datatype is available since SDL 3.2.0.
+pub fn HitTest(comptime UserData: type) type {
+    return *const fn (
+        win: video.Window,
+        area: rect.IPoint,
+        user_data: ?*UserData,
+    ) HitTestResult;
+}
 
 /// System theme.
 ///
@@ -2880,10 +2890,16 @@ pub const Window = packed struct {
     /// This function is available since SDL 3.2.0.
     pub fn setHitTest(
         self: Window,
-        callback: ?HitTest,
+        comptime UserData: type,
+        comptime callback: ?HitTest(UserData),
         user_data: ?*anyopaque,
     ) !void {
-        return errors.wrapCallBool(c.SDL_SetWindowHitTest(self.value, if (callback) |val| val else null, user_data));
+        const Cb = struct {
+            pub fn run(win_c: ?*c.SDL_Window, area_c: [*c]const c.SDL_Point, user_data_c: ?*anyopaque) callconv(.c) c.SDL_HitTestResult {
+                return @intFromEnum(callback.?(.{ .value = win_c.? }, rect.IPoint.fromSdl(area_c), @alignCast(@ptrCast(user_data_c))));
+            }
+        };
+        return errors.wrapCallBool(c.SDL_SetWindowHitTest(self.value, if (callback != null) Cb.run else null, user_data));
     }
 
     /// Set the icon for a window.

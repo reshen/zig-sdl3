@@ -15,11 +15,13 @@ pub fn FramerateCapper(
         /// Mode for the capper to run at.
         mode: Mode,
         /// Current frame number, maxes out and will not go past the size of a `usize`.
-        frame_num: u64 = 0,
+        frame_num: usize = 0,
         /// The number of elapsed nanoseconds present since last update.
         elapsed_ns: u64 = 0,
-        /// Elapsed nanoseconds for the previous frame.
+        /// Nanoseconds mark for the previous frame.
         prev_ns: u64 = 0,
+        /// Delta time since the last frame.
+        dt: u64 = 0,
 
         // Type check.
         comptime {
@@ -57,44 +59,41 @@ pub fn FramerateCapper(
             self.frame_num +|= 1; // If this duration is exceeded, overflow or panic probably not ideal?
 
             const curr_ns = timer.getNanosecondsSinceInit();
-            var dt: u64 = undefined;
+            self.dt = @max(curr_ns -% self.prev_ns, 1);
             switch (self.mode) {
-                .unlimited => {
-                    dt = curr_ns -% self.elapsed_ns;
-                },
+                .unlimited => {},
                 .limited => |fps| {
-                    if (fps == 0) {
-                        dt = curr_ns -% self.elapsed_ns;
-                    } else {
+                    if (fps != 0) {
                         // Nanoseconds per frame. 1 / (Frames / Seconds) = Seconds / Frame -> Nanoseconds / Frame.
                         const expected_ns = @as(u64, @intFromFloat(timer.nanoseconds_per_second / @as(Accuracy, @floatFromInt(fps))));
                         const ns_diff = curr_ns -% self.elapsed_ns;
                         if (ns_diff < expected_ns) {
-                            dt = expected_ns -% ns_diff; // TODO: PROPERLY GET DT!!!
-                            timer.delayNanoseconds(dt);
-                        } else {
-                            dt = 1;
+                            timer.delayNanoseconds(expected_ns -% ns_diff);
                         }
                     }
                 },
             }
-            // self.prev_ns = self.elapsed_ns;
-            // self.elapsed_ns = curr_ns;
-            self.prev_ns = self.elapsed_ns; // IS THIS THE CORRECT MATH FOR GETTING OBSERVED FPS LATER?
+            self.prev_ns = curr_ns;
             self.elapsed_ns = timer.getNanosecondsSinceInit();
-            return @as(Accuracy, @floatFromInt(dt)) / @as(Accuracy, @floatFromInt(timer.nanoseconds_per_second));
+            return @as(Accuracy, @floatFromInt(self.dt)) / @as(Accuracy, @floatFromInt(timer.nanoseconds_per_second));
         }
 
         /// Get the actual FPS.
         ///
         /// ## Function Parameters
         /// * `self`: The framerate capper.
+        ///
+        /// ## Return Value
+        /// Returns the FPS as observed (in contrast to the target FPS set).
+        ///
+        /// ## Version
+        /// This function is provided by zig-sdl3.
         pub fn getObservedFps(
             self: @This(),
         ) Accuracy {
             // Frames / Second.
             // 1 Frame / (Nanoseconds / 1000).
-            return 1 / (@as(Accuracy, @floatFromInt(@max(self.elapsed_ns -% self.prev_ns, 1))) / timer.nanoseconds_per_second);
+            return 1 / (@as(Accuracy, @floatFromInt(@max(self.dt, 1))) / timer.nanoseconds_per_second);
         }
     };
 }
