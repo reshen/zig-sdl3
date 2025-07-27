@@ -13,6 +13,7 @@ pub fn main() !void {
     // Setup custom allocator.
     const allocator = debug.allocator();
     try sdl3.setMemoryFunctionsByAllocator(allocator);
+    // try sdl3.setMemoryFunctionsByAllocator(std.heap.c_allocator);
 
     // Initialize SDL with subsystems you need here.
     const init_flags = sdl3.InitFlags{ .video = true };

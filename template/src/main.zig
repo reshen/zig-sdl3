@@ -131,6 +131,7 @@ pub fn init(
     );
     errdefer window_renderer.renderer.deinit();
     errdefer window_renderer.window.deinit();
+    window_renderer.renderer.setVSync(.{ .adaptive = {} }) catch {}; // Unsupported vsync on error so will run at unlimited FPS.
     const tree_tex = try sdl3.image.loadTextureIo(
         window_renderer.renderer,
         try sdl3.io_stream.Stream.initFromConstMem(my_image),

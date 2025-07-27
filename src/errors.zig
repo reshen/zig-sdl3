@@ -330,7 +330,7 @@ pub fn wrapCallCStringMut(
 ///
 /// ## Version
 /// This is provided by zig-sdl3.
-pub fn wrapNull(
+pub fn wrapCallNull(
     comptime Result: type,
     result: ?Result,
 ) !Result {
@@ -380,8 +380,8 @@ test "Error" {
     try wrapCallBool(true);
     try std.testing.expectError(error.SdlError, wrapCallBool(false));
 
-    _ = try wrapNull(i32, 3);
-    try std.testing.expectError(error.SdlError, wrapNull(i32, null));
+    _ = try wrapCallNull(i32, 3);
+    try std.testing.expectError(error.SdlError, wrapCallNull(i32, null));
 
     clear();
     try std.testing.expectEqual(null, get());

@@ -552,7 +552,7 @@ pub const Surface = packed struct {
             self.value,
             @intFromEnum(format),
         );
-        return Surface{ .value = try errors.wrapNull(*c.SDL_Surface, ret) };
+        return Surface{ .value = try errors.wrapCallNull(*c.SDL_Surface, ret) };
     }
 
     /// Copy an existing surface to a new surface of the specified format and colorspace.
@@ -592,7 +592,7 @@ pub const Surface = packed struct {
             @intFromEnum(colorspace),
             if (color_properties) |val| val.value else 0,
         );
-        return Surface{ .value = try errors.wrapNull(*c.SDL_Surface, ret) };
+        return Surface{ .value = try errors.wrapCallNull(*c.SDL_Surface, ret) };
     }
 
     /// Create a palette and associate it with a surface.
@@ -625,7 +625,7 @@ pub const Surface = packed struct {
         const ret = c.SDL_CreateSurfacePalette(
             self.value,
         );
-        return pixels.Palette{ .value = try errors.wrapNull(*c.SDL_Palette, ret) };
+        return pixels.Palette{ .value = try errors.wrapCallNull(*c.SDL_Palette, ret) };
     }
 
     /// Free a surface.
@@ -670,7 +670,7 @@ pub const Surface = packed struct {
         const ret = c.SDL_DuplicateSurface(
             self.value,
         );
-        return Surface{ .value = try errors.wrapNull(*c.SDL_Surface, ret) };
+        return Surface{ .value = try errors.wrapCallNull(*c.SDL_Surface, ret) };
     }
 
     /// Perform a fast fill of a rectangle with a specific color.
@@ -808,7 +808,7 @@ pub const Surface = packed struct {
             &mode,
         );
         try errors.wrapCallBool(ret);
-        return errors.wrapNull(blend_mode.Mode, blend_mode.Mode.fromSdl(mode));
+        return errors.wrapCallNull(blend_mode.Mode, blend_mode.Mode.fromSdl(mode));
     }
 
     /// Get the clipping rectangle for a surface.
@@ -997,7 +997,7 @@ pub const Surface = packed struct {
     ) ![]Surface {
         var count: c_int = undefined;
         const ret = c.SDL_GetSurfaceImages(self.value, &count);
-        return @as([*]Surface, @ptrCast(try errors.wrapNull(*[*c]c.SDL_Surface, ret)))[0..@intCast(count)];
+        return @as([*]Surface, @ptrCast(try errors.wrapCallNull(*[*c]c.SDL_Surface, ret)))[0..@intCast(count)];
     }
 
     /// Get the palette used by a surface.
@@ -1227,7 +1227,7 @@ pub const Surface = packed struct {
             @intCast(height),
             @intFromEnum(format),
         );
-        return Surface{ .value = try errors.wrapNull(*c.SDL_Surface, ret) };
+        return Surface{ .value = try errors.wrapCallNull(*c.SDL_Surface, ret) };
     }
 
     /// Allocate a new surface with a specific pixel format and data in the format.
@@ -1267,7 +1267,7 @@ pub const Surface = packed struct {
             if (pixel_data) |val| @constCast(val.ptr) else null,
             if (pixel_data) |val| @intCast(val.len / height) else 0,
         );
-        return Surface{ .value = try errors.wrapNull(*c.SDL_Surface, ret) };
+        return Surface{ .value = try errors.wrapCallNull(*c.SDL_Surface, ret) };
     }
 
     /// Load a BMP image from a file.
@@ -1293,7 +1293,7 @@ pub const Surface = packed struct {
         const ret = c.SDL_LoadBMP(
             path.ptr,
         );
-        return Surface{ .value = try errors.wrapNull(*c.SDL_Surface, ret) };
+        return Surface{ .value = try errors.wrapCallNull(*c.SDL_Surface, ret) };
     }
 
     /// Create a surface from a BMP image from a seekable stream.
@@ -1322,7 +1322,7 @@ pub const Surface = packed struct {
             stream.value,
             close_stream_after,
         );
-        return Surface{ .value = try errors.wrapNull(*c.SDL_Surface, ret) };
+        return Surface{ .value = try errors.wrapCallNull(*c.SDL_Surface, ret) };
     }
 
     /// Set up a surface for directly accessing the pixels.
@@ -1670,7 +1670,7 @@ pub const Surface = packed struct {
             @intCast(height),
             @bitCast(@intFromEnum(scale_mode)),
         );
-        return Surface{ .value = try errors.wrapNull(*c.SDL_Surface, ret) };
+        return Surface{ .value = try errors.wrapCallNull(*c.SDL_Surface, ret) };
     }
 
     /// Set an additional alpha value used in blit operations.

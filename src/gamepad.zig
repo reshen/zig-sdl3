@@ -554,7 +554,7 @@ pub const Gamepad = struct {
         self: Gamepad,
     ) !BindingIterator {
         var count: c_int = undefined;
-        const src = try errors.wrapNull([*][*c]c.SDL_GamepadBinding, c.SDL_GetGamepadBindings(self.value, &count));
+        const src = try errors.wrapCallNull([*][*c]c.SDL_GamepadBinding, c.SDL_GetGamepadBindings(self.value, &count));
         return .{ .value = src[0..@intCast(count)], .pos = 0 };
     }
 
@@ -642,7 +642,7 @@ pub const Gamepad = struct {
     pub fn getFromJoystickId(
         id: joystick.Id,
     ) !Gamepad {
-        return .{ .value = try errors.wrapNull(*c.SDL_Gamepad, c.SDL_GetGamepadFromID(id.value)) };
+        return .{ .value = try errors.wrapCallNull(*c.SDL_Gamepad, c.SDL_GetGamepadFromID(id.value)) };
     }
 
     /// Get the gamepad associated with a player index.
@@ -684,7 +684,7 @@ pub const Gamepad = struct {
     pub fn getJoystick(
         self: Gamepad,
     ) !joystick.Joystick {
-        return .{ .value = try errors.wrapNull(*c.SDL_Joystick, c.SDL_GetGamepadJoystick(self.value)) };
+        return .{ .value = try errors.wrapCallNull(*c.SDL_Joystick, c.SDL_GetGamepadJoystick(self.value)) };
     }
 
     /// Get the instance ID of an opened gamepad.
@@ -1124,7 +1124,7 @@ pub const Gamepad = struct {
     pub fn init(
         id: joystick.Id,
     ) !Gamepad {
-        return .{ .value = try errors.wrapNull(*c.SDL_Gamepad, c.SDL_OpenGamepad(id.value)) };
+        return .{ .value = try errors.wrapCallNull(*c.SDL_Gamepad, c.SDL_OpenGamepad(id.value)) };
     }
 
     /// Start a rumble effect on a gamepad.
@@ -1500,7 +1500,7 @@ pub fn eventsEnabled() bool {
 /// This function is available since SDL 3.2.0.
 pub fn getGamepads() ![]joystick.Id {
     var count: c_int = undefined;
-    const ret = try errors.wrapNull(*c.SDL_JoystickID, c.SDL_GetGamepads(&count));
+    const ret = try errors.wrapCallNull(*c.SDL_JoystickID, c.SDL_GetGamepads(&count));
     return @as([*]joystick.Id, @ptrCast(ret))[0..@intCast(count)];
 }
 
@@ -1574,7 +1574,7 @@ pub fn getMappingForJoystickId(
 /// This function is available since SDL 3.2.0.
 pub fn getMappings() ![][*:0]u8 {
     var count: c_int = undefined;
-    const ret = try errors.wrapNull([*][*c]u8, c.SDL_GetGamepadMappings(&count));
+    const ret = try errors.wrapCallNull([*][*c]u8, c.SDL_GetGamepadMappings(&count));
     return @as([*][*:0]u8, @ptrCast(ret))[0..@intCast(count)];
 }
 

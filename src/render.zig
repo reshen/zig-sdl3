@@ -312,7 +312,7 @@ pub const Renderer = struct {
     /// ## Remarks
     /// The surface is not modified or freed by this function.
     ///
-    /// The `render.TextureAccess` hint for the created texture is `render.TextureAccess.static`.
+    /// The `render.Texture.Access` hint for the created texture is `render.Texture.Access.static`.
     ///
     /// The pixel format of the created texture may be different from the pixel format of the surface,
     /// and can be queried using the `render.Texture.getProperties().format` property.
@@ -333,7 +333,7 @@ pub const Renderer = struct {
             self.value,
             surface_to_copy.value,
         );
-        return Texture{ .value = try errors.wrapNull(*c.SDL_Texture, ret) };
+        return Texture{ .value = try errors.wrapCallNull(*c.SDL_Texture, ret) };
     }
 
     // SetGPURenderStateFragmentUniforms for render state is added in 3.4.0.
@@ -951,7 +951,7 @@ pub const Renderer = struct {
         const ret = c.SDL_GetRenderWindow(
             self.value,
         );
-        return video.Window{ .value = try errors.wrapNull(*c.SDL_Window, ret) };
+        return video.Window{ .value = try errors.wrapCallNull(*c.SDL_Window, ret) };
     }
 
     /// Create a 2D rendering context for a window.
@@ -989,7 +989,7 @@ pub const Renderer = struct {
             window.value,
             if (renderer_name) |str_capture| str_capture.ptr else null,
         );
-        return Renderer{ .value = try errors.wrapNull(*c.SDL_Renderer, ret) };
+        return Renderer{ .value = try errors.wrapCallNull(*c.SDL_Renderer, ret) };
     }
 
     /// Create a 2D rendering context for a window, with the specified properties.
@@ -1013,7 +1013,7 @@ pub const Renderer = struct {
         const ret = c.SDL_CreateRendererWithProperties(
             props_sdl.value,
         );
-        return Renderer{ .value = try errors.wrapNull(*c.SDL_Renderer, ret) };
+        return Renderer{ .value = try errors.wrapCallNull(*c.SDL_Renderer, ret) };
     }
 
     /// Create a 2D software rendering context for a surface.
@@ -1042,7 +1042,7 @@ pub const Renderer = struct {
         const ret = c.SDL_CreateSoftwareRenderer(
             target_surface.value,
         );
-        return Renderer{ .value = try errors.wrapNull(*c.SDL_Renderer, ret) };
+        return Renderer{ .value = try errors.wrapCallNull(*c.SDL_Renderer, ret) };
     }
 
     /// Create a window and default renderer.
@@ -1068,7 +1068,7 @@ pub const Renderer = struct {
         title: [:0]const u8,
         width: usize,
         height: usize,
-        window_flags: video.WindowFlags,
+        window_flags: video.Window.Flags,
     ) !struct { window: video.Window, renderer: Renderer } {
         var window: ?*c.SDL_Window = undefined;
         var renderer: ?*c.SDL_Renderer = undefined;
@@ -1152,7 +1152,7 @@ pub const Renderer = struct {
             self.value,
             if (capture_area != null) &capture_area_sdl else null,
         );
-        return surface.Surface{ .value = try errors.wrapNull(*c.SDL_Surface, ret) };
+        return surface.Surface{ .value = try errors.wrapCallNull(*c.SDL_Surface, ret) };
     }
 
     /// Get a point in render coordinates when given a point in window coordinates.
@@ -2213,6 +2213,19 @@ pub const LogicalPresentation = enum(c.SDL_RendererLogicalPresentation) {
 pub const Texture = struct {
     value: *c.SDL_Texture,
 
+    /// The access pattern allowed for a texture.
+    ///
+    /// ## Version
+    /// This enum is available since SDL 3.2.0.
+    pub const Access = enum(c.SDL_TextureAccess) {
+        /// Changes rarely, not lockable.
+        static = c.SDL_TEXTUREACCESS_STATIC,
+        /// Changes frequently, lockable.
+        streaming = c.SDL_TEXTUREACCESS_STREAMING,
+        /// Texture can be used as a render target.
+        target = c.SDL_TEXTUREACCESS_TARGET,
+    };
+
     /// Properties associated with a texture.
     ///
     /// ## Version
@@ -2224,7 +2237,7 @@ pub const Texture = struct {
         /// Pixel format to use.
         format: ?struct { value: ?pixels.Format } = null,
         /// Texture access mode.
-        access: ?TextureAccess = null,
+        access: ?Access = null,
         /// The width of the texture in pixels, required.
         width: ?usize = null,
         /// The height of the texture in pixels, required.
@@ -2334,7 +2347,7 @@ pub const Texture = struct {
         /// Pixel format.
         format: ?struct { value: ?pixels.Format },
         /// Texture access.
-        access: ?TextureAccess,
+        access: ?Access,
         /// The width of the texture in pixels.
         width: ?usize,
         /// The height of the texture in pixels.
@@ -2648,7 +2661,7 @@ pub const Texture = struct {
         const ret = c.SDL_GetRendererFromTexture(
             self.value,
         );
-        return Renderer{ .value = try errors.wrapNull(*c.SDL_Renderer, ret) };
+        return Renderer{ .value = try errors.wrapCallNull(*c.SDL_Renderer, ret) };
     }
 
     /// Get the scale mode used for texture scale operations.
@@ -2764,11 +2777,11 @@ pub const Texture = struct {
     pub fn init(
         renderer: Renderer,
         format: pixels.Format,
-        access: TextureAccess,
+        access: Access,
         width: usize,
         height: usize,
     ) !Texture {
-        return .{ .value = try errors.wrapNull(*c.SDL_Texture, c.SDL_CreateTexture(
+        return .{ .value = try errors.wrapCallNull(*c.SDL_Texture, c.SDL_CreateTexture(
             renderer.value,
             pixels.Format.toSdl(format),
             @intFromEnum(access),
@@ -2801,7 +2814,7 @@ pub const Texture = struct {
             renderer.value,
             props_sdl.value,
         );
-        return Texture{ .value = try errors.wrapNull(*c.SDL_Texture, ret) };
+        return Texture{ .value = try errors.wrapCallNull(*c.SDL_Texture, ret) };
     }
 
     /// Lock a portion of the texture for write-only pixel access.
@@ -3206,19 +3219,6 @@ pub const Texture = struct {
     }
 };
 
-/// The access pattern allowed for a texture.
-///
-/// ## Version
-/// This enum is available since SDL 3.2.0.
-pub const TextureAccess = enum(c.SDL_TextureAccess) {
-    /// Changes rarely, not lockable.
-    static = c.SDL_TEXTUREACCESS_STATIC,
-    /// Changes frequently, lockable.
-    streaming = c.SDL_TEXTUREACCESS_STREAMING,
-    /// Texture can be used as a render target.
-    target = c.SDL_TEXTUREACCESS_TARGET,
-};
-
 // Texture address mode in SDL 3.4.0.
 
 /// Vertex structure.
@@ -3313,7 +3313,7 @@ pub fn getRenderer(
     const ret = c.SDL_GetRenderer(
         window.value,
     );
-    return Renderer{ .value = try errors.wrapNull(*c.SDL_Renderer, ret) };
+    return Renderer{ .value = try errors.wrapCallNull(*c.SDL_Renderer, ret) };
 }
 
 // Render tests.

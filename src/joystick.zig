@@ -1046,7 +1046,7 @@ pub const Joystick = struct {
         const ret = c.SDL_OpenJoystick(
             id.value,
         );
-        return Joystick{ .value = try errors.wrapNull(*c.SDL_Joystick, ret) };
+        return Joystick{ .value = try errors.wrapCallNull(*c.SDL_Joystick, ret) };
     }
 
     /// Start a rumble effect.
@@ -1567,7 +1567,7 @@ pub fn eventsEnabled() bool {
 pub fn get() ![]Id {
     var count: c_int = undefined;
     const ret = c.SDL_GetJoysticks(&count);
-    return @as([*]Id, @ptrCast(try errors.wrapNull([*]c.SDL_JoystickID, ret)))[0..@intCast(count)];
+    return @as([*]Id, @ptrCast(try errors.wrapCallNull([*]c.SDL_JoystickID, ret)))[0..@intCast(count)];
 }
 
 /// Get the joystick associated with an instance ID, if it has been opened.
@@ -1586,7 +1586,7 @@ pub fn getFromId(
     const ret = c.SDL_GetJoystickFromID(
         id.value,
     );
-    return Joystick{ .value = try errors.wrapNull(*c.SDL_Joystick, ret) };
+    return Joystick{ .value = try errors.wrapCallNull(*c.SDL_Joystick, ret) };
 }
 
 /// Get the joystick with a player index.
@@ -1605,7 +1605,7 @@ pub fn getFromIndex(
     const ret = c.SDL_GetJoystickFromPlayerIndex(
         @intCast(index),
     );
-    return Joystick{ .value = try errors.wrapNull(*c.SDL_Joystick, ret) };
+    return Joystick{ .value = try errors.wrapCallNull(*c.SDL_Joystick, ret) };
 }
 
 /// Get the device information encoded in a GUID structure.

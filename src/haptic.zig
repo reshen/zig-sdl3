@@ -140,7 +140,7 @@ pub const DirectionType = enum(u8) {
 ///
 /// Fade will not be used when the effect is infinite since effect never ends.
 ///
-/// Additionally, the `haptic.EffectType.ramp` effect does not support a duration of infinity.
+/// Additionally, the `haptic.Effect.Type.ramp` effect does not support a duration of infinity.
 ///
 /// Button triggers may not be supported on all devices, it is advised to not use them if possible.
 /// Buttons start at index 1 instead of index 0 like the joystick.
@@ -173,23 +173,553 @@ pub const DirectionType = enum(u8) {
 ///
 /// ## Version
 /// This struct is available since SDL 3.2.0.
-pub const Effect = union(EffectType) {
-    constant: EffectConstant,
-    periodic: EffectPeriodic,
-    condition: EffectCondition,
-    ramp: EffectRamp,
-    left_right: EffectLeftRight,
-    custom: EffectCustom,
+pub const Effect = union(Effect.Type) {
+    constant: Constant,
+    periodic: Periodic,
+    condition: Condition,
+    ramp: Ramp,
+    left_right: LeftRight,
+    custom: Custom,
+
+    /// Common effect data.
+    ///
+    /// ## Version
+    /// This function is provided by zig-sdl3.
+    pub const CommonData = struct {
+        /// Duration of the effect.
+        length: Length,
+        /// Delay before starting the effect.
+        delay: u15,
+        /// Button that triggers the effect.
+        button: u15,
+        /// How soon it can be triggered again after button.
+        interval: u15,
+    };
+
+    /// A structure containing a template for a Condition effect.
+    ///
+    /// ## Remarks
+    /// The struct handles the following effects:
+    /// * `spring`: Effect based on axes position.
+    /// * `damper`: Effect based on axes velocity.
+    /// * `inertia`: Effect based on axes acceleration.
+    /// * `friction`: Effect based on axes movement.
+    ///
+    /// Direction is handled by condition internals instead of a direction member.
+    /// The condition effect specific members have three parameters.
+    /// The first refers to the X axis, the second refers to the Y axis and the third refers to the Z axis.
+    /// The right terms refer to the positive side of the axis and the left terms refer to the negative side of the axis.
+    /// Please refer to the `haptic.Direction` diagram for which side is positive and which is negative.
+    ///
+    /// ## Version
+    /// This struct is available since SDL 3.2.0.
+    pub const Condition = struct {
+        /// Effect type.
+        effect_type: enum(u16) {
+            /// Condition haptic effect that simulates a spring.
+            /// Effect is based on the axes position.
+            spring = c.SDL_HAPTIC_SPRING,
+            /// Condition haptic effect that simulates dampening.
+            /// Effect is based on the axes velocity.
+            damper = c.SDL_HAPTIC_DAMPER,
+            /// Condition haptic effect that simulates inertia.
+            /// Effect is based on the axes acceleration.
+            inertia = c.SDL_HAPTIC_INERTIA,
+            /// Condition haptic effect that simulates friction.
+            /// Effect is based on the axes movement.
+            friction = c.SDL_HAPTIC_FRICTION,
+        },
+        /// Common effect data.
+        common: CommonData,
+        /// Direction of the effect.
+        direction: Direction,
+        /// Level when joystick is to the positive side.
+        right_sat: [3]u16,
+        /// Level when joystick is to the negative side.
+        left_sat: [3]u16,
+        /// How fast to increase the force towards the positive side.
+        right_coeff: [3]i16,
+        /// How fast to increase the force towards the negative side.
+        left_coeff: [3]i16,
+        /// Size of the dead zone; whole axis-range when 0-centered.
+        deadband: [3]u16,
+        /// Position of the dead zone.
+        center: [3]i16,
+
+        /// Convert from an SDL value.
+        pub fn fromSdl(value: c.SDL_HapticCondition) Condition {
+            return .{
+                .effect_type = @enumFromInt(value.type),
+                .common = .{
+                    .length = Length.fromSdl(value.length),
+                    .delay = @intCast(value.delay),
+                    .button = @intCast(value.button),
+                    .interval = @intCast(value.interval),
+                },
+                .direction = Direction.fromSdl(value.direction),
+                .right_sat = value.right_sat,
+                .left_sat = value.left_sat,
+                .right_coeff = value.right_coeff,
+                .left_coeff = value.left_coeff,
+                .deadband = value.deadband,
+                .center = value.center,
+            };
+        }
+
+        /// Convert to an SDL value.
+        pub fn toSdl(self: Condition) c.SDL_HapticCondition {
+            return .{
+                .type = @intFromEnum(self.effect_type),
+                .length = self.common.length.toSdl(),
+                .delay = @intCast(self.common.delay),
+                .button = @intCast(self.common.button),
+                .interval = @intCast(self.common.interval),
+                .direction = self.direction.toSdl(),
+                .right_sat = self.right_sat,
+                .left_sat = self.left_sat,
+                .right_coeff = self.right_coeff,
+                .left_coeff = self.left_coeff,
+                .deadband = self.deadband,
+                .center = self.center,
+            };
+        }
+    };
+
+    /// A structure containing a template for a constant effect.
+    ///
+    /// ## Remarks
+    /// This struct is exclusively for the `haptic.Effect.Type.constant` effect.
+    ///
+    /// A constant effect applies a constant force in the specified direction to the joystick.
+    ///
+    /// ## Version
+    /// This struct is available since SDL 3.2.0.
+    pub const Constant = struct {
+        /// Common effect data.
+        common: CommonData,
+        /// Effect envelope.
+        envelope: Envelope,
+        /// Direction of the effect.
+        direction: Direction,
+        /// Strength of the constant effect.
+        level: i16,
+
+        /// Convert from an SDL value.
+        pub fn fromSdl(value: c.SDL_HapticConstant) Constant {
+            return .{
+                .common = .{
+                    .length = Length.fromSdl(value.length),
+                    .delay = @intCast(value.delay),
+                    .button = @intCast(value.button),
+                    .interval = @intCast(value.interval),
+                },
+                .envelope = .{
+                    .attack_length = @intCast(value.attack_length),
+                    .attack_level = @intCast(value.attack_level),
+                    .fade_length = @intCast(value.fade_length),
+                    .fade_level = @intCast(value.fade_level),
+                },
+                .direction = Direction.fromSdl(value.direction),
+                .level = value.level,
+            };
+        }
+
+        /// Convert to an SDL value.
+        pub fn toSdl(self: Constant) c.SDL_HapticConstant {
+            return .{
+                .type = c.SDL_HAPTIC_CONSTANT,
+                .length = self.common.length.toSdl(),
+                .delay = @intCast(self.common.delay),
+                .button = @intCast(self.common.button),
+                .interval = @intCast(self.common.interval),
+                .attack_length = @intCast(self.envelope.attack_length),
+                .attack_level = @intCast(self.envelope.attack_level),
+                .fade_length = @intCast(self.envelope.fade_length),
+                .fade_level = @intCast(self.envelope.fade_level),
+                .direction = self.direction.toSdl(),
+                .level = self.level,
+            };
+        }
+    };
+
+    /// A structure containing a template for a custom effect.
+    ///
+    /// ## Remarks
+    /// This struct is exclusively for the custom effect.
+    ///
+    /// A custom force feedback effect is much like a periodic effect, where the application can define its exact shape.
+    /// You will have to allocate the data yourself.
+    /// Data should consist of `channels * samples` u16 samples.
+    ///
+    /// If channels is one, the effect is rotated using the defined direction.
+    /// Otherwise it uses the samples in data for the different axes.
+    ///
+    /// ## Version
+    /// This struct is available since SDL 3.2.0.
+    pub const Custom = struct {
+        /// Common effect data.
+        common: CommonData,
+        /// Effect envelope.
+        envelope: Envelope,
+        /// Direction of the effect.
+        direction: Direction,
+        /// Axes to use, minimum of one.
+        channels: u8,
+        /// Sample periods.
+        period: u16,
+        /// Amount of samples.
+        samples: u16,
+        /// Should contain `channels * samples` items.
+        data: [*]u16,
+
+        /// Convert from an SDL value.
+        pub fn fromSdl(value: c.SDL_HapticCustom) Custom {
+            return .{
+                .common = .{
+                    .length = Length.fromSdl(value.length),
+                    .delay = @intCast(value.delay),
+                    .button = @intCast(value.button),
+                    .interval = @intCast(value.interval),
+                },
+                .envelope = .{
+                    .attack_length = @intCast(value.attack_length),
+                    .attack_level = @intCast(value.attack_level),
+                    .fade_length = @intCast(value.fade_length),
+                    .fade_level = @intCast(value.fade_level),
+                },
+                .direction = Direction.fromSdl(value.direction),
+                .channels = value.channels,
+                .period = value.period,
+                .samples = value.samples,
+                .data = value.data,
+            };
+        }
+
+        /// Convert to an SDL value.
+        pub fn toSdl(self: Custom) c.SDL_HapticCustom {
+            return .{
+                .type = c.SDL_HAPTIC_CUSTOM,
+                .length = self.common.length.toSdl(),
+                .delay = @intCast(self.common.delay),
+                .button = @intCast(self.common.button),
+                .interval = @intCast(self.common.interval),
+                .attack_length = @intCast(self.envelope.attack_length),
+                .attack_level = @intCast(self.envelope.attack_level),
+                .fade_length = @intCast(self.envelope.fade_length),
+                .fade_level = @intCast(self.envelope.fade_level),
+                .direction = self.direction.toSdl(),
+                .channels = self.channels,
+                .period = self.period,
+                .samples = self.samples,
+                .data = self.data,
+            };
+        }
+    };
+
+    /// An envelope for an effect.
+    ///
+    /// ## Version
+    /// This struct is provided by zig-sdl3.
+    pub const Envelope = struct {
+        /// Duration of the attack in milliseconds.
+        attack_length: u15,
+        /// Level at the start of the attack.
+        attack_level: u15,
+        /// Duration of the fade in milliseconds.
+        fade_length: u15,
+        /// Level at the end of the fade.
+        fade_level: u15,
+    };
+
+    /// ID for haptic effects.
+    ///
+    /// ## Version
+    /// This struct is available since SDL 3.2.0.
+    pub const Id = struct {
+        value: c_int,
+    };
+
+    /// A structure containing a template for a Left/Right effect.
+    ///
+    /// ## Remarks
+    /// This struct is exclusively for the left right effect.
+    ///
+    /// The Left/Right effect is used to explicitly control the large and small motors, commonly found in modern game controllers.
+    /// The small (right) motor is high frequency, and the large (left) motor is low frequency.
+    ///
+    /// ## Version
+    /// This struct is available since SDL 3.2.0.
+    pub const LeftRight = struct {
+        /// Duration of the effect.
+        length: Length,
+        /// Control of the large controller motor.
+        large_magnitude: u16,
+        /// Control of the small controller motor.
+        small_magnitude: u16,
+
+        /// Convert from an SDL value.
+        pub fn fromSdl(value: c.SDL_HapticLeftRight) LeftRight {
+            return .{
+                .length = Length.fromSdl(value.length),
+                .large_magnitude = value.large_magnitude,
+                .small_magnitude = value.small_magnitude,
+            };
+        }
+
+        /// Convert to an SDL value.
+        pub fn toSdl(self: LeftRight) c.SDL_HapticLeftRight {
+            return .{
+                .type = c.SDL_HAPTIC_LEFTRIGHT,
+                .length = self.length.toSdl(),
+                .large_magnitude = self.large_magnitude,
+                .small_magnitude = self.small_magnitude,
+            };
+        }
+    };
+
+    /// Length of an effect.
+    ///
+    /// ## Version
+    /// This union is provided by zig-sdl3.
+    pub const Length = union(enum) {
+        // Number of iterations.
+        iterations: u15,
+        /// Go on for infinity.
+        infinite: void,
+
+        /// Convert from an SDL value.
+        pub fn fromSdl(value: u32) Length {
+            if (value == c.SDL_HAPTIC_INFINITY)
+                return .{ .infinite = {} };
+            return .{ .iterations = @intCast(value) };
+        }
+
+        /// Convert to an SDL value.
+        pub fn toSdl(self: Length) u32 {
+            return switch (self) {
+                .iterations => |val| @intCast(val),
+                .infinite => c.SDL_HAPTIC_INFINITY,
+            };
+        }
+    };
+
+    /// A structure containing a template for a Periodic effect.
+    ///
+    /// ## Remarks
+    /// The struct handles the following effects:
+    /// * Sine.
+    /// * Square.
+    /// * Triangle.
+    /// * Sawtooth Up.
+    /// * Sawtooth Down.
+    ///
+    /// A periodic effect consists in a wave-shaped effect that repeats itself over time.
+    /// The type determines the shape of the wave and the parameters determine the dimensions of the wave.
+    ///
+    /// Phase is given by hundredth of a degree meaning that giving the phase a value of `9000` will displace it `25%` of its period.
+    /// Here are sample values:
+    /// * `0`: No phase displacement.
+    /// * `9000`: Displaced 25% of its period.
+    /// * `18000`: Displaced 50% of its period.
+    /// * `27000`: Displaced 75% of its period.
+    /// * `36000`: Displaced 100% of its period, same as 0, but 0 is preferred.
+    ///
+    /// Examples:
+    ///
+    /// ```
+    ///   Sine
+    ///     __      __      __      __
+    ///    /  \    /  \    /  \    /
+    ///   /    \__/    \__/    \__/
+    ///
+    ///   Square
+    ///    __    __    __    __    __
+    ///   |  |  |  |  |  |  |  |  |  |
+    ///   |  |__|  |__|  |__|  |__|  |
+    ///
+    ///   Triangle
+    ///     /\    /\    /\    /\    /\
+    ///    /  \  /  \  /  \  /  \  /
+    ///   /    \/    \/    \/    \/
+    ///
+    ///   Sawtooth Up
+    ///     /|  /|  /|  /|  /|  /|  /|
+    ///    / | / | / | / | / | / | / |
+    ///   /  |/  |/  |/  |/  |/  |/  |
+    ///
+    ///   Sawtooth Down
+    ///   \  |\  |\  |\  |\  |\  |\  |
+    ///    \ | \ | \ | \ | \ | \ | \ |
+    ///     \|  \|  \|  \|  \|  \|  \|
+    /// ```
+    ///
+    /// ## Version
+    /// This struct is available since SDL 3.2.0.
+    pub const Periodic = struct {
+        /// Effect type.
+        effect_type: enum(u16) {
+            /// Periodic haptic effect that simulates sine waves.
+            sine = c.SDL_HAPTIC_SINE,
+            /// Periodic haptic effect that simulates square waves.
+            square = c.SDL_HAPTIC_SQUARE,
+            /// Periodic haptic effect that simulates triangular waves.
+            triangle = c.SDL_HAPTIC_TRIANGLE,
+            /// Periodic haptic effect that simulates saw tooth up waves.
+            sawtooth_up = c.SDL_HAPTIC_SAWTOOTHUP,
+            /// Periodic haptic effect that simulates saw tooth down waves.
+            sawtooth_down = c.SDL_HAPTIC_SAWTOOTHDOWN,
+        },
+        /// Common effect data.
+        common: CommonData,
+        /// Effect envelope.
+        envelope: Envelope,
+        /// Direction of the effect.
+        direction: Direction,
+        /// Period of the wave.
+        period: u16,
+        /// Peak value; if negative, equivalent to 180 degrees extra phase shift.
+        magnitude: i16,
+        /// Mean value of the wave.
+        offset: i16,
+        /// Positive phase shift given by hundredth of a degree.
+        phase: u16,
+
+        /// Convert from an SDL value.
+        pub fn fromSdl(value: c.SDL_HapticPeriodic) Periodic {
+            return .{
+                .effect_type = @enumFromInt(value.type),
+                .common = .{
+                    .length = Length.fromSdl(value.length),
+                    .delay = @intCast(value.delay),
+                    .button = @intCast(value.button),
+                    .interval = @intCast(value.interval),
+                },
+                .envelope = .{
+                    .attack_length = @intCast(value.attack_length),
+                    .attack_level = @intCast(value.attack_level),
+                    .fade_length = @intCast(value.fade_length),
+                    .fade_level = @intCast(value.fade_level),
+                },
+                .direction = Direction.fromSdl(value.direction),
+                .period = value.period,
+                .magnitude = value.magnitude,
+                .offset = value.offset,
+                .phase = value.phase,
+            };
+        }
+
+        /// Convert to an SDL value.
+        pub fn toSdl(self: Periodic) c.SDL_HapticPeriodic {
+            return .{
+                .type = @intFromEnum(self.effect_type),
+                .length = self.common.length.toSdl(),
+                .delay = @intCast(self.common.delay),
+                .button = @intCast(self.common.button),
+                .interval = @intCast(self.common.interval),
+                .attack_length = @intCast(self.envelope.attack_length),
+                .attack_level = @intCast(self.envelope.attack_level),
+                .fade_length = @intCast(self.envelope.fade_length),
+                .fade_level = @intCast(self.envelope.fade_level),
+                .direction = self.direction.toSdl(),
+                .period = self.period,
+                .magnitude = self.magnitude,
+                .offset = self.offset,
+                .phase = self.phase,
+            };
+        }
+    };
+
+    /// A structure containing a template for a constant effect.
+    ///
+    /// ## Remarks
+    /// This struct is exclusively for the ramp effect.
+    ///
+    /// The ramp effect starts at start strength and ends at end strength.
+    /// It augments in linear fashion.
+    /// If you use attack and fade with a ramp the effects get added to the ramp effect making the effect become quadratic instead of linear.
+    ///
+    /// ## Version
+    /// This struct is available since SDL 3.2.0.
+    pub const Ramp = struct {
+        /// Common effect data.
+        common: CommonData,
+        /// Effect envelope.
+        envelope: Envelope,
+        /// Direction of the effect.
+        direction: Direction,
+        /// Beginning strength level.
+        start: i16,
+        /// Ending strength level.
+        end: i16,
+
+        /// Convert from an SDL value.
+        pub fn fromSdl(value: c.SDL_HapticRamp) Ramp {
+            return .{
+                .common = .{
+                    .length = Length.fromSdl(value.length),
+                    .delay = @intCast(value.delay),
+                    .button = @intCast(value.button),
+                    .interval = @intCast(value.interval),
+                },
+                .envelope = .{
+                    .attack_length = @intCast(value.attack_length),
+                    .attack_level = @intCast(value.attack_level),
+                    .fade_length = @intCast(value.fade_length),
+                    .fade_level = @intCast(value.fade_level),
+                },
+                .direction = Direction.fromSdl(value.direction),
+                .start = value.start,
+                .end = value.end,
+            };
+        }
+
+        /// Convert to an SDL value.
+        pub fn toSdl(self: Ramp) c.SDL_HapticRamp {
+            return .{
+                .type = c.SDL_HAPTIC_RAMP,
+                .length = self.common.length.toSdl(),
+                .delay = @intCast(self.common.delay),
+                .button = @intCast(self.common.button),
+                .interval = @intCast(self.common.interval),
+                .attack_length = @intCast(self.envelope.attack_length),
+                .attack_level = @intCast(self.envelope.attack_level),
+                .fade_length = @intCast(self.envelope.fade_length),
+                .fade_level = @intCast(self.envelope.fade_level),
+                .direction = self.direction.toSdl(),
+                .start = self.start,
+                .end = self.end,
+            };
+        }
+    };
+
+    /// Type of haptic effect.
+    ///
+    /// ## Version
+    /// This struct is available since SDL 3.2.0.
+    pub const Type = enum(u32) {
+        /// Constant haptic effect.
+        constant = c.SDL_HAPTIC_CONSTANT,
+        /// Periodic haptic effect.
+        periodic,
+        /// Condition haptic effect.
+        condition,
+        /// Ramp haptic effect.
+        ramp = c.SDL_HAPTIC_RAMP,
+        /// Haptic effect for direct control over high/low frequency motors.
+        left_right = c.SDL_HAPTIC_LEFTRIGHT,
+        /// User defined custom haptic effect.
+        custom = c.SDL_HAPTIC_CUSTOM,
+    };
 
     /// Convert from an SDL value.
     pub fn fromSdl(value: c.SDL_HapticEffect) ?Effect {
         return switch (value.type) {
-            c.SDL_HAPTIC_CONSTANT => .{ .constant = EffectConstant.fromSdl(value.constant) },
-            c.SDL_HAPTIC_SINE, c.SDL_HAPTIC_SQUARE, c.SDL_HAPTIC_TRIANGLE, c.SDL_HAPTIC_SAWTOOTHUP, c.SDL_HAPTIC_SAWTOOTHDOWN => .{ .periodic = EffectPeriodic.fromSdl(value.periodic) },
-            c.SDL_HAPTIC_SPRING, c.SDL_HAPTIC_DAMPER, c.SDL_HAPTIC_INERTIA, c.SDL_HAPTIC_FRICTION => .{ .condition = EffectCondition.fromSdl(value.condition) },
-            c.SDL_HAPTIC_RAMP => .{ .ramp = EffectRamp.fromSdl(value.ramp) },
-            c.SDL_HAPTIC_LEFTRIGHT => .{ .left_right = EffectLeftRight.fromSdl(value.leftright) },
-            c.SDL_HAPTIC_CUSTOM => .{ .custom = EffectCustom.fromSdl(value.custom) },
+            c.SDL_HAPTIC_CONSTANT => .{ .constant = Constant.fromSdl(value.constant) },
+            c.SDL_HAPTIC_SINE, c.SDL_HAPTIC_SQUARE, c.SDL_HAPTIC_TRIANGLE, c.SDL_HAPTIC_SAWTOOTHUP, c.SDL_HAPTIC_SAWTOOTHDOWN => .{ .periodic = Periodic.fromSdl(value.periodic) },
+            c.SDL_HAPTIC_SPRING, c.SDL_HAPTIC_DAMPER, c.SDL_HAPTIC_INERTIA, c.SDL_HAPTIC_FRICTION => .{ .condition = Condition.fromSdl(value.condition) },
+            c.SDL_HAPTIC_RAMP => .{ .ramp = Ramp.fromSdl(value.ramp) },
+            c.SDL_HAPTIC_LEFTRIGHT => .{ .left_right = LeftRight.fromSdl(value.leftright) },
+            c.SDL_HAPTIC_CUSTOM => .{ .custom = Custom.fromSdl(value.custom) },
             else => null,
         };
     }
@@ -205,536 +735,6 @@ pub const Effect = union(EffectType) {
             .custom => |val| .{ .custom = val.toSdl() },
         };
     }
-};
-
-/// Common effect data.
-///
-/// ## Version
-/// This function is provided by zig-sdl3.
-pub const EffectCommonData = struct {
-    /// Duration of the effect.
-    length: EffectLength,
-    /// Delay before starting the effect.
-    delay: u15,
-    /// Button that triggers the effect.
-    button: u15,
-    /// How soon it can be triggered again after button.
-    interval: u15,
-};
-
-/// A structure containing a template for a Condition effect.
-///
-/// ## Remarks
-/// The struct handles the following effects:
-/// * `spring`: Effect based on axes position.
-/// * `damper`: Effect based on axes velocity.
-/// * `inertia`: Effect based on axes acceleration.
-/// * `friction`: Effect based on axes movement.
-///
-/// Direction is handled by condition internals instead of a direction member.
-/// The condition effect specific members have three parameters.
-/// The first refers to the X axis, the second refers to the Y axis and the third refers to the Z axis.
-/// The right terms refer to the positive side of the axis and the left terms refer to the negative side of the axis.
-/// Please refer to the `haptic.Direction` diagram for which side is positive and which is negative.
-///
-/// ## Version
-/// This struct is available since SDL 3.2.0.
-pub const EffectCondition = struct {
-    /// Effect type.
-    effect_type: enum(u16) {
-        /// Condition haptic effect that simulates a spring.
-        /// Effect is based on the axes position.
-        spring = c.SDL_HAPTIC_SPRING,
-        /// Condition haptic effect that simulates dampening.
-        /// Effect is based on the axes velocity.
-        damper = c.SDL_HAPTIC_DAMPER,
-        /// Condition haptic effect that simulates inertia.
-        /// Effect is based on the axes acceleration.
-        inertia = c.SDL_HAPTIC_INERTIA,
-        /// Condition haptic effect that simulates friction.
-        /// Effect is based on the axes movement.
-        friction = c.SDL_HAPTIC_FRICTION,
-    },
-    /// Common effect data.
-    common: EffectCommonData,
-    /// Direction of the effect.
-    direction: Direction,
-    /// Level when joystick is to the positive side.
-    right_sat: [3]u16,
-    /// Level when joystick is to the negative side.
-    left_sat: [3]u16,
-    /// How fast to increase the force towards the positive side.
-    right_coeff: [3]i16,
-    /// How fast to increase the force towards the negative side.
-    left_coeff: [3]i16,
-    /// Size of the dead zone; whole axis-range when 0-centered.
-    deadband: [3]u16,
-    /// Position of the dead zone.
-    center: [3]i16,
-
-    /// Convert from an SDL value.
-    pub fn fromSdl(value: c.SDL_HapticCondition) EffectCondition {
-        return .{
-            .effect_type = @enumFromInt(value.type),
-            .common = .{
-                .length = EffectLength.fromSdl(value.length),
-                .delay = @intCast(value.delay),
-                .button = @intCast(value.button),
-                .interval = @intCast(value.interval),
-            },
-            .direction = Direction.fromSdl(value.direction),
-            .right_sat = value.right_sat,
-            .left_sat = value.left_sat,
-            .right_coeff = value.right_coeff,
-            .left_coeff = value.left_coeff,
-            .deadband = value.deadband,
-            .center = value.center,
-        };
-    }
-
-    /// Convert to an SDL value.
-    pub fn toSdl(self: EffectCondition) c.SDL_HapticCondition {
-        return .{
-            .type = @intFromEnum(self.effect_type),
-            .length = self.common.length.toSdl(),
-            .delay = @intCast(self.common.delay),
-            .button = @intCast(self.common.button),
-            .interval = @intCast(self.common.interval),
-            .direction = self.direction.toSdl(),
-            .right_sat = self.right_sat,
-            .left_sat = self.left_sat,
-            .right_coeff = self.right_coeff,
-            .left_coeff = self.left_coeff,
-            .deadband = self.deadband,
-            .center = self.center,
-        };
-    }
-};
-
-/// A structure containing a template for a constant effect.
-///
-/// ## Remarks
-/// This struct is exclusively for the `haptic.EffectType.constant` effect.
-///
-/// A constant effect applies a constant force in the specified direction to the joystick.
-///
-/// ## Version
-/// This struct is available since SDL 3.2.0.
-pub const EffectConstant = struct {
-    /// Common effect data.
-    common: EffectCommonData,
-    /// Effect envelope.
-    envelope: EffectEnvelope,
-    /// Direction of the effect.
-    direction: Direction,
-    /// Strength of the constant effect.
-    level: i16,
-
-    /// Convert from an SDL value.
-    pub fn fromSdl(value: c.SDL_HapticConstant) EffectConstant {
-        return .{
-            .common = .{
-                .length = EffectLength.fromSdl(value.length),
-                .delay = @intCast(value.delay),
-                .button = @intCast(value.button),
-                .interval = @intCast(value.interval),
-            },
-            .envelope = .{
-                .attack_length = @intCast(value.attack_length),
-                .attack_level = @intCast(value.attack_level),
-                .fade_length = @intCast(value.fade_length),
-                .fade_level = @intCast(value.fade_level),
-            },
-            .direction = Direction.fromSdl(value.direction),
-            .level = value.level,
-        };
-    }
-
-    /// Convert to an SDL value.
-    pub fn toSdl(self: EffectConstant) c.SDL_HapticConstant {
-        return .{
-            .type = c.SDL_HAPTIC_CONSTANT,
-            .length = self.common.length.toSdl(),
-            .delay = @intCast(self.common.delay),
-            .button = @intCast(self.common.button),
-            .interval = @intCast(self.common.interval),
-            .attack_length = @intCast(self.envelope.attack_length),
-            .attack_level = @intCast(self.envelope.attack_level),
-            .fade_length = @intCast(self.envelope.fade_length),
-            .fade_level = @intCast(self.envelope.fade_level),
-            .direction = self.direction.toSdl(),
-            .level = self.level,
-        };
-    }
-};
-
-/// A structure containing a template for a custom effect.
-///
-/// ## Remarks
-/// This struct is exclusively for the custom effect.
-///
-/// A custom force feedback effect is much like a periodic effect, where the application can define its exact shape.
-/// You will have to allocate the data yourself.
-/// Data should consist of `channels * samples` u16 samples.
-///
-/// If channels is one, the effect is rotated using the defined direction.
-/// Otherwise it uses the samples in data for the different axes.
-///
-/// ## Version
-/// This struct is available since SDL 3.2.0.
-pub const EffectCustom = struct {
-    /// Common effect data.
-    common: EffectCommonData,
-    /// Effect envelope.
-    envelope: EffectEnvelope,
-    /// Direction of the effect.
-    direction: Direction,
-    /// Axes to use, minimum of one.
-    channels: u8,
-    /// Sample periods.
-    period: u16,
-    /// Amount of samples.
-    samples: u16,
-    /// Should contain `channels * samples` items.
-    data: [*]u16,
-
-    /// Convert from an SDL value.
-    pub fn fromSdl(value: c.SDL_HapticCustom) EffectCustom {
-        return .{
-            .common = .{
-                .length = EffectLength.fromSdl(value.length),
-                .delay = @intCast(value.delay),
-                .button = @intCast(value.button),
-                .interval = @intCast(value.interval),
-            },
-            .envelope = .{
-                .attack_length = @intCast(value.attack_length),
-                .attack_level = @intCast(value.attack_level),
-                .fade_length = @intCast(value.fade_length),
-                .fade_level = @intCast(value.fade_level),
-            },
-            .direction = Direction.fromSdl(value.direction),
-            .channels = value.channels,
-            .period = value.period,
-            .samples = value.samples,
-            .data = value.data,
-        };
-    }
-
-    /// Convert to an SDL value.
-    pub fn toSdl(self: EffectCustom) c.SDL_HapticCustom {
-        return .{
-            .type = c.SDL_HAPTIC_CUSTOM,
-            .length = self.common.length.toSdl(),
-            .delay = @intCast(self.common.delay),
-            .button = @intCast(self.common.button),
-            .interval = @intCast(self.common.interval),
-            .attack_length = @intCast(self.envelope.attack_length),
-            .attack_level = @intCast(self.envelope.attack_level),
-            .fade_length = @intCast(self.envelope.fade_length),
-            .fade_level = @intCast(self.envelope.fade_level),
-            .direction = self.direction.toSdl(),
-            .channels = self.channels,
-            .period = self.period,
-            .samples = self.samples,
-            .data = self.data,
-        };
-    }
-};
-
-/// An envelope for an effect.
-///
-/// ## Version
-/// This struct is provided by zig-sdl3.
-pub const EffectEnvelope = struct {
-    /// Duration of the attack in milliseconds.
-    attack_length: u15,
-    /// Level at the start of the attack.
-    attack_level: u15,
-    /// Duration of the fade in milliseconds.
-    fade_length: u15,
-    /// Level at the end of the fade.
-    fade_level: u15,
-};
-
-/// ID for haptic effects.
-///
-/// ## Version
-/// This struct is available since SDL 3.2.0.
-pub const EffectId = struct {
-    value: c_int,
-};
-
-/// A structure containing a template for a Left/Right effect.
-///
-/// ## Remarks
-/// This struct is exclusively for the left right effect.
-///
-/// The Left/Right effect is used to explicitly control the large and small motors, commonly found in modern game controllers.
-/// The small (right) motor is high frequency, and the large (left) motor is low frequency.
-///
-/// ## Version
-/// This struct is available since SDL 3.2.0.
-pub const EffectLeftRight = struct {
-    /// Duration of the effect.
-    length: EffectLength,
-    /// Control of the large controller motor.
-    large_magnitude: u16,
-    /// Control of the small controller motor.
-    small_magnitude: u16,
-
-    /// Convert from an SDL value.
-    pub fn fromSdl(value: c.SDL_HapticLeftRight) EffectLeftRight {
-        return .{
-            .length = EffectLength.fromSdl(value.length),
-            .large_magnitude = value.large_magnitude,
-            .small_magnitude = value.small_magnitude,
-        };
-    }
-
-    /// Convert to an SDL value.
-    pub fn toSdl(self: EffectLeftRight) c.SDL_HapticLeftRight {
-        return .{
-            .type = c.SDL_HAPTIC_LEFTRIGHT,
-            .length = self.length.toSdl(),
-            .large_magnitude = self.large_magnitude,
-            .small_magnitude = self.small_magnitude,
-        };
-    }
-};
-
-/// Length of an effect.
-///
-/// ## Version
-/// This union is provided by zig-sdl3.
-pub const EffectLength = union(enum) {
-    // Number of iterations.
-    iterations: u15,
-    /// Go on for infinity.
-    infinite: void,
-
-    /// Convert from an SDL value.
-    pub fn fromSdl(value: u32) EffectLength {
-        if (value == c.SDL_HAPTIC_INFINITY)
-            return .{ .infinite = {} };
-        return .{ .iterations = @intCast(value) };
-    }
-
-    /// Convert to an SDL value.
-    pub fn toSdl(self: EffectLength) u32 {
-        return switch (self) {
-            .iterations => |val| @intCast(val),
-            .infinite => c.SDL_HAPTIC_INFINITY,
-        };
-    }
-};
-
-/// A structure containing a template for a Periodic effect.
-///
-/// ## Remarks
-/// The struct handles the following effects:
-/// * Sine.
-/// * Square.
-/// * Triangle.
-/// * Sawtooth Up.
-/// * Sawtooth Down.
-///
-/// A periodic effect consists in a wave-shaped effect that repeats itself over time.
-/// The type determines the shape of the wave and the parameters determine the dimensions of the wave.
-///
-/// Phase is given by hundredth of a degree meaning that giving the phase a value of `9000` will displace it `25%` of its period.
-/// Here are sample values:
-/// * `0`: No phase displacement.
-/// * `9000`: Displaced 25% of its period.
-/// * `18000`: Displaced 50% of its period.
-/// * `27000`: Displaced 75% of its period.
-/// * `36000`: Displaced 100% of its period, same as 0, but 0 is preferred.
-///
-/// Examples:
-///
-/// ```
-///   Sine
-///     __      __      __      __
-///    /  \    /  \    /  \    /
-///   /    \__/    \__/    \__/
-///
-///   Square
-///    __    __    __    __    __
-///   |  |  |  |  |  |  |  |  |  |
-///   |  |__|  |__|  |__|  |__|  |
-///
-///   Triangle
-///     /\    /\    /\    /\    /\
-///    /  \  /  \  /  \  /  \  /
-///   /    \/    \/    \/    \/
-///
-///   Sawtooth Up
-///     /|  /|  /|  /|  /|  /|  /|
-///    / | / | / | / | / | / | / |
-///   /  |/  |/  |/  |/  |/  |/  |
-///
-///   Sawtooth Down
-///   \  |\  |\  |\  |\  |\  |\  |
-///    \ | \ | \ | \ | \ | \ | \ |
-///     \|  \|  \|  \|  \|  \|  \|
-/// ```
-///
-/// ## Version
-/// This struct is available since SDL 3.2.0.
-pub const EffectPeriodic = struct {
-    /// Effect type.
-    effect_type: enum(u16) {
-        /// Periodic haptic effect that simulates sine waves.
-        sine = c.SDL_HAPTIC_SINE,
-        /// Periodic haptic effect that simulates square waves.
-        square = c.SDL_HAPTIC_SQUARE,
-        /// Periodic haptic effect that simulates triangular waves.
-        triangle = c.SDL_HAPTIC_TRIANGLE,
-        /// Periodic haptic effect that simulates saw tooth up waves.
-        sawtooth_up = c.SDL_HAPTIC_SAWTOOTHUP,
-        /// Periodic haptic effect that simulates saw tooth down waves.
-        sawtooth_down = c.SDL_HAPTIC_SAWTOOTHDOWN,
-    },
-    /// Common effect data.
-    common: EffectCommonData,
-    /// Effect envelope.
-    envelope: EffectEnvelope,
-    /// Direction of the effect.
-    direction: Direction,
-    /// Period of the wave.
-    period: u16,
-    /// Peak value; if negative, equivalent to 180 degrees extra phase shift.
-    magnitude: i16,
-    /// Mean value of the wave.
-    offset: i16,
-    /// Positive phase shift given by hundredth of a degree.
-    phase: u16,
-
-    /// Convert from an SDL value.
-    pub fn fromSdl(value: c.SDL_HapticPeriodic) EffectPeriodic {
-        return .{
-            .effect_type = @enumFromInt(value.type),
-            .common = .{
-                .length = EffectLength.fromSdl(value.length),
-                .delay = @intCast(value.delay),
-                .button = @intCast(value.button),
-                .interval = @intCast(value.interval),
-            },
-            .envelope = .{
-                .attack_length = @intCast(value.attack_length),
-                .attack_level = @intCast(value.attack_level),
-                .fade_length = @intCast(value.fade_length),
-                .fade_level = @intCast(value.fade_level),
-            },
-            .direction = Direction.fromSdl(value.direction),
-            .period = value.period,
-            .magnitude = value.magnitude,
-            .offset = value.offset,
-            .phase = value.phase,
-        };
-    }
-
-    /// Convert to an SDL value.
-    pub fn toSdl(self: EffectPeriodic) c.SDL_HapticPeriodic {
-        return .{
-            .type = @intFromEnum(self.effect_type),
-            .length = self.common.length.toSdl(),
-            .delay = @intCast(self.common.delay),
-            .button = @intCast(self.common.button),
-            .interval = @intCast(self.common.interval),
-            .attack_length = @intCast(self.envelope.attack_length),
-            .attack_level = @intCast(self.envelope.attack_level),
-            .fade_length = @intCast(self.envelope.fade_length),
-            .fade_level = @intCast(self.envelope.fade_level),
-            .direction = self.direction.toSdl(),
-            .period = self.period,
-            .magnitude = self.magnitude,
-            .offset = self.offset,
-            .phase = self.phase,
-        };
-    }
-};
-
-/// A structure containing a template for a constant effect.
-///
-/// ## Remarks
-/// This struct is exclusively for the ramp effect.
-///
-/// The ramp effect starts at start strength and ends at end strength.
-/// It augments in linear fashion.
-/// If you use attack and fade with a ramp the effects get added to the ramp effect making the effect become quadratic instead of linear.
-///
-/// ## Version
-/// This struct is available since SDL 3.2.0.
-pub const EffectRamp = struct {
-    /// Common effect data.
-    common: EffectCommonData,
-    /// Effect envelope.
-    envelope: EffectEnvelope,
-    /// Direction of the effect.
-    direction: Direction,
-    /// Beginning strength level.
-    start: i16,
-    /// Ending strength level.
-    end: i16,
-
-    /// Convert from an SDL value.
-    pub fn fromSdl(value: c.SDL_HapticRamp) EffectRamp {
-        return .{
-            .common = .{
-                .length = EffectLength.fromSdl(value.length),
-                .delay = @intCast(value.delay),
-                .button = @intCast(value.button),
-                .interval = @intCast(value.interval),
-            },
-            .envelope = .{
-                .attack_length = @intCast(value.attack_length),
-                .attack_level = @intCast(value.attack_level),
-                .fade_length = @intCast(value.fade_length),
-                .fade_level = @intCast(value.fade_level),
-            },
-            .direction = Direction.fromSdl(value.direction),
-            .start = value.start,
-            .end = value.end,
-        };
-    }
-
-    /// Convert to an SDL value.
-    pub fn toSdl(self: EffectRamp) c.SDL_HapticRamp {
-        return .{
-            .type = c.SDL_HAPTIC_RAMP,
-            .length = self.common.length.toSdl(),
-            .delay = @intCast(self.common.delay),
-            .button = @intCast(self.common.button),
-            .interval = @intCast(self.common.interval),
-            .attack_length = @intCast(self.envelope.attack_length),
-            .attack_level = @intCast(self.envelope.attack_level),
-            .fade_length = @intCast(self.envelope.fade_length),
-            .fade_level = @intCast(self.envelope.fade_level),
-            .direction = self.direction.toSdl(),
-            .start = self.start,
-            .end = self.end,
-        };
-    }
-};
-
-/// Type of haptic effect.
-///
-/// ## Version
-/// This struct is available since SDL 3.2.0.
-pub const EffectType = enum(u32) {
-    /// Constant haptic effect.
-    constant = c.SDL_HAPTIC_CONSTANT,
-    /// Periodic haptic effect.
-    periodic,
-    /// Condition haptic effect.
-    condition,
-    /// Ramp haptic effect.
-    ramp = c.SDL_HAPTIC_RAMP,
-    /// Haptic effect for direct control over high/low frequency motors.
-    left_right = c.SDL_HAPTIC_LEFTRIGHT,
-    /// User defined custom haptic effect.
-    custom = c.SDL_HAPTIC_CUSTOM,
 };
 
 /// Haptic features supported.
@@ -877,7 +877,7 @@ pub const Haptic = struct {
     pub fn createEffect(
         self: Haptic,
         effect: Effect,
-    ) !EffectId {
+    ) !Effect.Id {
         const effect_sdl = effect.toSdl();
         const ret = c.SDL_CreateHapticEffect(self.value, &effect_sdl);
         return .{ .value = try errors.wrapCall(c_int, ret, -1) };
@@ -910,7 +910,7 @@ pub const Haptic = struct {
     /// This function is available since SDL 3.2.0.
     pub fn destroyEffect(
         self: Haptic,
-        effect: EffectId,
+        effect: Effect.Id,
     ) void {
         c.SDL_DestroyHapticEffect(self.value, effect.value);
     }
@@ -950,7 +950,7 @@ pub const Haptic = struct {
     /// This function is available since SDL 3.2.0.
     pub fn getEffectStatus(
         self: Haptic,
-        effect: EffectId,
+        effect: Effect.Id,
     ) bool {
         return c.SDL_GetHapticEffectStatus(self.value, effect.value);
     }
@@ -1087,7 +1087,7 @@ pub const Haptic = struct {
     pub fn init(
         instance_id: Id,
     ) !Haptic {
-        return .{ .value = try errors.wrapNull(*c.SDL_Haptic, c.SDL_OpenHaptic(instance_id.value)) };
+        return .{ .value = try errors.wrapCallNull(*c.SDL_Haptic, c.SDL_OpenHaptic(instance_id.value)) };
     }
 
     /// Open a haptic device for use from a joystick device.
@@ -1110,7 +1110,7 @@ pub const Haptic = struct {
     pub fn initFromJoystick(
         val: joystick.Joystick,
     ) !Haptic {
-        return .{ .value = try errors.wrapNull(*c.SDL_Haptic, c.SDL_OpenHapticFromJoystick(val.value)) };
+        return .{ .value = try errors.wrapCallNull(*c.SDL_Haptic, c.SDL_OpenHapticFromJoystick(val.value)) };
     }
 
     /// Try to open a haptic device from the current mouse.
@@ -1122,7 +1122,7 @@ pub const Haptic = struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn initFromMouse() !Haptic {
-        return .{ .value = try errors.wrapNull(*c.SDL_Haptic, c.SDL_OpenHapticFromMouse()) };
+        return .{ .value = try errors.wrapCallNull(*c.SDL_Haptic, c.SDL_OpenHapticFromMouse()) };
     }
 
     /// Initialize a haptic device for simple rumble playback.
@@ -1222,8 +1222,8 @@ pub const Haptic = struct {
     /// This function is available since SDL 3.2.0.
     pub fn runEffect(
         self: Haptic,
-        effect: EffectId,
-        iterations: EffectLength,
+        effect: Effect.Id,
+        iterations: Effect.Length,
     ) !void {
         return errors.wrapCallBool(c.SDL_RunHapticEffect(self.value, effect.value, iterations.toSdl()));
     }
@@ -1279,7 +1279,7 @@ pub const Haptic = struct {
     /// This function is available since SDL 3.2.0.
     pub fn stopEffect(
         self: Haptic,
-        id: EffectId,
+        id: Effect.Id,
     ) !void {
         return errors.wrapCallBool(c.SDL_StopHapticEffect(self.value, id.value));
     }
@@ -1326,7 +1326,7 @@ pub const Haptic = struct {
     /// This function is available since SDL 3.2.0.
     pub fn update(
         self: Haptic,
-        effect: EffectId,
+        effect: Effect.Id,
         data: Effect,
     ) !void {
         const data_sdl = data.toSdl();
@@ -1362,7 +1362,7 @@ pub const Id = packed struct {
     pub fn getHaptic(
         self: Id,
     ) !Haptic {
-        return .{ .value = try errors.wrapNull(*c.SDL_Haptic, c.SDL_GetHapticFromID(self.value)) };
+        return .{ .value = try errors.wrapCallNull(*c.SDL_Haptic, c.SDL_GetHapticFromID(self.value)) };
     }
 
     /// Get the implementation dependent name of a haptic device.
@@ -1395,7 +1395,7 @@ pub const Id = packed struct {
 /// This function is available since SDL 3.2.0.
 pub fn getHaptics() ![]Id {
     var count: c_int = undefined;
-    const ret = @as([*]Id, @ptrCast(try errors.wrapNull(*c.SDL_HapticID, c.SDL_GetHaptics(&count))));
+    const ret = @as([*]Id, @ptrCast(try errors.wrapCallNull(*c.SDL_HapticID, c.SDL_GetHaptics(&count))));
     return ret[0..@intCast(count)];
 }
 

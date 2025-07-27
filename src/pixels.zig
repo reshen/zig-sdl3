@@ -653,6 +653,278 @@ pub const Format = enum(c.SDL_PixelFormat) {
     pub const array_bgrx_32: Format = @enumFromInt(c.SDL_PIXELFORMAT_BGRX32);
     pub const array_xbgr_32: Format = @enumFromInt(c.SDL_PIXELFORMAT_XBGR32);
 
+    /// Details about the format of a pixel.
+    ///
+    /// ## Version
+    /// This struct is available since SDL 3.2.0.
+    pub const Details = struct {
+        value: c.SDL_PixelFormatDetails,
+
+        /// Initialize the format details.
+        ///
+        /// ## Function Parameters
+        /// * `self`: The details of the pixel format.
+        ///
+        /// ## Return Value
+        /// These are the zig-named members of the struct.
+        ///
+        /// ## Version
+        /// This function is provided by zig-sdl3.
+        pub fn getDetails(
+            self: Details,
+        ) struct {
+            format: ?Format,
+            bits_per_pixel: u8,
+            bytes_per_pixel: u8,
+            r_mask: u32,
+            g_mask: u32,
+            b_mask: u32,
+            a_mask: u32,
+            r_bits: u8,
+            g_bits: u8,
+            b_bits: u8,
+            a_bits: u8,
+            r_shift: u8,
+            g_shift: u8,
+            b_shift: u8,
+            a_shift: u8,
+        } {
+            return .{
+                .format = Format.fromSdl(self.value.format),
+                .bits_per_pixel = self.value.bits_per_pixel,
+                .bytes_per_pixel = self.value.bytes_per_pixel,
+                .r_mask = self.value.Rmask,
+                .g_mask = self.value.Gmask,
+                .b_mask = self.value.Bmask,
+                .a_mask = self.value.Amask,
+                .r_bits = self.value.Rbits,
+                .g_bits = self.value.Gbits,
+                .b_bits = self.value.Bbits,
+                .a_bits = self.value.Abits,
+                .r_shift = self.value.Rshift,
+                .g_shift = self.value.Gshift,
+                .b_shift = self.value.Bshift,
+                .a_shift = self.value.Ashift,
+            };
+        }
+
+        /// Get RGB values from a pixel in the specified format.
+        ///
+        /// ## Function Parameters
+        /// * `self`: Describes the pixel format.
+        /// * `pixel`: A pixel value.
+        /// * `palette`: An optional palette for indexed formats.
+        ///
+        /// ## Return Value
+        /// Returns the RGB8 color value of the pixel.
+        ///
+        /// ## Remarks
+        /// This function uses the entire 8-bit [0..255] range when converting color components from pixel formats with less than 8-bits per RGB component
+        /// (e.g., a completely white pixel in 16-bit RGB565 format would return [0xff, 0xff, 0xff] not [0xf8, 0xfc, 0xf8]).
+        ///
+        /// ## Thread Safety
+        /// It is safe to call this function from any thread, as long as the palette is not modified.
+        ///
+        /// ## Version
+        /// This function is available since SDL 3.2.0.
+        pub fn getRgb(
+            self: Details,
+            pixel: Pixel,
+            palette: ?Palette,
+        ) struct { r: u8, g: u8, b: u8 } {
+            var r: u8 = undefined;
+            var g: u8 = undefined;
+            var b: u8 = undefined;
+            c.SDL_GetRGB(
+                @intCast(pixel.value),
+                &self.value,
+                if (palette) |palette_val| palette_val.value else null,
+                &r,
+                &g,
+                &b,
+            );
+            return .{ .r = r, .g = g, .b = b };
+        }
+
+        /// Get RGBA values from a pixel in the specified format.
+        ///
+        /// ## Function Parameters
+        /// * `self`: Describes the pixel format.
+        /// * `pixel`: A pixel value.
+        /// * `palette`: An optional palette for indexed formats.
+        ///
+        /// ## Return Value
+        /// Returns the RGB8 color value of the pixel.
+        ///
+        /// ## Remarks
+        /// This function uses the entire 8-bit [0..255] range when converting color components from pixel formats with less than 8-bits per RGB component
+        /// (e.g., a completely white pixel in 16-bit RGB565 format would return [0xff, 0xff, 0xff] not [0xf8, 0xfc, 0xf8]).
+        ///
+        /// If the surface has no alpha component, the alpha will be returned as 0xff (100% opaque).
+        ///
+        /// ## Thread Safety
+        /// It is safe to call this function from any thread, as long as the palette is not modified.
+        ///
+        /// ## Version
+        /// This function is available since SDL 3.2.0.
+        pub fn getRgba(
+            self: Details,
+            pixel: Pixel,
+            palette: ?Palette,
+        ) struct { r: u8, g: u8, b: u8, a: u8 } {
+            var r: u8 = undefined;
+            var g: u8 = undefined;
+            var b: u8 = undefined;
+            var a: u8 = undefined;
+            c.SDL_GetRGBA(
+                @intCast(pixel.value),
+                &self.value,
+                if (palette) |palette_val| palette_val.value else null,
+                &r,
+                &g,
+                &b,
+                &a,
+            );
+            return .{ .r = r, .g = g, .b = b, .a = a };
+        }
+
+        /// Initialize the format details.
+        ///
+        /// ## Function Parameters
+        /// These are the zig-named members of the struct.
+        ///
+        /// ## Version
+        /// This function is provided by zig-sdl3.
+        pub fn init(
+            format: ?Format,
+            bits_per_pixel: u8,
+            bytes_per_pixel: u8,
+            r_mask: u32,
+            g_mask: u32,
+            b_mask: u32,
+            a_mask: u32,
+            r_bits: u8,
+            g_bits: u8,
+            b_bits: u8,
+            a_bits: u8,
+            r_shift: u8,
+            g_shift: u8,
+            b_shift: u8,
+            a_shift: u8,
+        ) Details {
+            return .{
+                .value = .{
+                    .format = Format.toSdl(format),
+                    .bits_per_pixel = bits_per_pixel,
+                    .bytes_per_pixel = bytes_per_pixel,
+                    .Rmask = r_mask,
+                    .Gmask = g_mask,
+                    .Bmask = b_mask,
+                    .Amask = a_mask,
+                    .Rbits = r_bits,
+                    .Gbits = g_bits,
+                    .Bbits = b_bits,
+                    .Abits = a_bits,
+                    .Rshift = r_shift,
+                    .Gshift = g_shift,
+                    .Bshift = b_shift,
+                    .Ashift = a_shift,
+                },
+            };
+        }
+
+        /// Map an RGB triple to an opaque pixel value for a given pixel format.
+        ///
+        /// ## Function Parameters
+        /// * `self`: The details describing the format.
+        /// * `palette`: An optional palette for indexed formats.
+        /// * `r`: The red component of the pixel in the range 0-255.
+        /// * `g`: The green component of the pixel in the range 0-255.
+        /// * `b`: The blue component of the pixel in the range 0-255.
+        ///
+        /// ## Return Value
+        /// Returns a pixel value.
+        ///
+        /// ## Remarks
+        /// This function maps the RGB color value to the specified pixel format and returns the pixel value best approximating the given RGB color value for the given pixel format.
+        ///
+        /// If the format has a palette (8-bit) the index of the closest matching color in the palette will be returned.
+        ///
+        /// If the specified pixel format has an alpha component it will be returned as all 1 bits (fully opaque).
+        ///
+        /// If the pixel format bpp (color depth) is less than 32-bpp then the unused upper bits of the return value can safely be ignored
+        /// (e.g., with a 16-bpp format the return value can be assigned to a `u16`, and similarly a `u8` for an 8-bpp format).
+        ///
+        /// ## Thread Safety
+        /// It is safe to call this function from any thread, as long as the palette is not modified.
+        ///
+        /// ## Version
+        /// This function is available since SDL 3.2.0.
+        pub fn mapRgb(
+            self: Details,
+            palette: ?Palette,
+            r: u8,
+            g: u8,
+            b: u8,
+        ) Pixel {
+            const ret = c.SDL_MapRGB(
+                &self.value,
+                if (palette) |palette_val| palette_val.value else null,
+                r,
+                g,
+                b,
+            );
+            return Pixel{ .value = ret };
+        }
+
+        /// Map an RGBA quadruple to a pixel value for a given pixel format.
+        ///
+        /// ## Function Parameters
+        /// * `self`: The details describing the format.
+        /// * `palette`: An optional palette for indexed formats.
+        /// * `r`: The red component of the pixel in the range 0-255.
+        /// * `g`: The green component of the pixel in the range 0-255.
+        /// * `b`: The blue component of the pixel in the range 0-255.
+        /// * `a`: The alpha component of the pixel in the range 0-255.
+        ///
+        /// ## Return Value
+        /// Returns a pixel value.
+        ///
+        /// ## Remarks
+        /// This function maps the RGBA color value to the specified pixel format and returns the pixel value best approximating the given RGBA color value for the given pixel format.
+        ///
+        /// If the specified pixel format has no alpha component the alpha value will be ignored (as it will be in formats with a palette).
+        ///
+        /// If the format has a palette (8-bit) the index of the closest matching color in the palette will be returned.
+        ///
+        /// If the pixel format bpp (color depth) is less than 32-bpp then the unused upper bits of the return value can safely be ignored
+        /// (e.g., with a 16-bpp format the return value can be assigned to a `u16`, and similarly a `u8` for an 8-bpp format).
+        ///
+        /// ## Thread Safety
+        /// It is safe to call this function from any thread, as long as the palette is not modified.
+        ///
+        /// ## Version
+        /// This function is available since SDL 3.2.0.
+        pub fn mapRgba(
+            self: Details,
+            palette: ?Palette,
+            r: u8,
+            g: u8,
+            b: u8,
+            a: u8,
+        ) Pixel {
+            const ret = c.SDL_MapRGBA(
+                &self.value,
+                if (palette) |palette_val| palette_val.value else null,
+                r,
+                g,
+                b,
+                a,
+            );
+            return Pixel{ .value = ret };
+        }
+    };
+
     /// Convert from an SDL value.
     pub fn fromSdl(value: c.SDL_PixelFormat) ?Format {
         if (value == c.SDL_PIXELFORMAT_UNKNOWN)
@@ -877,7 +1149,7 @@ pub const Format = enum(c.SDL_PixelFormat) {
         return @intCast(ret);
     }
 
-    /// Create a `pixels.FormatDetails` structure corresponding to a pixel format.
+    /// Create a `pixels.Details` structure corresponding to a pixel format.
     ///
     /// ## Function Parameters
     /// * `self`: A pixel format value.
@@ -892,11 +1164,11 @@ pub const Format = enum(c.SDL_PixelFormat) {
     /// This function is available since SDL 3.2.0.
     pub fn getDetails(
         self: Format,
-    ) !FormatDetails {
-        const ret = try errors.wrapNull(*const c.SDL_PixelFormatDetails, c.SDL_GetPixelFormatDetails(
+    ) !Details {
+        const ret = try errors.wrapCallNull(*const c.SDL_PixelFormatDetails, c.SDL_GetPixelFormatDetails(
             @intFromEnum(self),
         ));
-        return .{ .value = (try errors.wrapNull(*const c.SDL_PixelFormatDetails, ret)).* };
+        return .{ .value = (try errors.wrapCallNull(*const c.SDL_PixelFormatDetails, ret)).* };
     }
 
     /// If format was created by `define` rather than `define4CC`.
@@ -1195,278 +1467,6 @@ pub const Format = enum(c.SDL_PixelFormat) {
     }
 };
 
-/// Details about the format of a pixel.
-///
-/// ## Version
-/// This struct is available since SDL 3.2.0.
-pub const FormatDetails = struct {
-    value: c.SDL_PixelFormatDetails,
-
-    /// Initialize the format details.
-    ///
-    /// ## Function Parameters
-    /// * `self`: The details of the pixel format.
-    ///
-    /// ## Return Value
-    /// These are the zig-named members of the struct.
-    ///
-    /// ## Version
-    /// This function is provided by zig-sdl3.
-    pub fn getDetails(
-        self: FormatDetails,
-    ) struct {
-        format: ?Format,
-        bits_per_pixel: u8,
-        bytes_per_pixel: u8,
-        r_mask: u32,
-        g_mask: u32,
-        b_mask: u32,
-        a_mask: u32,
-        r_bits: u8,
-        g_bits: u8,
-        b_bits: u8,
-        a_bits: u8,
-        r_shift: u8,
-        g_shift: u8,
-        b_shift: u8,
-        a_shift: u8,
-    } {
-        return .{
-            .format = Format.fromSdl(self.value.format),
-            .bits_per_pixel = self.value.bits_per_pixel,
-            .bytes_per_pixel = self.value.bytes_per_pixel,
-            .r_mask = self.value.Rmask,
-            .g_mask = self.value.Gmask,
-            .b_mask = self.value.Bmask,
-            .a_mask = self.value.Amask,
-            .r_bits = self.value.Rbits,
-            .g_bits = self.value.Gbits,
-            .b_bits = self.value.Bbits,
-            .a_bits = self.value.Abits,
-            .r_shift = self.value.Rshift,
-            .g_shift = self.value.Gshift,
-            .b_shift = self.value.Bshift,
-            .a_shift = self.value.Ashift,
-        };
-    }
-
-    /// Get RGB values from a pixel in the specified format.
-    ///
-    /// ## Function Parameters
-    /// * `self`: Describes the pixel format.
-    /// * `pixel`: A pixel value.
-    /// * `palette`: An optional palette for indexed formats.
-    ///
-    /// ## Return Value
-    /// Returns the RGB8 color value of the pixel.
-    ///
-    /// ## Remarks
-    /// This function uses the entire 8-bit [0..255] range when converting color components from pixel formats with less than 8-bits per RGB component
-    /// (e.g., a completely white pixel in 16-bit RGB565 format would return [0xff, 0xff, 0xff] not [0xf8, 0xfc, 0xf8]).
-    ///
-    /// ## Thread Safety
-    /// It is safe to call this function from any thread, as long as the palette is not modified.
-    ///
-    /// ## Version
-    /// This function is available since SDL 3.2.0.
-    pub fn getRgb(
-        self: FormatDetails,
-        pixel: Pixel,
-        palette: ?Palette,
-    ) struct { r: u8, g: u8, b: u8 } {
-        var r: u8 = undefined;
-        var g: u8 = undefined;
-        var b: u8 = undefined;
-        c.SDL_GetRGB(
-            @intCast(pixel.value),
-            &self.value,
-            if (palette) |palette_val| palette_val.value else null,
-            &r,
-            &g,
-            &b,
-        );
-        return .{ .r = r, .g = g, .b = b };
-    }
-
-    /// Get RGBA values from a pixel in the specified format.
-    ///
-    /// ## Function Parameters
-    /// * `self`: Describes the pixel format.
-    /// * `pixel`: A pixel value.
-    /// * `palette`: An optional palette for indexed formats.
-    ///
-    /// ## Return Value
-    /// Returns the RGB8 color value of the pixel.
-    ///
-    /// ## Remarks
-    /// This function uses the entire 8-bit [0..255] range when converting color components from pixel formats with less than 8-bits per RGB component
-    /// (e.g., a completely white pixel in 16-bit RGB565 format would return [0xff, 0xff, 0xff] not [0xf8, 0xfc, 0xf8]).
-    ///
-    /// If the surface has no alpha component, the alpha will be returned as 0xff (100% opaque).
-    ///
-    /// ## Thread Safety
-    /// It is safe to call this function from any thread, as long as the palette is not modified.
-    ///
-    /// ## Version
-    /// This function is available since SDL 3.2.0.
-    pub fn getRgba(
-        self: FormatDetails,
-        pixel: Pixel,
-        palette: ?Palette,
-    ) struct { r: u8, g: u8, b: u8, a: u8 } {
-        var r: u8 = undefined;
-        var g: u8 = undefined;
-        var b: u8 = undefined;
-        var a: u8 = undefined;
-        c.SDL_GetRGBA(
-            @intCast(pixel.value),
-            &self.value,
-            if (palette) |palette_val| palette_val.value else null,
-            &r,
-            &g,
-            &b,
-            &a,
-        );
-        return .{ .r = r, .g = g, .b = b, .a = a };
-    }
-
-    /// Initialize the format details.
-    ///
-    /// ## Function Parameters
-    /// These are the zig-named members of the struct.
-    ///
-    /// ## Version
-    /// This function is provided by zig-sdl3.
-    pub fn init(
-        format: ?Format,
-        bits_per_pixel: u8,
-        bytes_per_pixel: u8,
-        r_mask: u32,
-        g_mask: u32,
-        b_mask: u32,
-        a_mask: u32,
-        r_bits: u8,
-        g_bits: u8,
-        b_bits: u8,
-        a_bits: u8,
-        r_shift: u8,
-        g_shift: u8,
-        b_shift: u8,
-        a_shift: u8,
-    ) FormatDetails {
-        return .{
-            .value = .{
-                .format = Format.toSdl(format),
-                .bits_per_pixel = bits_per_pixel,
-                .bytes_per_pixel = bytes_per_pixel,
-                .Rmask = r_mask,
-                .Gmask = g_mask,
-                .Bmask = b_mask,
-                .Amask = a_mask,
-                .Rbits = r_bits,
-                .Gbits = g_bits,
-                .Bbits = b_bits,
-                .Abits = a_bits,
-                .Rshift = r_shift,
-                .Gshift = g_shift,
-                .Bshift = b_shift,
-                .Ashift = a_shift,
-            },
-        };
-    }
-
-    /// Map an RGB triple to an opaque pixel value for a given pixel format.
-    ///
-    /// ## Function Parameters
-    /// * `self`: The details describing the format.
-    /// * `palette`: An optional palette for indexed formats.
-    /// * `r`: The red component of the pixel in the range 0-255.
-    /// * `g`: The green component of the pixel in the range 0-255.
-    /// * `b`: The blue component of the pixel in the range 0-255.
-    ///
-    /// ## Return Value
-    /// Returns a pixel value.
-    ///
-    /// ## Remarks
-    /// This function maps the RGB color value to the specified pixel format and returns the pixel value best approximating the given RGB color value for the given pixel format.
-    ///
-    /// If the format has a palette (8-bit) the index of the closest matching color in the palette will be returned.
-    ///
-    /// If the specified pixel format has an alpha component it will be returned as all 1 bits (fully opaque).
-    ///
-    /// If the pixel format bpp (color depth) is less than 32-bpp then the unused upper bits of the return value can safely be ignored
-    /// (e.g., with a 16-bpp format the return value can be assigned to a `u16`, and similarly a `u8` for an 8-bpp format).
-    ///
-    /// ## Thread Safety
-    /// It is safe to call this function from any thread, as long as the palette is not modified.
-    ///
-    /// ## Version
-    /// This function is available since SDL 3.2.0.
-    pub fn mapRgb(
-        self: FormatDetails,
-        palette: ?Palette,
-        r: u8,
-        g: u8,
-        b: u8,
-    ) Pixel {
-        const ret = c.SDL_MapRGB(
-            &self.value,
-            if (palette) |palette_val| palette_val.value else null,
-            r,
-            g,
-            b,
-        );
-        return Pixel{ .value = ret };
-    }
-
-    /// Map an RGBA quadruple to a pixel value for a given pixel format.
-    ///
-    /// ## Function Parameters
-    /// * `self`: The details describing the format.
-    /// * `palette`: An optional palette for indexed formats.
-    /// * `r`: The red component of the pixel in the range 0-255.
-    /// * `g`: The green component of the pixel in the range 0-255.
-    /// * `b`: The blue component of the pixel in the range 0-255.
-    /// * `a`: The alpha component of the pixel in the range 0-255.
-    ///
-    /// ## Return Value
-    /// Returns a pixel value.
-    ///
-    /// ## Remarks
-    /// This function maps the RGBA color value to the specified pixel format and returns the pixel value best approximating the given RGBA color value for the given pixel format.
-    ///
-    /// If the specified pixel format has no alpha component the alpha value will be ignored (as it will be in formats with a palette).
-    ///
-    /// If the format has a palette (8-bit) the index of the closest matching color in the palette will be returned.
-    ///
-    /// If the pixel format bpp (color depth) is less than 32-bpp then the unused upper bits of the return value can safely be ignored
-    /// (e.g., with a 16-bpp format the return value can be assigned to a `u16`, and similarly a `u8` for an 8-bpp format).
-    ///
-    /// ## Thread Safety
-    /// It is safe to call this function from any thread, as long as the palette is not modified.
-    ///
-    /// ## Version
-    /// This function is available since SDL 3.2.0.
-    pub fn mapRgba(
-        self: FormatDetails,
-        palette: ?Palette,
-        r: u8,
-        g: u8,
-        b: u8,
-        a: u8,
-    ) Pixel {
-        const ret = c.SDL_MapRGBA(
-            &self.value,
-            if (palette) |palette_val| palette_val.value else null,
-            r,
-            g,
-            b,
-            a,
-        );
-        return Pixel{ .value = ret };
-    }
-};
-
 /// Colorspace matrix coefficients.
 ///
 /// ## Remarks
@@ -1619,7 +1619,7 @@ pub const Palette = struct {
         const ret = c.SDL_CreatePalette(
             @intCast(num_colors),
         );
-        return Palette{ .value = try errors.wrapNull(*c.SDL_Palette, ret) };
+        return Palette{ .value = try errors.wrapCallNull(*c.SDL_Palette, ret) };
     }
 
     /// Set a range of colors in a palette.

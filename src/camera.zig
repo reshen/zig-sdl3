@@ -43,26 +43,6 @@ pub const Id = packed struct {
         std.debug.assert(@sizeOf(c.SDL_CameraID) == @sizeOf(Id));
     }
 
-    /// Get a list of currently connected camera devices.
-    ///
-    /// ## Return Value
-    /// Returns a slice of IDs terminated by 0.
-    /// This needs to be freed with `free()`.
-    ///
-    /// ## Thread Safety
-    /// It is safe to call this function from any thread.
-    ///
-    /// ## Version
-    /// This function is available since SDL 3.2.0.
-    pub fn getAll() ![]Id {
-        var count: c_int = undefined;
-        const val = c.SDL_GetCameras(
-            &count,
-        );
-        const ret = try errors.wrapCallCPtr(c.SDL_CameraID, val);
-        return @as([*]Id, @ptrCast(ret))[0..@intCast(count)];
-    }
-
     /// Get the human-readable device name for a camera.
     ///
     /// ## Function Parameters
@@ -465,6 +445,26 @@ pub const Specification = struct {
     }
 };
 
+/// Get a list of currently connected camera devices.
+///
+/// ## Return Value
+/// Returns a slice of IDs terminated by 0.
+/// This needs to be freed with `free()`.
+///
+/// ## Thread Safety
+/// It is safe to call this function from any thread.
+///
+/// ## Version
+/// This function is available since SDL 3.2.0.
+pub fn getCameras() ![]Id {
+    var count: c_int = undefined;
+    const val = c.SDL_GetCameras(
+        &count,
+    );
+    const ret = try errors.wrapCallCPtr(c.SDL_CameraID, val);
+    return @as([*]Id, @ptrCast(ret))[0..@intCast(count)];
+}
+
 /// Get the name of the current camera driver.
 ///
 /// ## Return Value
@@ -552,7 +552,7 @@ test "Camera" {
     _ = getCurrentDriverName();
 
     // ID functions.
-    const ids_raw: ?[]Id = Id.getAll() catch null;
+    const ids_raw: ?[]Id = getCameras() catch null;
     if (ids_raw) |ids| {
         defer sdl3.free(ids.ptr);
         for (ids) |id| {

@@ -180,7 +180,7 @@ pub const Thread = packed struct {
                 return func(@alignCast(@ptrCast(user_data_c)));
             }
         };
-        return .{ .value = try errors.wrapNull(*c.SDL_Thread, c.SDL_CreateThread(Cb.run, if (name) |val| val.ptr else null, data)) };
+        return .{ .value = try errors.wrapCallNull(*c.SDL_Thread, c.SDL_CreateThread(Cb.run, if (name) |val| val.ptr else null, data)) };
     }
 
     /// Create a new thread with with the specified properties.
@@ -229,7 +229,7 @@ pub const Thread = packed struct {
     ) !Thread {
         const init_props = try props.toSdl();
         defer init_props.deinit();
-        return .{ .value = try errors.wrapNull(*c.SDL_Thread, c.SDL_CreateThreadWithProperties(init_props.value)) };
+        return .{ .value = try errors.wrapCallNull(*c.SDL_Thread, c.SDL_CreateThreadWithProperties(init_props.value)) };
     }
 
     /// Get the thread identifier for the specified thread.
@@ -399,7 +399,7 @@ pub const TlsId = struct {
     pub fn get(
         self: *TlsId,
     ) !*anyopaque {
-        return errors.wrapNull(*anyopaque, c.SDL_GetTLS(&self.value));
+        return errors.wrapCallNull(*anyopaque, c.SDL_GetTLS(&self.value));
     }
 
     /// Set the current thread's value associated with a thread local storage ID.

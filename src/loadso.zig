@@ -28,7 +28,7 @@ pub const SharedObject = packed struct {
         const ret = c.SDL_LoadObject(
             name.ptr,
         );
-        return SharedObject{ .value = try errors.wrapNull(*c.SDL_SharedObject, ret) };
+        return SharedObject{ .value = try errors.wrapCallNull(*c.SDL_SharedObject, ret) };
     }
 
     /// Look up the address of the named function in a shared object.
@@ -73,7 +73,7 @@ pub const SharedObject = packed struct {
             self.value,
             name.ptr,
         );
-        return errors.wrapNull(*const anyopaque, @ptrCast(ret));
+        return errors.wrapCallNull(*const anyopaque, @ptrCast(ret));
     }
 
     /// Unload a shared object from memory.

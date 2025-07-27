@@ -74,7 +74,7 @@ pub fn getData(
         mime_type,
         &size,
     );
-    const ret: [*]const u8 = @ptrCast(try errors.wrapNull(*anyopaque, val));
+    const ret: [*]const u8 = @ptrCast(try errors.wrapCallNull(*anyopaque, val));
     return ret[0..size :0];
 }
 

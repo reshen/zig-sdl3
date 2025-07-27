@@ -45,10 +45,10 @@ fn playGame() !bool {
             },
             .color_scheme = .{
                 .background = .{ .r = 10, .g = 10, .b = 10 },
-                .text = try sdl3.message_box.Color.fromHex("ffffff"),
+                .text = try sdl3.message_box.ColorScheme.Color.fromHex("ffffff"),
                 .button_border = .{ .r = 75, .g = 55, .b = 50 },
                 .button_background = .{ .r = 160, .g = 20, .b = 20 },
-                .button_selected = try sdl3.message_box.Color.fromHex("fdfd22"),
+                .button_selected = try sdl3.message_box.ColorScheme.Color.fromHex("fdfd22"),
             },
         });
         return false;
@@ -69,10 +69,10 @@ fn playGame() !bool {
             },
             .color_scheme = .{
                 .background = .{ .r = 195, .g = 195, .b = 195 },
-                .text = try sdl3.message_box.Color.fromHex("660aa8"),
+                .text = try sdl3.message_box.ColorScheme.Color.fromHex("660aa8"),
                 .button_border = .{ .r = 50, .g = 75, .b = 55 },
                 .button_background = .{ .r = 20, .g = 160, .b = 20 },
-                .button_selected = try sdl3.message_box.Color.fromHex("fdfd22"),
+                .button_selected = try sdl3.message_box.ColorScheme.Color.fromHex("fdfd22"),
             },
         });
         return true;

@@ -284,7 +284,7 @@ pub const Cursor = packed struct {
         hot_x: usize,
         hot_y: usize,
     ) !Cursor {
-        return .{ .value = try errors.wrapNull(*c.SDL_Cursor, c.SDL_CreateCursor(
+        return .{ .value = try errors.wrapCallNull(*c.SDL_Cursor, c.SDL_CreateCursor(
             data,
             mask,
             @intCast(width),
@@ -327,7 +327,7 @@ pub const Cursor = packed struct {
         hot_x: usize,
         hot_y: usize,
     ) !Cursor {
-        return .{ .value = try errors.wrapNull(*c.SDL_Cursor, c.SDL_CreateColorCursor(
+        return .{ .value = try errors.wrapCallNull(*c.SDL_Cursor, c.SDL_CreateColorCursor(
             cursor_surface.value,
             @intCast(hot_x),
             @intCast(hot_y),
@@ -356,7 +356,7 @@ pub const Cursor = packed struct {
     pub fn initSystem(
         id: SystemCursor,
     ) !Cursor {
-        return .{ .value = try errors.wrapNull(
+        return .{ .value = try errors.wrapCallNull(
             *c.SDL_Cursor,
             c.SDL_CreateSystemCursor(@intFromEnum(id)),
         ) };
@@ -443,7 +443,7 @@ pub fn get() ?Cursor {
 /// This function is available since SDL 3.2.0.
 pub fn getDefault() !Cursor {
     return .{
-        .value = try errors.wrapNull(*c.SDL_Cursor, c.SDL_GetDefaultCursor()),
+        .value = try errors.wrapCallNull(*c.SDL_Cursor, c.SDL_GetDefaultCursor()),
     };
 }
 

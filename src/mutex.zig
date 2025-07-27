@@ -61,7 +61,7 @@ pub const Condition = struct {
     /// ## Code Examples
     /// TODO!!!
     pub fn init() !Condition {
-        return .{ .value = try errors.wrapNull(*c.SDL_Condition, c.SDL_CreateCondition()) };
+        return .{ .value = try errors.wrapCallNull(*c.SDL_Condition, c.SDL_CreateCondition()) };
     }
 
     /// Restart one of the threads that are waiting on the condition variable.
@@ -318,7 +318,7 @@ pub const Mutex = struct {
     /// ## Code Examples
     /// TODO!!!
     pub fn init() !Mutex {
-        return .{ .value = try errors.wrapNull(*c.SDL_Mutex, c.SDL_CreateMutex()) };
+        return .{ .value = try errors.wrapCallNull(*c.SDL_Mutex, c.SDL_CreateMutex()) };
     }
 
     /// Lock the mutex.
@@ -446,7 +446,7 @@ pub const RwLock = struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn init() !Mutex {
-        return .{ .value = try errors.wrapNull(*c.SDL_Mutex, c.SDL_CreateMutex()) };
+        return .{ .value = try errors.wrapCallNull(*c.SDL_Mutex, c.SDL_CreateMutex()) };
     }
 
     /// Lock the read/write lock for read only operations.
@@ -647,7 +647,7 @@ pub const Semaphore = struct {
     pub fn init(
         initial_value: u32,
     ) !Semaphore {
-        return .{ .value = try errors.wrapNull(*c.SDL_Semaphore, c.SDL_CreateSemaphore(initial_value)) };
+        return .{ .value = try errors.wrapCallNull(*c.SDL_Semaphore, c.SDL_CreateSemaphore(initial_value)) };
     }
 
     /// Atomically increment a semaphore's value and wake waiting threads.

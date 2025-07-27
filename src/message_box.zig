@@ -89,7 +89,7 @@ pub const BoxFlags = struct {
 /// ## Version
 /// This struct is available since SDL 3.2.0.
 pub const Button = extern struct {
-    flags: ButtonFlags = .{},
+    flags: Flags = .{},
     /// User defined button id (value returned via `message_box.show()`).
     value: c_int,
     /// The UTF-8 button text.
@@ -106,10 +106,42 @@ pub const Button = extern struct {
         std.debug.assert(@sizeOf(@FieldType(c.SDL_MessageBoxButtonData, "text")) == @sizeOf(@FieldType(Button, "text")));
     }
 
+    /// Message box button flags.
+    ///
+    /// ## Version
+    /// This datatype is available since SDL 3.2.0.
+    pub const Flags = packed struct(u32) { // Need to be packed to fit into data struct exactly.
+        mark_default_with_return_key: bool = false,
+        mark_default_with_escape_key: bool = false,
+        _: u30 = 0,
+
+        // Button flag tests.
+        comptime {
+            std.debug.assert(@sizeOf(c.SDL_MessageBoxButtonFlags) == @sizeOf(Flags));
+            std.debug.assert(c.SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT == @as(c.SDL_MessageBoxButtonFlags, @bitCast(Flags{ .mark_default_with_return_key = true })));
+            std.debug.assert(c.SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT == @as(c.SDL_MessageBoxButtonFlags, @bitCast(Flags{ .mark_default_with_escape_key = true })));
+        }
+
+        /// Convert from an SDL value.
+        pub fn fromSdl(flags: c.SDL_MessageBoxButtonFlags) Flags {
+            return .{
+                .mark_default_with_return_key = (flags & c.SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT) != 0,
+                .mark_default_with_escape_key = (flags & c.SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT) != 0,
+            };
+        }
+
+        /// Convert to an SDL value.
+        pub fn toSdl(self: Flags) c.SDL_MessageBoxButtonFlags {
+            return (if (self.mark_default_with_return_key) @as(c.SDL_MessageBoxButtonFlags, c.SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT) else 0) |
+                (if (self.mark_default_with_escape_key) @as(c.SDL_MessageBoxButtonFlags, c.SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT) else 0) |
+                0;
+        }
+    };
+
     /// Convert from an SDL value.
     pub fn fromSdl(data: c.SDL_MessageBoxButtonData) Button {
         return .{
-            .flags = ButtonFlags.fromSdl(data.flags),
+            .flags = Flags.fromSdl(data.flags),
             .value = @intCast(data.buttonID),
             .text = @ptrCast(data.text),
         };
@@ -125,75 +157,6 @@ pub const Button = extern struct {
     }
 };
 
-/// Message box button flags.
-///
-/// ## Version
-/// This datatype is available since SDL 3.2.0.
-pub const ButtonFlags = packed struct(u32) { // Need to be packed to fit into data struct exactly.
-    mark_default_with_return_key: bool = false,
-    mark_default_with_escape_key: bool = false,
-    _: u30 = 0,
-
-    // Button flag tests.
-    comptime {
-        std.debug.assert(@sizeOf(c.SDL_MessageBoxButtonFlags) == @sizeOf(ButtonFlags));
-        std.debug.assert(c.SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT == @as(c.SDL_MessageBoxButtonFlags, @bitCast(ButtonFlags{ .mark_default_with_return_key = true })));
-        std.debug.assert(c.SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT == @as(c.SDL_MessageBoxButtonFlags, @bitCast(ButtonFlags{ .mark_default_with_escape_key = true })));
-    }
-
-    /// Convert from an SDL value.
-    pub fn fromSdl(flags: c.SDL_MessageBoxButtonFlags) ButtonFlags {
-        return .{
-            .mark_default_with_return_key = (flags & c.SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT) != 0,
-            .mark_default_with_escape_key = (flags & c.SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT) != 0,
-        };
-    }
-
-    /// Convert to an SDL value.
-    pub fn toSdl(self: ButtonFlags) c.SDL_MessageBoxButtonFlags {
-        return (if (self.mark_default_with_return_key) @as(c.SDL_MessageBoxButtonFlags, c.SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT) else 0) |
-            (if (self.mark_default_with_escape_key) @as(c.SDL_MessageBoxButtonFlags, c.SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT) else 0) |
-            0;
-    }
-};
-
-/// RGB value used in a message box color scheme.
-///
-/// ## Version
-/// This struct is available since SDL 3.2.0.
-pub const Color = struct {
-    r: u8,
-    g: u8,
-    b: u8,
-
-    /// Convert from an SDL value.
-    pub fn fromSdl(data: c.SDL_MessageBoxColor) Color {
-        return .{
-            .r = @intCast(data.r),
-            .g = @intCast(data.g),
-            .b = @intCast(data.b),
-        };
-    }
-
-    /// Convert to an SDL value.
-    pub fn toSdl(self: Color) c.SDL_MessageBoxColor {
-        return .{
-            .r = @intCast(self.r),
-            .g = @intCast(self.g),
-            .b = @intCast(self.b),
-        };
-    }
-
-    /// Create a color from a hex code.
-    pub fn fromHex(hex_code: *const [6:0]u8) !Color {
-        return .{
-            .r = try std.fmt.parseInt(u8, hex_code[0..2], 16),
-            .g = try std.fmt.parseInt(u8, hex_code[2..4], 16),
-            .b = try std.fmt.parseInt(u8, hex_code[4..6], 16),
-        };
-    }
-};
-
 /// A set of colors to use for message box dialogs.
 ///
 /// ## Version
@@ -204,6 +167,43 @@ pub const ColorScheme = struct {
     button_border: Color,
     button_background: Color,
     button_selected: Color,
+
+    /// RGB value used in a message box color scheme.
+    ///
+    /// ## Version
+    /// This struct is available since SDL 3.2.0.
+    pub const Color = struct {
+        r: u8,
+        g: u8,
+        b: u8,
+
+        /// Convert from an SDL value.
+        pub fn fromSdl(data: c.SDL_MessageBoxColor) Color {
+            return .{
+                .r = @intCast(data.r),
+                .g = @intCast(data.g),
+                .b = @intCast(data.b),
+            };
+        }
+
+        /// Convert to an SDL value.
+        pub fn toSdl(self: Color) c.SDL_MessageBoxColor {
+            return .{
+                .r = @intCast(self.r),
+                .g = @intCast(self.g),
+                .b = @intCast(self.b),
+            };
+        }
+
+        /// Create a color from a hex code.
+        pub fn fromHex(hex_code: *const [6:0]u8) !Color {
+            return .{
+                .r = try std.fmt.parseInt(u8, hex_code[0..2], 16),
+                .g = try std.fmt.parseInt(u8, hex_code[2..4], 16),
+                .b = try std.fmt.parseInt(u8, hex_code[4..6], 16),
+            };
+        }
+    };
 
     /// Convert from an SDL value.
     pub fn fromSdl(data: c.SDL_MessageBoxColorScheme) ColorScheme {

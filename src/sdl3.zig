@@ -1462,7 +1462,7 @@ pub const Environment = packed struct {
     pub fn getVariables(
         self: Environment,
     ) ![*:null][*c]u8 {
-        return try errors.wrapNull([*:null][*c]u8, c.SDL_GetEnvironmentVariables(self.value));
+        return try errors.wrapCallNull([*:null][*c]u8, c.SDL_GetEnvironmentVariables(self.value));
     }
 
     /// Create a set of environment variables.
@@ -1481,7 +1481,7 @@ pub const Environment = packed struct {
     pub fn init(
         populated: bool,
     ) !Environment {
-        return .{ .value = try errors.wrapNull(*c.SDL_Environment, c.SDL_CreateEnvironment(populated)) };
+        return .{ .value = try errors.wrapCallNull(*c.SDL_Environment, c.SDL_CreateEnvironment(populated)) };
     }
 
     /// Set the value of a variable in the environment.
@@ -1572,7 +1572,7 @@ pub fn free(mem: anytype) void {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn getEnvironment() !Environment {
-    return .{ .value = try errors.wrapNull(*c.SDL_Environment, c.SDL_GetEnvironment()) };
+    return .{ .value = try errors.wrapCallNull(*c.SDL_Environment, c.SDL_GetEnvironment()) };
 }
 
 /// Get the current set of SDL memory functions.
@@ -1874,7 +1874,6 @@ var custom_allocator: std.mem.Allocator = undefined;
 
 const Allocation = struct {
     size: usize,
-    buf: void,
 };
 
 fn allocationSize(request_size: usize) usize {
@@ -1887,12 +1886,14 @@ fn allocationSize(request_size: usize) usize {
 }
 
 fn makeAllocation(total_size: usize, comptime memset: bool) ?*anyopaque {
-    const total_buf = custom_allocator.alignedAlloc(u8, null, allocationSize(total_size) + @sizeOf(Allocation)) catch return null;
+    const total_buf = custom_allocator.alloc(u8, allocationSize(total_size) + @sizeOf(Allocation)) catch return null;
     if (memset)
         @memset(total_buf, 0);
     const allocation: *Allocation = @ptrCast(@alignCast(total_buf.ptr));
     allocation.size = total_buf.len;
-    return &allocation.buf;
+    const data_ptr: *anyopaque = @ptrFromInt(@intFromPtr(total_buf.ptr) + @sizeOf(Allocation));
+    // std.debug.print("MAKE PTR: {p}, {d}\n", .{ data_ptr, allocation.size });
+    return data_ptr;
 }
 
 fn allocCalloc(num_members: usize, size: usize) callconv(.c) ?*anyopaque {
@@ -1901,8 +1902,9 @@ fn allocCalloc(num_members: usize, size: usize) callconv(.c) ?*anyopaque {
 
 fn allocFree(mem: ?*anyopaque) callconv(.c) void {
     const raw_ptr = mem orelse return;
-    const allocation: *Allocation = @alignCast(@fieldParentPtr("buf", @as(*void, @ptrCast(raw_ptr))));
-    custom_allocator.free(@as([*]u8, @ptrCast(raw_ptr))[0..allocation.size]);
+    const allocation: *Allocation = @ptrFromInt(@intFromPtr(raw_ptr) - @sizeOf(Allocation));
+    // std.debug.print("CLEAR PTR: {p}, {d}\n", .{ raw_ptr, allocation.size });
+    custom_allocator.free(@as([*]u8, @ptrCast(allocation))[0..allocation.size]);
 }
 
 fn allocMalloc(size: usize) callconv(.c) ?*anyopaque {

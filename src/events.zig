@@ -621,7 +621,7 @@ pub const DisplayOrientation = struct {
     /// The associated display.
     display: video.Display,
     /// The new display orientation.
-    orientation: video.DisplayOrientation,
+    orientation: video.Display.Orientation,
 
     /// Convert from SDL.
     pub fn fromSdl(val: c.SDL_Event) DisplayOrientation {

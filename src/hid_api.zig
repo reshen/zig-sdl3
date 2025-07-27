@@ -59,7 +59,7 @@ pub const Device = struct {
     pub fn getDeviceInfo(
         self: Device,
     ) !DeviceInfo {
-        return @as(*DeviceInfo, @ptrCast(try errors.wrapNull(*c.SDL_hid_device_info, c.SDL_hid_get_device_info(self.value)))).*;
+        return @as(*DeviceInfo, @ptrCast(try errors.wrapCallNull(*c.SDL_hid_device_info, c.SDL_hid_get_device_info(self.value)))).*;
     }
 
     /// Get a feature report from a HID device.
@@ -244,7 +244,7 @@ pub const Device = struct {
         serial_num: ?[:0]c.wchar_t,
     ) !Device {
         return .{
-            .value = try errors.wrapNull(*c.SDL_hid_device, c.SDL_hid_open(vendor_id, product_id, if (serial_num) |val| val.ptr else null)),
+            .value = try errors.wrapCallNull(*c.SDL_hid_device, c.SDL_hid_open(vendor_id, product_id, if (serial_num) |val| val.ptr else null)),
         };
     }
 
@@ -265,7 +265,7 @@ pub const Device = struct {
         path: [:0]const u8,
     ) !Device {
         return .{
-            .value = try errors.wrapNull(*c.SDL_hid_device, c.SDL_hid_open_path(path.ptr)),
+            .value = try errors.wrapCallNull(*c.SDL_hid_device, c.SDL_hid_open_path(path.ptr)),
         };
     }
 
@@ -543,7 +543,7 @@ pub fn enumerate(
     vendor_id: ?c_ushort,
     product_id: ?c_ushort,
 ) !*DeviceInfo {
-    return @ptrCast(try errors.wrapNull(*c.SDL_hid_device_info, c.SDL_hid_enumerate(
+    return @ptrCast(try errors.wrapCallNull(*c.SDL_hid_device_info, c.SDL_hid_enumerate(
         if (vendor_id) |val| val else 0,
         if (product_id) |val| val else 0,
     )));

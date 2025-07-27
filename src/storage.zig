@@ -259,7 +259,7 @@ pub const Storage = packed struct {
             .space_remaining = interface.space_remaining,
         };
         return .{
-            .value = try errors.wrapNull(*c.SDL_Storage, c.SDL_OpenStorage(&iface, user_data)),
+            .value = try errors.wrapCallNull(*c.SDL_Storage, c.SDL_OpenStorage(&iface, user_data)),
         };
     }
 
@@ -281,7 +281,7 @@ pub const Storage = packed struct {
         path: ?[:0]const u8,
     ) !Storage {
         return .{
-            .value = try errors.wrapNull(*c.SDL_Storage, c.SDL_OpenFileStorage(if (path) |val| val.ptr else null)),
+            .value = try errors.wrapCallNull(*c.SDL_Storage, c.SDL_OpenFileStorage(if (path) |val| val.ptr else null)),
         };
     }
 
@@ -301,7 +301,7 @@ pub const Storage = packed struct {
         props: ?properties.Group,
     ) !Storage {
         return .{
-            .value = try errors.wrapNull(*c.SDL_Storage, c.SDL_OpenTitleStorage(if (override) |val| val.ptr else null, if (props) |val| val.value else 0)),
+            .value = try errors.wrapCallNull(*c.SDL_Storage, c.SDL_OpenTitleStorage(if (override) |val| val.ptr else null, if (props) |val| val.value else 0)),
         };
     }
 
@@ -327,7 +327,7 @@ pub const Storage = packed struct {
         props: ?properties.Group,
     ) !Storage {
         return .{
-            .value = try errors.wrapNull(*c.SDL_Storage, c.SDL_OpenUserStorage(org.ptr, app.ptr, if (props) |val| val.value else 0)),
+            .value = try errors.wrapCallNull(*c.SDL_Storage, c.SDL_OpenUserStorage(org.ptr, app.ptr, if (props) |val| val.value else 0)),
         };
     }
 

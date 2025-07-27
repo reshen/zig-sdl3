@@ -397,7 +397,7 @@ pub const Stream = struct {
     ) !Stream {
         const interface_sdl = interface.toSdl();
         return .{
-            .value = try errors.wrapNull(*c.SDL_IOStream, c.SDL_OpenIO(
+            .value = try errors.wrapCallNull(*c.SDL_IOStream, c.SDL_OpenIO(
                 &interface_sdl,
                 user_data,
             )),
@@ -432,7 +432,7 @@ pub const Stream = struct {
         data: []const u8,
     ) !Stream {
         return .{
-            .value = try errors.wrapNull(*c.SDL_IOStream, c.SDL_IOFromConstMem(
+            .value = try errors.wrapCallNull(*c.SDL_IOStream, c.SDL_IOFromConstMem(
                 data.ptr,
                 data.len,
             )),
@@ -454,7 +454,7 @@ pub const Stream = struct {
     /// This function is available since SDL 3.2.0.
     pub fn initFromDynamicMem() !Stream {
         return .{
-            .value = try errors.wrapNull(*c.SDL_IOStream, c.SDL_IOFromDynamicMem()),
+            .value = try errors.wrapCallNull(*c.SDL_IOStream, c.SDL_IOFromDynamicMem()),
         };
     }
 
@@ -485,7 +485,7 @@ pub const Stream = struct {
         mode: FileMode,
     ) !Stream {
         return .{
-            .value = try errors.wrapNull(*c.SDL_IOStream, c.SDL_IOFromFile(path.ptr, switch (mode) {
+            .value = try errors.wrapCallNull(*c.SDL_IOStream, c.SDL_IOFromFile(path.ptr, switch (mode) {
                 .append_binary => "ab",
                 .append_text => "a",
                 .read_append_binary => "a+b",
@@ -527,7 +527,7 @@ pub const Stream = struct {
         data: []u8,
     ) !Stream {
         return .{
-            .value = try errors.wrapNull(*c.SDL_IOStream, c.SDL_IOFromMem(
+            .value = try errors.wrapCallNull(*c.SDL_IOStream, c.SDL_IOFromMem(
                 data.ptr,
                 data.len,
             )),
@@ -584,7 +584,7 @@ pub const Stream = struct {
         close_when_done: bool,
     ) ![:0]u8 {
         var len: usize = undefined;
-        return @as([*:0]u8, @alignCast(@ptrCast(try errors.wrapNull(*anyopaque, c.SDL_LoadFile_IO(
+        return @as([*:0]u8, @alignCast(@ptrCast(try errors.wrapCallNull(*anyopaque, c.SDL_LoadFile_IO(
             self.value,
             &len,
             close_when_done,
@@ -1900,7 +1900,7 @@ pub fn loadFile(
     path: [:0]const u8,
 ) ![:0]u8 {
     var len: usize = undefined;
-    return @as([*:0]u8, @alignCast(@ptrCast(try errors.wrapNull(*anyopaque, c.SDL_LoadFile(
+    return @as([*:0]u8, @alignCast(@ptrCast(try errors.wrapCallNull(*anyopaque, c.SDL_LoadFile(
         path.ptr,
         &len,
     )))))[0..len :0];

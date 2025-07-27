@@ -182,7 +182,7 @@ fn sanatizeFileCallback(
         }
     } else {
         err = true;
-        _ = errors.wrapNull(FileCallbackData(UserData), null) catch {};
+        _ = errors.wrapCallNull(FileCallbackData(UserData), null) catch {};
     }
     return .{
         .user_data = @alignCast(@ptrCast(user_data)),

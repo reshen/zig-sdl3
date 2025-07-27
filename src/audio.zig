@@ -836,7 +836,7 @@ pub const Device = packed struct {
             user_data,
         );
         return .{
-            .value = try errors.wrapNull(*c.SDL_AudioStream, ret),
+            .value = try errors.wrapCallNull(*c.SDL_AudioStream, ret),
         };
     }
 
@@ -1357,7 +1357,7 @@ pub const Stream = packed struct {
         const src_spec_sdl = src_spec.toSdl();
         const dst_spec_sdl = dst_spec.toSdl();
         return .{
-            .value = try errors.wrapNull(*c.SDL_AudioStream, c.SDL_CreateAudioStream(&src_spec_sdl, &dst_spec_sdl)),
+            .value = try errors.wrapCallNull(*c.SDL_AudioStream, c.SDL_CreateAudioStream(&src_spec_sdl, &dst_spec_sdl)),
         };
     }
 

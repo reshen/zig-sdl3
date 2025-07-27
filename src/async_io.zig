@@ -35,7 +35,7 @@ pub const File = struct {
         file: [:0]const u8,
         mode: IoMode,
     ) !File {
-        return .{ .value = try errors.wrapNull(*c.SDL_AsyncIO, c.SDL_AsyncIOFromFile(
+        return .{ .value = try errors.wrapCallNull(*c.SDL_AsyncIO, c.SDL_AsyncIOFromFile(
             file.ptr,
             switch (mode) {
                 .read_only => "r",
@@ -285,7 +285,7 @@ pub const Queue = struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn init() !Queue {
-        return .{ .value = try errors.wrapNull(*c.SDL_AsyncIOQueue, c.SDL_CreateAsyncIOQueue()) };
+        return .{ .value = try errors.wrapCallNull(*c.SDL_AsyncIOQueue, c.SDL_CreateAsyncIOQueue()) };
     }
 
     /// Load all the data from a file path, asynchronously.

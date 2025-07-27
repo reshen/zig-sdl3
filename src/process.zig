@@ -180,7 +180,7 @@ pub const Process = packed struct {
             @ptrCast(args.ptr),
             pipe_stdio,
         );
-        return .{ .value = try errors.wrapNull(*c.SDL_Process, ret) };
+        return .{ .value = try errors.wrapCallNull(*c.SDL_Process, ret) };
     }
 
     /// Create a new process with the specified properties.
@@ -236,7 +236,7 @@ pub const Process = packed struct {
     pub fn getInput(
         self: Process,
     ) !io_stream.Stream {
-        return .{ .value = try errors.wrapNull(*c.SDL_IOStream, c.SDL_GetProcessOutput(self.value)) };
+        return .{ .value = try errors.wrapCallNull(*c.SDL_IOStream, c.SDL_GetProcessOutput(self.value)) };
     }
 
     /// Get the `io_stream.Stream` associated with process standard output.
@@ -261,7 +261,7 @@ pub const Process = packed struct {
     pub fn getOutput(
         self: Process,
     ) !io_stream.Stream {
-        return .{ .value = try errors.wrapNull(*c.SDL_IOStream, c.SDL_GetProcessOutput(self.value)) };
+        return .{ .value = try errors.wrapCallNull(*c.SDL_IOStream, c.SDL_GetProcessOutput(self.value)) };
     }
 
     /// Get the properties associated with a process.
@@ -331,7 +331,7 @@ pub const Process = packed struct {
         var exit_code: c_int = undefined;
         const ret = c.SDL_ReadProcess(self.value, &size, &exit_code);
         return .{
-            .data = @as([*]u8, @alignCast(@ptrCast(try errors.wrapNull(*anyopaque, ret))))[0..@intCast(size)],
+            .data = @as([*]u8, @alignCast(@ptrCast(try errors.wrapCallNull(*anyopaque, ret))))[0..@intCast(size)],
             .exit_code = exit_code,
         };
     }
