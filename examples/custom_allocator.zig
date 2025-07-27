@@ -1,9 +1,9 @@
 const sdl3 = @import("sdl3");
 const std = @import("std");
 
-const FPS = 60;
-const SCREEN_WIDTH = 640;
-const SCREEN_HEIGHT = 480;
+const fps = 60;
+const screen_width = 640;
+const screen_height = 480;
 
 var debug = std.heap.DebugAllocator(.{}).init;
 
@@ -21,11 +21,11 @@ pub fn main() !void {
     defer sdl3.quit(init_flags);
 
     // Initial window setup.
-    const window = try sdl3.video.Window.init("Hello SDL3", SCREEN_WIDTH, SCREEN_HEIGHT, .{});
+    const window = try sdl3.video.Window.init("Hello SDL3", screen_width, screen_height, .{});
     defer window.deinit();
 
     // Useful for limiting the FPS and getting the delta time.
-    var fps_capper = sdl3.extras.FramerateCapper(f32){ .mode = .{ .limited = FPS } };
+    var fps_capper = sdl3.extras.FramerateCapper(f32){ .mode = .{ .limited = fps } };
 
     while (true) {
 

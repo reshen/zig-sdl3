@@ -3,9 +3,9 @@ const std = @import("std");
 
 const allocator = std.heap.smp_allocator;
 
-const FPS = 60;
-const SCREEN_WIDTH = 640;
-const SCREEN_HEIGHT = 480;
+const fps = 60;
+const screen_width = 640;
+const screen_height = 480;
 
 /// Application state to keep track of.
 const AppState = struct {
@@ -20,13 +20,13 @@ fn init(
 ) !sdl3.AppResult {
     // Create window.
     // We use `errdefer` as we will only free items from the app with a created app state.
-    const window = try sdl3.video.Window.init(std.mem.span(args[0]), SCREEN_WIDTH, SCREEN_HEIGHT, .{});
+    const window = try sdl3.video.Window.init(std.mem.span(args[0]), screen_width, screen_height, .{});
     errdefer window.deinit();
 
     // Finally create the application state.
     const state = try allocator.create(AppState);
     state.* = .{
-        .fps_capper = .{ .mode = .{ .limited = FPS } },
+        .fps_capper = .{ .mode = .{ .limited = fps } },
         .window = window,
     };
     app_state.* = state;

@@ -9,9 +9,9 @@ comptime {
 // https://www.pexels.com/photo/green-trees-on-the-field-1630049/
 const my_image = @embedFile("data/trees.jpeg");
 
-const FPS = 60;
-const WINDOW_WIDTH = 640;
-const WINDOW_HEIGHT = 480;
+const fps = 60;
+const window_width = 640;
+const window_height = 480;
 
 // Disable main hack.
 pub const _start = void;
@@ -127,17 +127,17 @@ pub fn init(
     // Setup initial data.
     const window_renderer = try sdl3.render.Renderer.initWithWindow(
         "Hello SDL3",
-        WINDOW_WIDTH,
-        WINDOW_HEIGHT,
+        window_width,
+        window_height,
         .{},
     );
     errdefer window_renderer.renderer.deinit();
     errdefer window_renderer.window.deinit();
     var frame_capper = sdl3.extras.FramerateCapper(f32){ .mode = .{ .unlimited = {} } };
-    window_renderer.renderer.setVSync(.{ .adaptive = {} }) catch {
+    window_renderer.renderer.setVSync(.{ .on_each_num_refresh = 1 }) catch {
 
         // We don't want to run at unlimited FPS, cap frame rate to the default FPS if vsync is not available so we don't burn CPU time.
-        frame_capper.mode = .{ .limited = FPS };
+        frame_capper.mode = .{ .limited = fps };
     };
     const tree_tex = try sdl3.image.loadTextureIo(
         window_renderer.renderer,
@@ -188,8 +188,8 @@ pub fn iterate(
     try app_state.renderer.renderTexture(app_state.tree_tex, null, .{
         .x = border,
         .y = border,
-        .w = WINDOW_WIDTH - border * 2,
-        .h = WINDOW_HEIGHT - border * 2,
+        .w = window_width - border * 2,
+        .h = window_height - border * 2,
     });
     try app_state.renderer.setDrawColor(.{ .r = 0, .g = 0, .b = 0, .a = 255 });
 
