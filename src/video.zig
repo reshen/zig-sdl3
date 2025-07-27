@@ -539,13 +539,15 @@ pub const egl = struct {
     /// The callback should return a pointer to an EGL attribute array terminated with `EGL_NONE`.
     /// If this function returns `null`, the `video.createWindow()` process will fail gracefully.
     ///
-    /// The returned pointer should be allocated with `malloc()` and will be passed to `free()`.
+    /// The returned pointer should be allocated with `allocator` and will be passed to `free()`.
     ///
     /// The arrays returned by each callback will be appended to the existing attribute arrays defined by SDL.
     ///
     /// ## Version
     /// This datatype is available since SDL 3.2.0.
-    pub const EglAttribArrayCallback = *const fn (user_data: ?*anyopaque) callconv(.c) [*c]EglAttrib;
+    pub fn EglAttribArrayCallback(comptime UserData: type) type {
+        return *const fn (user_data: ?*UserData) [*]EglAttrib;
+    }
 
     /// Opaque type for an EGL config.
     ///
@@ -589,7 +591,9 @@ pub const egl = struct {
     ///
     /// ## Version
     /// This datatype is available since SDL 3.2.0.
-    pub const EglIntArrayCallback = *const fn (user_data: ?*anyopaque, display: c.SDL_EGLDisplay, config: c.SDL_EGLConfig) callconv(.c) [*c]EglInt;
+    pub fn EglIntArrayCallback(comptime UserData: type) type {
+        return *const fn (user_data: ?*UserData, display: EglDisplay, config: EglConfig) [*]EglInt;
+    }
 
     /// Opaque type for an EGL surface.
     ///
@@ -675,6 +679,7 @@ pub const egl = struct {
     /// Sets the callbacks for defining custom `EGLAttrib` arrays for EGL initialization.
     ///
     /// ## Function Parameters
+    /// * `UserData`: Type of user data.
     /// * `platform_attrib_callback`: Callback for attributes to pass to `eglGetPlatformDisplay()`. May be `null`.
     /// * `surface_attrib_callback`: Callback for attributes to pass to `eglCreateSurface()`. May be `null`.
     /// * `context_attrib_callback`: Callback for attributes to pass to `eglCreateContext()`. May be `null`.
@@ -691,15 +696,27 @@ pub const egl = struct {
     /// ## Version
     /// This function is available since SDL 3.2.0.
     pub fn setAttributeCallbacks(
-        platform_attrib_callback: ?EglAttribArrayCallback,
-        surface_attrib_callback: ?EglIntArrayCallback,
-        context_attrib_callback: ?EglIntArrayCallback,
-        user_data: ?*anyopaque,
+        comptime UserData: type,
+        comptime platform_attrib_callback: ?EglAttribArrayCallback(UserData),
+        comptime surface_attrib_callback: ?EglIntArrayCallback(UserData),
+        comptime context_attrib_callback: ?EglIntArrayCallback(UserData),
+        user_data: ?*UserData,
     ) void {
+        const Cb = struct {
+            pub fn platform_attrib(user_data_c: ?*anyopaque) callconv(.c) [*c]EglAttrib {
+                return platform_attrib_callback.?(@alignCast(@ptrCast(user_data_c)));
+            }
+            pub fn surface_attrib(user_data_c: ?*anyopaque, display_c: c.SDL_EGLDisplay, config_c: c.SDL_EGLConfig) callconv(.c) [*c]EglInt {
+                return surface_attrib_callback.?(@alignCast(@ptrCast(user_data_c)), display_c, config_c);
+            }
+            pub fn context_attrib(user_data_c: ?*anyopaque, display_c: c.SDL_EGLDisplay, config_c: c.SDL_EGLConfig) callconv(.c) [*c]EglInt {
+                return surface_attrib_callback.?(@alignCast(@ptrCast(user_data_c)), display_c, config_c);
+            }
+        };
         c.SDL_EGL_SetAttributeCallbacks(
-            platform_attrib_callback,
-            surface_attrib_callback,
-            context_attrib_callback,
+            if (platform_attrib_callback != null) Cb.platform_attrib else null,
+            if (surface_attrib_callback != null) Cb.surface_attrib else null,
+            if (context_attrib_callback != null) Cb.context_attrib else null,
             user_data,
         );
     }

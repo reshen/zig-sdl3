@@ -1335,10 +1335,49 @@ pub fn wasInit(
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
+pub const CallocFunc = *const fn (
+    num_members: usize,
+    size: usize,
+) ?[*]u8;
+
+/// A callback used to implement `calloc()`.
+///
+/// ## Function Parameters
+/// * `num_members`: The number of elements in the array.
+/// * `size`: The size of each element of the array.
+///
+/// ## Return Value
+/// Returns a pointer to the allocated array, or `null` if allocation failed.
+///
+/// ## Remarks
+/// SDL will always ensure that the passed `num_members` and `size` are both greater than `0`.
+///
+/// ## Thread Safety
+/// It should be safe to call this callback from any thread.
+///
+/// ## Version
+/// This datatype is available since SDL 3.2.0.
 pub const CallocFuncC = *const fn (
     num_members: usize,
     size: usize,
 ) callconv(.c) ?*anyopaque;
+
+/// A callback used to implement `free()`.
+///
+/// ## Function Parameters
+/// * `mem`: A pointer to allocated memory.
+///
+/// ## Remarks
+/// SDL will ensure `mem` will never be null.
+///
+/// ## Thread Safety
+/// It should be safe to call this callback from any thread.
+///
+/// ## Version
+/// This datatype is available since SDL 3.2.0.
+pub const FreeFunc = *const fn (
+    mem: [*]u8,
+) void;
 
 /// A callback used to implement `free()`.
 ///
@@ -1373,9 +1412,51 @@ pub const FreeFuncC = *const fn (
 ///
 /// ## Version
 /// This datatype is available since SDL 3.2.0.
+pub const MallocFunc = *const fn (
+    size: usize,
+) ?[*]u8;
+
+/// A callback used to implement `malloc()`.
+///
+/// ## Function Parameters
+/// * `size`: The size to allocate.
+///
+/// ## Return Value
+/// Returns a pointer to the allocated memory, or `null` if allocation failed.
+///
+/// ## Remarks
+/// SDL will always ensure that the passed `size` is greater than `0`.
+///
+/// ## Thread Safety
+/// It should be safe to call this callback from any thread.
+///
+/// ## Version
+/// This datatype is available since SDL 3.2.0.
 pub const MallocFuncC = *const fn (
     size: usize,
 ) callconv(.c) ?*anyopaque;
+
+/// A callback used to implement `realloc()`.
+///
+/// ## Function Parameters
+/// * `mem`: A pointer to allocated memory to reallocate, or `null`.
+/// * `size`: The new size of the memory.
+///
+/// ## Return Value
+/// Returns a pointer to the newly allocated memory, or `null` if allocation failed.
+///
+/// ## Remarks
+/// SDL will always ensure that the passed `size` is greater than `0`.
+///
+/// ## Thread Safety
+/// It should be safe to call this callback from any thread.
+///
+/// ## Version
+/// This datatype is available since SDL 3.2.0.
+pub const ReallocFunc = *const fn (
+    mem: ?[*]u8,
+    size: usize,
+) ?[*]u8;
 
 /// A callback used to implement `realloc()`.
 ///
@@ -1727,12 +1808,12 @@ fn sdlFree(ptr: *anyopaque, memory: []u8, alignment: std.mem.Alignment, ret_addr
 /// This is provided by zig-sdl3.
 pub fn restoreMemoryFunctions() !void {
     const originals = getOriginalMemoryFunctions();
-    return setMemoryFunctions(
+    return errors.wrapCallBool(c.SDL_SetMemoryFunctions(
         originals.malloc,
         originals.calloc,
         originals.realloc,
         originals.free,
-    );
+    ));
 }
 
 /// Replace SDL's memory allocation functions with a custom set.
@@ -1742,6 +1823,9 @@ pub fn restoreMemoryFunctions() !void {
 /// * `calloc`: Custom `calloc` function.
 /// * `realloc`: Custom `realloc` function.
 /// * `free`: Custom `free` function.
+///
+/// ## Return Value
+/// Returns the addresses to the C final functions.
 ///
 /// ## Remarks
 /// It is not safe to call this function once any allocations have been made, as future calls to `free()` will use the new allocator,
@@ -1755,18 +1839,43 @@ pub fn restoreMemoryFunctions() !void {
 /// ## Version
 /// This function is available since SDL 3.2.0.
 pub fn setMemoryFunctions(
-    malloc_fn: MallocFuncC,
-    calloc_fn: CallocFuncC,
-    realloc_fn: ReallocFuncC,
-    free_fn: FreeFuncC,
-) !void {
+    comptime malloc_fn: MallocFunc,
+    comptime calloc_fn: CallocFunc,
+    comptime realloc_fn: ReallocFunc,
+    comptime free_fn: FreeFunc,
+) !struct { malloc: MallocFuncC, calloc: CallocFuncC, realloc: ReallocFuncC, free: FreeFuncC } {
+    const Cb = struct {
+        pub fn malloc(
+            size: usize,
+        ) callconv(.c) ?*anyopaque {
+            return malloc_fn(size);
+        }
+        pub fn calloc(
+            num_members: usize,
+            size: usize,
+        ) callconv(.c) ?*anyopaque {
+            return calloc_fn(num_members, size);
+        }
+        pub fn realloc(
+            mem: ?*anyopaque,
+            size: usize,
+        ) callconv(.c) ?*anyopaque {
+            return realloc_fn(@alignCast(@ptrCast(mem)), size);
+        }
+        pub fn free(
+            mem: ?*anyopaque,
+        ) callconv(.c) void {
+            return free_fn(@alignCast(@ptrCast(mem.?)));
+        }
+    };
     const ret = c.SDL_SetMemoryFunctions(
-        malloc_fn,
-        calloc_fn,
-        realloc_fn,
-        free_fn,
+        Cb.malloc,
+        Cb.calloc,
+        Cb.realloc,
+        Cb.free,
     );
-    return errors.wrapCallBool(ret);
+    try errors.wrapCallBool(ret);
+    return .{ .malloc = Cb.malloc, .calloc = Cb.calloc, .realloc = Cb.realloc, .free = Cb.free };
 }
 
 /// Iterate over a UTF8 string in reverse.
@@ -1878,40 +1987,37 @@ const Allocation = struct {
 
 fn allocationSize(request_size: usize) usize {
     var size: usize = request_size;
-    if (size < 1)
-        size = 1;
     while (size % @min(@sizeOf(@cImport(@cInclude("stddef.h")).max_align_t), @sizeOf(?*anyopaque) * 2) != 0) // TODO: Optimize this?
         size += 1;
     return size;
 }
 
-fn makeAllocation(total_size: usize, comptime memset: bool) ?*anyopaque {
+fn makeAllocation(total_size: usize, comptime memset: bool) ?[*]u8 {
     const total_buf = custom_allocator.alloc(u8, allocationSize(total_size) + @sizeOf(Allocation)) catch return null;
     if (memset)
         @memset(total_buf, 0);
     const allocation: *Allocation = @ptrCast(@alignCast(total_buf.ptr));
     allocation.size = total_buf.len;
-    const data_ptr: *anyopaque = @ptrFromInt(@intFromPtr(total_buf.ptr) + @sizeOf(Allocation));
+    const data_ptr: [*]u8 = @ptrFromInt(@intFromPtr(total_buf.ptr) + @sizeOf(Allocation));
     // std.debug.print("MAKE PTR: {p}, {d}\n", .{ data_ptr, allocation.size });
     return data_ptr;
 }
 
-fn allocCalloc(num_members: usize, size: usize) callconv(.c) ?*anyopaque {
+fn allocCalloc(num_members: usize, size: usize) ?[*]u8 {
     return makeAllocation(num_members * size, true);
 }
 
-fn allocFree(mem: ?*anyopaque) callconv(.c) void {
-    const raw_ptr = mem orelse return;
-    const allocation: *Allocation = @ptrFromInt(@intFromPtr(raw_ptr) - @sizeOf(Allocation));
+fn allocFree(mem: [*]u8) void {
+    const allocation: *Allocation = @ptrFromInt(@intFromPtr(mem) - @sizeOf(Allocation));
     // std.debug.print("CLEAR PTR: {p}, {d}\n", .{ raw_ptr, allocation.size });
     custom_allocator.free(@as([*]u8, @ptrCast(allocation))[0..allocation.size]);
 }
 
-fn allocMalloc(size: usize) callconv(.c) ?*anyopaque {
+fn allocMalloc(size: usize) ?[*]u8 {
     return makeAllocation(size, false);
 }
 
-fn allocRealloc(mem: ?*anyopaque, size: usize) callconv(.c) ?*anyopaque {
+fn allocRealloc(mem: ?[*]u8, size: usize) ?[*]u8 {
     const raw_ptr = mem orelse return allocMalloc(size);
     // const allocation: *Allocation = @alignCast(@fieldParentPtr("buf", @as(*void, @ptrCast(raw_ptr))));
     allocFree(raw_ptr);
@@ -1928,6 +2034,9 @@ fn allocRealloc(mem: ?*anyopaque, size: usize) callconv(.c) ?*anyopaque {
 /// ## Function Parameters
 /// * `new_allocator`: The new allocator to use for allocations.
 ///
+/// ## Return Value
+/// Returns the addresses to the C final functions.
+///
 /// ## Remarks
 /// It is not safe to call this function once any allocations have been made, as future calls to `free()` will use the new allocator,
 /// even if they came from an `malloc()` made with the old one!
@@ -1938,14 +2047,15 @@ fn allocRealloc(mem: ?*anyopaque, size: usize) callconv(.c) ?*anyopaque {
 /// This is provided by zig-sdl3.
 pub fn setMemoryFunctionsByAllocator(
     new_allocator: std.mem.Allocator,
-) !void {
+) !struct { malloc: MallocFuncC, calloc: CallocFuncC, realloc: ReallocFuncC, free: FreeFuncC } {
     custom_allocator = new_allocator;
-    return setMemoryFunctions(
+    const ret = try setMemoryFunctions(
         allocMalloc,
         allocCalloc,
         allocRealloc,
         allocFree,
     );
+    return .{ .malloc = ret.malloc, .calloc = ret.calloc, .realloc = ret.realloc, .free = ret.free };
 }
 
 fn testRunOnMainThreadCb(user_data: ?*i32) void {
