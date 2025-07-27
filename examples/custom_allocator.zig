@@ -29,6 +29,10 @@ pub fn main() !void {
 
     while (true) {
 
+        // Delay to limit the FPS, returned delta time not needed.
+        const dt = fps_capper.delay();
+        _ = dt;
+
         // Update logic.
         const surface = try window.getSurface();
         try surface.fillRect(null, surface.mapRgb(128, 30, 255));
@@ -41,9 +45,6 @@ pub fn main() !void {
                 .terminating => break,
                 else => {},
             };
-
-        // Delay to limit the FPS, returned delta time not needed.
-        _ = fps_capper.delay();
     }
 
     // Prove no leaks.

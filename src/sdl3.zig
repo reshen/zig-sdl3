@@ -864,7 +864,7 @@ pub fn AppEventCallback(
     comptime UserData: type,
 ) type {
     return *const fn (
-        app_state: ?*UserData,
+        app_state: *UserData,
         event: events.Event,
     ) anyerror!AppResult;
 }
@@ -911,7 +911,7 @@ pub fn AppInitCallback(
 /// This datatype is available since SDL 3.2.0.
 pub fn AppIterateCallback(comptime UserData: type) type {
     return *const fn (
-        app_state: ?*UserData,
+        app_state: *UserData,
     ) anyerror!AppResult;
 }
 

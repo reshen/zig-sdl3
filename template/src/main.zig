@@ -9,6 +9,7 @@ comptime {
 // https://www.pexels.com/photo/green-trees-on-the-field-1630049/
 const my_image = @embedFile("data/trees.jpeg");
 
+const FPS = 60;
 const WINDOW_WIDTH = 640;
 const WINDOW_HEIGHT = 480;
 
@@ -24,6 +25,7 @@ const log_app = sdl3.log.Category.application;
 
 /// Sample structure to use to hold our app state.
 const AppState = struct {
+    frame_capper: sdl3.extras.FramerateCapper(f32),
     window: sdl3.video.Window,
     renderer: sdl3.render.Renderer,
     tree_tex: sdl3.render.Texture,
@@ -131,7 +133,12 @@ pub fn init(
     );
     errdefer window_renderer.renderer.deinit();
     errdefer window_renderer.window.deinit();
-    window_renderer.renderer.setVSync(.{ .adaptive = {} }) catch {}; // Unsupported vsync on error so will run at unlimited FPS.
+    var frame_capper = sdl3.extras.FramerateCapper(f32){ .mode = .{ .unlimited = {} } };
+    window_renderer.renderer.setVSync(.{ .adaptive = {} }) catch {
+
+        // We don't want to run at unlimited FPS, cap frame rate to the default FPS if vsync is not available so we don't burn CPU time.
+        frame_capper.mode = .{ .limited = FPS };
+    };
     const tree_tex = try sdl3.image.loadTextureIo(
         window_renderer.renderer,
         try sdl3.io_stream.Stream.initFromConstMem(my_image),
@@ -145,6 +152,7 @@ pub fn init(
 
     // Set app state.
     state.* = .{
+        .frame_capper = frame_capper,
         .window = window_renderer.window,
         .renderer = window_renderer.renderer,
         .tree_tex = tree_tex,
@@ -170,7 +178,11 @@ pub fn init(
 pub fn iterate(
     app_state: *AppState,
 ) !sdl3.AppResult {
-    try app_state.renderer.setDrawColor(.{ .r = 128, .g = 30, .b = 255 });
+    const dt = app_state.frame_capper.delay();
+    _ = dt; // We don't need dt for this example, but might be useful to you.
+
+    // Draw main scene.
+    try app_state.renderer.setDrawColor(.{ .r = 128, .g = 30, .b = 255, .a = 255 });
     try app_state.renderer.clear();
     const border = 10;
     try app_state.renderer.renderTexture(app_state.tree_tex, null, .{
@@ -179,6 +191,14 @@ pub fn iterate(
         .w = WINDOW_WIDTH - border * 2,
         .h = WINDOW_HEIGHT - border * 2,
     });
+    try app_state.renderer.setDrawColor(.{ .r = 0, .g = 0, .b = 0, .a = 255 });
+
+    // Draw debug FPS.
+    var fps_text_buf: [32]u8 = undefined;
+    const fps_text = std.fmt.bufPrintZ(&fps_text_buf, "FPS: {d}", .{app_state.frame_capper.getObservedFps()}) catch "[Err]";
+    try app_state.renderer.renderDebugText(.{ .x = 0, .y = 0 }, fps_text);
+
+    // Finish and return.
     try app_state.renderer.present();
     return .run;
 }

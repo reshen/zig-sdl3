@@ -35,23 +35,24 @@ fn init(
 
 /// Iterate function that is called once every frame.
 fn iterate(
-    app_state: ?*AppState,
+    app_state: *AppState,
 ) !sdl3.AppResult {
-    const state = app_state orelse return .failure;
-
-    // Update loop here.
-    const surface = try state.window.getSurface();
-    try surface.fillRect(null, surface.mapRgb(128, 30, 255));
-    try state.window.updateSurface();
 
     // Delay to maintain FPS, returned delta time not needed.
-    _ = state.fps_capper.delay();
+    const dt = app_state.fps_capper.delay();
+    _ = dt;
+
+    // Update loop here.
+    const surface = try app_state.window.getSurface();
+    try surface.fillRect(null, surface.mapRgb(128, 30, 255));
+    try app_state.window.updateSurface();
+
     return .run;
 }
 
 /// Event loop function for when an event is recieved.
 fn event(
-    app_state: ?*AppState,
+    app_state: *AppState,
     curr_event: sdl3.events.Event,
 ) !sdl3.AppResult {
     _ = app_state;
