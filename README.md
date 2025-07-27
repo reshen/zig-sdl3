@@ -26,7 +26,7 @@ To use zig-sdl3, you need to add it as a dependency to your project. The branch 
 Choose the command that matches your Zig version and run it in your project's root directory
 * For 0.14.0:
 ```sh
-zig fetch --save git+https://github.com/Gota7/zig-sdl3.git?ref=v0.1.0
+zig fetch --save git+https://github.com/Gota7/zig-sdl3#v0.1.0
 ```
 * For Zig master (nightly):
 ```sh
