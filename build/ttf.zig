@@ -1,7 +1,7 @@
 // https://github.com/allyourcodebase/SDL_ttf/blob/main/build.zig
 pub fn setup(b: *std.Build, sdl3: *std.Build.Module, sdl_dep_lib: *std.Build.Step.Compile, linkage: std.builtin.LinkMode, cfg: std.Build.TestOptions) void {
     const target = cfg.target orelse b.standardTargetOptions(.{});
-    const optimize = cfg.optimize;
+    const optimize: std.builtin.OptimizeMode = .ReleaseFast; // https://github.com/libsdl-org/SDL_ttf/issues/566 (ReleaseFast prevents UBSAN from running)
 
     const harfbuzz_enabled = b.option(bool, "enable-harfbuzz", "Use HarfBuzz to improve text shaping") orelse true;
     const upstream = b.lazyDependency("sdl_ttf", .{}) orelse return;
