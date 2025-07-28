@@ -1,6 +1,11 @@
 const std = @import("std");
 const zig = @import("builtin");
 
+const ExampleOptions = struct {
+    ext_image: bool,
+    ext_net: bool,
+};
+
 pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
@@ -91,8 +96,12 @@ pub fn build(b: *std.Build) !void {
 
     _ = setupDocs(b, sdl3);
     _ = setupTest(b, cfg, extension_options);
-    _ = try setupExamples(b, sdl3, cfg);
-    _ = try runExample(b, sdl3, cfg);
+    const example_options = ExampleOptions{
+        .ext_image = ext_image,
+        .ext_net = ext_net,
+    };
+    _ = try setupExamples(b, sdl3, cfg, example_options);
+    _ = try runExample(b, sdl3, cfg, example_options);
 }
 
 pub fn setupSdlNet(b: *std.Build, sdl3: *std.Build.Module, sdl_dep_lib: *std.Build.Step.Compile, linkage: std.builtin.LinkMode, cfg: std.Build.TestOptions) void {
@@ -170,6 +179,7 @@ pub fn setupSdlNet(b: *std.Build, sdl3: *std.Build.Module, sdl_dep_lib: *std.Bui
     b.getInstallStep().dependOn(&install_license.step);
 
     sdl3.linkLibrary(lib);
+    sdl3.addIncludePath(upstream.path("include"));
 }
 
 // Most of this is copied from https://github.com/allyourcodebase/SDL_image/blob/main/build.zig.
@@ -264,6 +274,7 @@ pub fn setupSdlImage(b: *std.Build, sdl3: *std.Build.Module, sdl_dep_lib: *std.B
     lib.installHeadersDirectory(upstream.path("include"), "", .{});
 
     sdl3.linkLibrary(lib);
+    sdl3.addIncludePath(upstream.path("include"));
 }
 
 pub fn setupDocs(b: *std.Build, sdl3: *std.Build.Module) *std.Build.Step {
@@ -294,17 +305,25 @@ pub fn setupExample(b: *std.Build, sdl3: *std.Build.Module, cfg: std.Build.TestO
     return exe;
 }
 
-pub fn runExample(b: *std.Build, sdl3: *std.Build.Module, cfg: std.Build.TestOptions) !void {
+pub fn runExample(b: *std.Build, sdl3: *std.Build.Module, cfg: std.Build.TestOptions, options: ExampleOptions) !void {
     const run_example: ?[]const u8 = b.option([]const u8, "example", "The example name for running an example") orelse null;
     const run = b.step("run", "Run an example with -Dexample=<example_name> option");
     if (run_example) |example| {
-        const run_art = b.addRunArtifact(try setupExample(b, sdl3, cfg, example));
-        run_art.step.dependOn(b.getInstallStep());
-        run.dependOn(&run_art.step);
+        var can_run = true;
+        // TODO unhardcode if we will need more extension-specific examples
+        if (std.mem.eql(u8, example, "net")) {
+            can_run = options.ext_net;
+        }
+
+        if (can_run) {
+            const run_art = b.addRunArtifact(try setupExample(b, sdl3, cfg, example));
+            run_art.step.dependOn(b.getInstallStep());
+            run.dependOn(&run_art.step);
+        }
     }
 }
 
-pub fn setupExamples(b: *std.Build, sdl3: *std.Build.Module, cfg: std.Build.TestOptions) !*std.Build.Step {
+pub fn setupExamples(b: *std.Build, sdl3: *std.Build.Module, cfg: std.Build.TestOptions, options: ExampleOptions) !*std.Build.Step {
     const exp = b.step("examples", "Build all examples");
     const examples_dir = b.path("examples");
     var dir = (try std.fs.openDirAbsolute(examples_dir.getPath(b), .{ .iterate = true }));
@@ -313,7 +332,16 @@ pub fn setupExamples(b: *std.Build, sdl3: *std.Build.Module, cfg: std.Build.Test
     defer dir_iterator.deinit();
     while (try dir_iterator.next()) |file| {
         if (file.kind == .file and std.mem.endsWith(u8, file.basename, ".zig")) {
-            _ = try setupExample(b, sdl3, cfg, file.basename[0 .. file.basename.len - 4]);
+            const name = file.basename[0 .. file.basename.len - 4];
+            var build_example = true;
+            // TODO unhardcode if we will need more extension-specific examples
+            if (std.mem.eql(u8, name, "net")) {
+                build_example = options.ext_net;
+            }
+
+            if (build_example) {
+                _ = try setupExample(b, sdl3, cfg, name);
+            }
         }
     }
     exp.dependOn(b.getInstallStep());

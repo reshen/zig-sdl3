@@ -11,4 +11,8 @@ pub const c = @cImport({
     if (ext_image) {
         @cInclude("SDL3_image/SDL_image.h");
     }
+    const ext_net = extension_options.net;
+    if (ext_net) {
+        @cInclude("SDL3_net/SDL_net.h");
+    }
 });

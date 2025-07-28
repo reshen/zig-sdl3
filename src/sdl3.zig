@@ -759,6 +759,9 @@ pub const thread = @import("thread.zig");
 /// Much of the functionality is involved in converting those two types to other useful forms.
 pub const time = @import("time.zig");
 
+/// TODO documentation.
+pub const net = if (extension_options.net) @import("net.zig") else void;
+
 /// SDL provides time management functionality.
 /// It is useful for dealing with (usually) small durations of time.
 ///
