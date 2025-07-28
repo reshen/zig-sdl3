@@ -158,7 +158,7 @@ pub fn setupSdlNet(b: *std.Build, sdl3: *std.Build.Module, sdl_dep_lib: *std.Bui
         lib.root_module.linkSystemLibrary("iphlpapi", .{});
         lib.root_module.linkSystemLibrary("ws2_32", .{});
         if (shared) {
-            lib.root_module.addWin32ResourceFile(.{ .file = upstream.path("version.rc") });
+            lib.root_module.addWin32ResourceFile(.{ .file = upstream.path("src/version.rc") });
         }
     } else if (native_os == .haiku) {
         lib.root_module.linkSystemLibrary("network", .{});
