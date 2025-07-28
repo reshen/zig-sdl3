@@ -8,6 +8,7 @@ const ttf = @import("build/ttf.zig");
 const ExampleOptions = struct {
     ext_image: bool,
     ext_net: bool,
+    ext_ttf: bool,
 };
 
 pub fn build(b: *std.Build) !void {
@@ -108,6 +109,7 @@ pub fn build(b: *std.Build) !void {
     const example_options = ExampleOptions{
         .ext_image = ext_image,
         .ext_net = ext_net,
+        .ext_ttf = ext_ttf,
     };
     _ = try setupExamples(b, sdl3, cfg, example_options);
     _ = try runExample(b, sdl3, cfg, example_options);
@@ -150,6 +152,9 @@ pub fn runExample(b: *std.Build, sdl3: *std.Build.Module, cfg: std.Build.TestOpt
         if (std.mem.eql(u8, example, "net")) {
             can_run = options.ext_net;
         }
+        if (std.mem.eql(u8, example, "ttf")) {
+            can_run = options.ext_ttf;
+        }
 
         if (can_run) {
             const run_art = b.addRunArtifact(try setupExample(b, sdl3, cfg, example));
@@ -173,6 +178,9 @@ pub fn setupExamples(b: *std.Build, sdl3: *std.Build.Module, cfg: std.Build.Test
             // TODO unhardcode if we will need more extension-specific examples
             if (std.mem.eql(u8, name, "net")) {
                 build_example = options.ext_net;
+            }
+            if (std.mem.eql(u8, name, "ttf")) {
+                build_example = options.ext_ttf;
             }
 
             if (build_example) {
