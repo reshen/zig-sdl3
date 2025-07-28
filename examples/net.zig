@@ -113,7 +113,7 @@ pub fn main() !void {
 
     try out.print("SDL_net version: {}\n", .{sdl3.net.getVersion()});
 
-    var server_thread: std.Thread = try std.Thread.spawn(.{}, serverThread, .{ allocator, &server_ready_sem, port });
+    var server_thread: std.Thread = try .spawn(.{}, serverThread, .{ allocator, &server_ready_sem, port });
     // Wait for the server to signal that it's ready before starting the client.
     server_ready_sem.wait();
     var client_thread: std.Thread = try .spawn(.{}, clientThread, .{ allocator, port });
