@@ -12,6 +12,11 @@
             .hash = "N-V-__8AAJB7IgJ65BPSqjqzt7j-5xKDklR0h8c11T60iemj",
             .lazy = true,
         },
+        .sdl_net = .{
+            .url = "git+https://github.com/libsdl-org/SDL_net.git#8f5d9df8e42eb31e68aa3aed74ba2ab380e3001e",
+            .hash = "N-V-__8AAK74BwCyuisw6wdXWDDg8sXuHJd_tPk1VKxLTUBK",
+            .lazy = true,
+        },
     },
     .paths = .{
         "build.zig",
