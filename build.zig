@@ -1,6 +1,10 @@
 const std = @import("std");
 const zig = @import("builtin");
 
+const image = @import("build/image.zig");
+const net = @import("build/net.zig");
+const ttf = @import("build/ttf.zig");
+
 const ExampleOptions = struct {
     ext_image: bool,
     ext_net: bool,
@@ -83,15 +87,20 @@ pub fn build(b: *std.Build) !void {
     extension_options.addOption(bool, "image", ext_image);
     const ext_net = b.option(bool, "ext_net", "Enable SDL_net extension") orelse false;
     extension_options.addOption(bool, "net", ext_net);
+    const ext_ttf = b.option(bool, "ext_ttf", "Enable SDL_ttf extension") orelse false;
+    extension_options.addOption(bool, "ttf", ext_ttf);
 
     // Linking zig-sdl to sdl3, makes the library much easier to use.
     sdl3.addOptions("extension_options", extension_options);
     sdl3.linkLibrary(sdl_dep_lib);
     if (ext_image) {
-        setupSdlImage(b, sdl3, sdl_dep_lib, c_sdl_preferred_linkage, cfg);
+        image.setup(b, sdl3, sdl_dep_lib, c_sdl_preferred_linkage, cfg);
     }
     if (ext_net) {
-        setupSdlNet(b, sdl3, sdl_dep_lib, c_sdl_preferred_linkage, cfg);
+        net.setup(b, sdl3, sdl_dep_lib, c_sdl_preferred_linkage, cfg);
+    }
+    if (ext_ttf) {
+        ttf.setup(b, sdl3, sdl_dep_lib, c_sdl_preferred_linkage, cfg);
     }
 
     _ = setupDocs(b, sdl3);
@@ -102,179 +111,6 @@ pub fn build(b: *std.Build) !void {
     };
     _ = try setupExamples(b, sdl3, cfg, example_options);
     _ = try runExample(b, sdl3, cfg, example_options);
-}
-
-pub fn setupSdlNet(b: *std.Build, sdl3: *std.Build.Module, sdl_dep_lib: *std.Build.Step.Compile, linkage: std.builtin.LinkMode, cfg: std.Build.TestOptions) void {
-    const target = cfg.target orelse b.standardTargetOptions(.{});
-    const optimize = cfg.optimize;
-
-    const upstream = b.lazyDependency("sdl_net", .{}) orelse return;
-    const native_os = target.result.os.tag;
-
-    const lib_name = "SDL3_net";
-    const version = std.SemanticVersion.parse("3.0.0") catch unreachable;
-    // Options.
-    const shared = b.option(bool, "shared", "Build a shared library") orelse false;
-    const werror = b.option(bool, "werror", "Treat warnings as errors") orelse false;
-    // Library.
-    const lib = b.addLibrary(.{
-        .name = lib_name,
-        .version = version,
-        .root_module = b.createModule(.{
-            .target = target,
-            .optimize = optimize,
-            .link_libc = true,
-        }),
-        .linkage = linkage,
-    });
-
-    var lib_c_flags: std.ArrayList([]const u8) = .init(b.allocator);
-    defer lib_c_flags.deinit();
-    lib_c_flags.appendSlice(&.{"-std=c99"}) catch @panic("OOM");
-    if (werror) {
-        lib_c_flags.append("-Werror") catch @panic("OOM");
-    }
-
-    lib.root_module.addCSourceFile(.{
-        .file = upstream.path("src/SDL_net.c"),
-        .flags = lib_c_flags.items,
-    });
-    // Headers.
-    lib.root_module.addIncludePath(upstream.path("include"));
-    // Defines.
-    lib.root_module.addCMacro("BUILD_SDL", "1");
-    lib.root_module.addCMacro("SDL_BUILD_MAJOR_VERSION", b.fmt("{d}", .{version.major}));
-    lib.root_module.addCMacro("SDL_BUILD_MINOR_VERSION", b.fmt("{d}", .{version.minor}));
-    lib.root_module.addCMacro("SDL_BUILD_MICRO_VERSION", b.fmt("{d}", .{version.patch}));
-    if (shared and native_os == .windows) {
-        lib.root_module.addCMacro("DLL_EXPORT", "");
-    }
-    if (native_os != .windows and native_os != .haiku) {
-        lib.root_module.addCMacro("_DEFAULT_SOURCE", "");
-    }
-    lib.root_module.linkLibrary(sdl_dep_lib);
-    // Linking.
-    if (native_os == .windows) {
-        lib.root_module.linkSystemLibrary("iphlpapi", .{});
-        lib.root_module.linkSystemLibrary("ws2_32", .{});
-        if (shared) {
-            lib.root_module.addWin32ResourceFile(.{ .file = upstream.path("src/version.rc") });
-        }
-    } else if (native_os == .haiku) {
-        lib.root_module.linkSystemLibrary("network", .{});
-    }
-    // Linker version.
-    if (target.result.ofmt == .elf or target.result.ofmt == .macho) {
-        lib.setVersionScript(upstream.path("src/SDL_net.sym"));
-    }
-    if (shared) {
-        lib.linker_allow_shlib_undefined = false;
-    }
-
-    b.installArtifact(lib);
-    // Installation.
-    const install_header = b.addInstallHeaderFile(upstream.path("include/SDL3_net/SDL_net.h"), "SDL3_net/SDL_net.h");
-    b.getInstallStep().dependOn(&install_header.step);
-    const install_license = b.addInstallFile(upstream.path("LICENSE.txt"), "share/licenses/SDL3_net/LICENSE.txt");
-    b.getInstallStep().dependOn(&install_license.step);
-
-    sdl3.linkLibrary(lib);
-    sdl3.addIncludePath(upstream.path("include"));
-}
-
-// Most of this is copied from https://github.com/allyourcodebase/SDL_image/blob/main/build.zig.
-pub fn setupSdlImage(b: *std.Build, sdl3: *std.Build.Module, sdl_dep_lib: *std.Build.Step.Compile, linkage: std.builtin.LinkMode, cfg: std.Build.TestOptions) void {
-    const upstream = b.lazyDependency("sdl_image", .{}) orelse return;
-
-    const target = cfg.target orelse b.standardTargetOptions(.{});
-    const lib = b.addLibrary(.{
-        .name = "SDL3_image",
-        .version = .{ .major = 3, .minor = 2, .patch = 4 },
-        .linkage = linkage,
-        .root_module = b.createModule(.{
-            .target = target,
-            .optimize = cfg.optimize,
-            .link_libc = true,
-        }),
-    });
-    lib.linkLibrary(sdl_dep_lib);
-
-    // Use stb_image for loading JPEG and PNG files. Native alternatives such as
-    // Windows Imaging Component and Apple's Image I/O framework are not yet
-    // supported by this build script.
-    lib.root_module.addCMacro("USE_STBIMAGE", "");
-
-    // The following are options for supported file formats. AVIF, JXL, TIFF,
-    // and WebP are not yet supported by this build script, as they require
-    // additional dependencies.
-    if (b.option(bool, "image_enable_bmp", "Support loading BMP images") orelse true)
-        lib.root_module.addCMacro("LOAD_BMP", "");
-    if (b.option(bool, "image_enable_gif", "Support loading GIF images") orelse true)
-        lib.root_module.addCMacro("LOAD_GIF", "");
-    if (b.option(bool, "image_enable_jpg", "Support loading JPEG images") orelse true)
-        lib.root_module.addCMacro("LOAD_JPG", "");
-    if (b.option(bool, "image_enable_lbm", "Support loading LBM images") orelse true)
-        lib.root_module.addCMacro("LOAD_LBM", "");
-    if (b.option(bool, "image_enable_pcx", "Support loading PCX images") orelse true)
-        lib.root_module.addCMacro("LOAD_PCX", "");
-    if (b.option(bool, "image_enable_png", "Support loading PNG images") orelse true)
-        lib.root_module.addCMacro("LOAD_PNG", "");
-    if (b.option(bool, "image_enable_pnm", "Support loading PNM images") orelse true)
-        lib.root_module.addCMacro("LOAD_PNM", "");
-    if (b.option(bool, "image_enable_qoi", "Support loading QOI images") orelse true)
-        lib.root_module.addCMacro("LOAD_QOI", "");
-    if (b.option(bool, "image_enable_svg", "Support loading SVG images") orelse true)
-        lib.root_module.addCMacro("LOAD_SVG", "");
-    if (b.option(bool, "image_enable_tga", "Support loading TGA images") orelse true)
-        lib.root_module.addCMacro("LOAD_TGA", "");
-    if (b.option(bool, "image_enable_xcf", "Support loading XCF images") orelse true)
-        lib.root_module.addCMacro("LOAD_XCF", "");
-    if (b.option(bool, "image_enable_xpm", "Support loading XPM images") orelse true)
-        lib.root_module.addCMacro("LOAD_XPM", "");
-    if (b.option(bool, "image_enable_xv", "Support loading XV images") orelse true)
-        lib.root_module.addCMacro("LOAD_XV", "");
-
-    lib.addIncludePath(upstream.path("include"));
-    lib.addIncludePath(upstream.path("src"));
-
-    lib.addCSourceFiles(.{
-        .root = upstream.path("src"),
-        .files = &.{
-            "IMG.c",
-            "IMG_WIC.c",
-            "IMG_avif.c",
-            "IMG_bmp.c",
-            "IMG_gif.c",
-            "IMG_jpg.c",
-            "IMG_jxl.c",
-            "IMG_lbm.c",
-            "IMG_pcx.c",
-            "IMG_png.c",
-            "IMG_pnm.c",
-            "IMG_qoi.c",
-            "IMG_stb.c",
-            "IMG_svg.c",
-            "IMG_tga.c",
-            "IMG_tif.c",
-            "IMG_webp.c",
-            "IMG_xcf.c",
-            "IMG_xpm.c",
-            "IMG_xv.c",
-        },
-    });
-
-    if (target.result.os.tag == .macos) {
-        lib.addCSourceFile(.{
-            .file = upstream.path("src/IMG_ImageIO.m"),
-        });
-        lib.linkFramework("Foundation");
-        lib.linkFramework("ApplicationServices");
-    }
-
-    lib.installHeadersDirectory(upstream.path("include"), "", .{});
-
-    sdl3.linkLibrary(lib);
-    sdl3.addIncludePath(upstream.path("include"));
 }
 
 pub fn setupDocs(b: *std.Build, sdl3: *std.Build.Module) *std.Build.Step {
