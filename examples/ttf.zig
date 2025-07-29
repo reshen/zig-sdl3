@@ -11,24 +11,26 @@ pub fn main() !void {
     const allocator = gpa.allocator();
     defer _ = gpa.deinit();
 
+    const log_app = sdl3.log.Category.application;
+
     try sdl3.init(.{ .video = true, .events = true });
     defer sdl3.quit(.{ .video = true, .events = true });
 
     try sdl3.ttf.init();
     defer sdl3.ttf.quit();
 
-    std.log.info("Using SDL_ttf {d}.{d}.{d}", .{ sdl3.ttf.major_version, sdl3.ttf.minor_version, sdl3.ttf.micro_version });
-    std.log.info("Linked against SDL_ttf version: {}", .{sdl3.ttf.getVersion()});
+    try log_app.logInfo("Using SDL_ttf {d}.{d}.{d}", .{ sdl3.ttf.major_version, sdl3.ttf.minor_version, sdl3.ttf.micro_version });
+    try log_app.logInfo("Linked against SDL_ttf version: {}", .{sdl3.ttf.getVersion()});
     std.debug.assert(sdl3.ttf.Version.atLeast(3, 0, 0));
     const ft_version = sdl3.ttf.getFreeTypeVersion();
-    std.log.info("Using FreeType {d}.{d}.{d}", .{ ft_version.major, ft_version.minor, ft_version.patch });
+    try log_app.logInfo("Using FreeType {d}.{d}.{d}", .{ ft_version.major, ft_version.minor, ft_version.patch });
     const hb_version = sdl3.ttf.getHarfBuzzVersion();
-    std.log.info("Using HarfBuzz {d}.{d}.{d}", .{ hb_version.major, hb_version.minor, hb_version.patch });
+    try log_app.logInfo("Using HarfBuzz {d}.{d}.{d}", .{ hb_version.major, hb_version.minor, hb_version.patch });
     std.debug.assert(sdl3.ttf.wasInit() > 0);
 
     const tag = sdl3.ttf.stringToTag("test");
     const tag_str = sdl3.ttf.tagToString(tag);
-    std.log.info("Tag 'test' -> {any} -> {s}", .{ tag, &tag_str });
+    try log_app.logInfo("Tag 'test' -> {any} -> {s}", .{ tag, &tag_str });
 
     const wr = try sdl3.render.Renderer.initWithWindow(
         "SDL_ttf Example",
@@ -49,28 +51,28 @@ pub fn main() !void {
     var font = try sdl3.ttf.Font.init(font_path, 24);
     defer font.deinit();
 
-    std.log.info("Font Family: {s}", .{font.getFamilyName()});
-    std.log.info("Font Style: {s}", .{font.getStyleName()});
-    std.log.info("Font is fixed width: {}", .{font.isFixedWidth()});
-    std.log.info("Font is scalable: {}", .{font.isScalable()});
-    std.log.info("Font height: {d}", .{font.getHeight()});
-    std.log.info("Font ascent: {d}", .{font.getAscent()});
-    std.log.info("Font descent: {d}", .{font.getDescent()});
-    std.log.info("Font lineskip: {d}", .{font.getLineSkip()});
-    std.log.info("Font faces: {d}", .{font.getNumFaces()});
-    std.log.info("Font kerning enabled: {}", .{font.getKerning()});
-    std.log.info("Font has glyph 'A': {}", .{font.hasGlyph('A')});
+    try log_app.logInfo("Font Family: {s}", .{font.getFamilyName()});
+    try log_app.logInfo("Font Style: {s}", .{font.getStyleName()});
+    try log_app.logInfo("Font is fixed width: {}", .{font.isFixedWidth()});
+    try log_app.logInfo("Font is scalable: {}", .{font.isScalable()});
+    try log_app.logInfo("Font height: {d}", .{font.getHeight()});
+    try log_app.logInfo("Font ascent: {d}", .{font.getAscent()});
+    try log_app.logInfo("Font descent: {d}", .{font.getDescent()});
+    try log_app.logInfo("Font lineskip: {d}", .{font.getLineSkip()});
+    try log_app.logInfo("Font faces: {d}", .{font.getNumFaces()});
+    try log_app.logInfo("Font kerning enabled: {}", .{font.getKerning()});
+    try log_app.logInfo("Font has glyph 'A': {}", .{font.hasGlyph('A')});
     if (font.getGlyphMetrics('A')) |metrics| {
-        std.log.info("Glyph 'A' metrics: minx={d}, maxx={d}, miny={d}, maxy={d}, advance={d}", .{
+        try log_app.logInfo("Glyph 'A' metrics: minx={d}, maxx={d}, miny={d}, maxy={d}, advance={d}", .{
             metrics.minx, metrics.maxx, metrics.miny, metrics.maxy, metrics.advance,
         });
     } else |err| {
-        std.log.warn("Could not get glyph metrics for 'A': {s}", .{@errorName(err)});
+        try log_app.logWarn("Could not get glyph metrics for 'A': {s}", .{@errorName(err)});
     }
     if (font.getGlyphKerning('V', 'A')) |kerning| {
-        std.log.info("Kerning for 'VA': {d}", .{kerning});
+        try log_app.logInfo("Kerning for 'VA': {d}", .{kerning});
     } else |err| {
-        std.log.warn("Could not get glyph kerning for 'VA': {s}", .{@errorName(err)});
+        try log_app.logWarn("Could not get glyph kerning for 'VA': {s}", .{@errorName(err)});
     }
 
     const white: sdl3.ttf.Color = .{ .r = 255, .g = 255, .b = 255, .a = 255 };
@@ -140,7 +142,7 @@ pub fn main() !void {
             switch (event) {
                 .quit, .terminating => quit_app = true,
                 .key_down => |key| {
-                    if (key.scancode == .escape) {
+                    if (key.key == .escape) {
                         quit_app = true;
                     }
                 },
