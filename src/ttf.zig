@@ -244,26 +244,6 @@ pub fn getGlyphScript(ch: u32) !u32 {
     return script;
 }
 
-pub const font_create_filename_string = c.TTF_PROP_FONT_CREATE_FILENAME_STRING;
-pub const font_create_iostream_pointer = c.TTF_PROP_FONT_CREATE_IOSTREAM_POINTER;
-pub const font_create_iostream_offset_number = c.TTF_PROP_FONT_CREATE_IOSTREAM_OFFSET_NUMBER;
-pub const font_create_iostream_autoclose_boolean = c.TTF_PROP_FONT_CREATE_IOSTREAM_AUTOCLOSE_BOOLEAN;
-pub const font_create_size_float = c.TTF_PROP_FONT_CREATE_SIZE_FLOAT;
-pub const font_create_face_number = c.TTF_PROP_FONT_CREATE_FACE_NUMBER;
-pub const font_create_horizontal_dpi_number = c.TTF_PROP_FONT_CREATE_HORIZONTAL_DPI_NUMBER;
-pub const font_create_vertical_dpi_number = c.TTF_PROP_FONT_CREATE_VERTICAL_DPI_NUMBER;
-pub const font_create_existing_font = c.TTF_PROP_FONT_CREATE_EXISTING_FONT;
-
-pub const font_outline_line_cap_number = c.TTF_PROP_FONT_OUTLINE_LINE_CAP_NUMBER;
-pub const font_outline_line_join_number = c.TTF_PROP_FONT_OUTLINE_LINE_JOIN_NUMBER;
-pub const font_outline_miter_limit_number = c.TTF_PROP_FONT_OUTLINE_MITER_LIMIT_NUMBER;
-
-pub const renderer_text_engine_renderer = c.TTF_PROP_RENDERER_TEXT_ENGINE_RENDERER;
-pub const renderer_text_engine_atlas_texture_size = c.TTF_PROP_RENDERER_TEXT_ENGINE_ATLAS_TEXTURE_SIZE;
-
-pub const gpu_text_engine_device = c.TTF_PROP_GPU_TEXT_ENGINE_DEVICE;
-pub const gpu_text_engine_atlas_texture_size = c.TTF_PROP_GPU_TEXT_ENGINE_ATLAS_TEXTURE_SIZE;
-
 /// Thin (100) named font weight value
 pub const font_weight_thin = c.TTF_FONT_WEIGHT_THIN;
 /// ExtraLight (200) named font weight value
@@ -502,6 +482,54 @@ pub const Font = struct {
         };
     }
 
+    /// Properties to use for font creation.
+    ///
+    /// ## Version
+    /// This struct is provided by zig-sdl3.
+    pub const CreateProperties = struct {
+        /// The font file to open, if an `io_stream.Stream` isn't being used.
+        /// This is required if `io_stream` and `existing_font` aren't set.
+        filename: ?[:0]const u8 = null,
+        /// An `io_stream.Stream` containing the font to be opened.
+        /// This should not be closed until the font is closed.
+        /// This is required if `filename` and `existing_font` aren't set.
+        io_stream: ?io_stream.Stream = null,
+        /// The offset in the iostream for the beginning of the font, defaults to 0.
+        io_stream_offset: ?i64 = null,
+        /// `true` if closing the font should also close the associated `io_stream.Stream`.
+        io_stream_autoclose: ?bool = null,
+        /// The point size of the font.
+        /// Some .fon fonts will have several sizes embedded in the file, so the point size becomes the index of choosing which size.
+        /// If the value is too high, the last indexed size will be the default.
+        size: ?f32 = null,
+        /// The face index of the font, if the font contains multiple font faces.
+        face: ?i64 = null,
+        /// The horizontal DPI to use for font rendering, defaults to `vertical_dpi` if set, or 72 otherwise.
+        horizontal_dpi: ?i64 = null,
+        /// The vertical DPI to use for font rendering, defaults to `horizontal_dpi` if set, or 72 otherwise.
+        vertical_dpi: ?i64 = null,
+        /// An optional `Font` that, if set, will be used as the font data source and the initial size and style of the new font.
+        existing_font: ?Font = null,
+
+        /// Convert to an SDL properties group.
+        ///
+        /// ## Remarks
+        /// The returned group must be freed with `properties.Group.deinit()`.
+        pub fn toProperties(self: CreateProperties) !properties.Group {
+            const ret = try properties.Group.init();
+            if (self.filename) |val| try ret.set(c.TTF_PROP_FONT_CREATE_FILENAME_STRING, .{ .string = val });
+            if (self.io_stream) |val| try ret.set(c.TTF_PROP_FONT_CREATE_IOSTREAM_POINTER, .{ .pointer = val.value });
+            if (self.io_stream_offset) |val| try ret.set(c.TTF_PROP_FONT_CREATE_IOSTREAM_OFFSET_NUMBER, .{ .number = val });
+            if (self.io_stream_autoclose) |val| try ret.set(c.TTF_PROP_FONT_CREATE_IOSTREAM_AUTOCLOSE_BOOLEAN, .{ .boolean = val });
+            if (self.size) |val| try ret.set(c.TTF_PROP_FONT_CREATE_SIZE_FLOAT, .{ .float = val });
+            if (self.face) |val| try ret.set(c.TTF_PROP_FONT_CREATE_FACE_NUMBER, .{ .number = val });
+            if (self.horizontal_dpi) |val| try ret.set(c.TTF_PROP_FONT_CREATE_HORIZONTAL_DPI_NUMBER, .{ .number = val });
+            if (self.vertical_dpi) |val| try ret.set(c.TTF_PROP_FONT_CREATE_VERTICAL_DPI_NUMBER, .{ .number = val });
+            if (self.existing_font) |val| try ret.set(c.TTF_PROP_FONT_CREATE_EXISTING_FONT, .{ .pointer = val.value });
+            return ret;
+        }
+    };
+
     /// Create a font with the specified properties.
     ///
     /// ## Function Parameters
@@ -510,28 +538,15 @@ pub const Font = struct {
     /// ## Return Value
     /// Returns a valid `Font`.
     ///
-    /// ## Remarks
-    /// These are the supported properties:
-    ///
-    /// * `ttf.font_create_filename_string`: the font file to open, if an `io_stream.Stream` isn't being used. This is required if `ttf.font_create_iostream_pointer` and `ttf.font_create_existing_font` aren't set.
-    /// * `ttf.font_create_iostream_pointer`: an `io_stream.Stream` containing the font to be opened. This should not be closed until the font is closed. This is required if `ttf.font_create_filename_string` and `ttf.font_create_existing_font` aren't set.
-    /// * `ttf.font_create_iostream_offset_number`: the offset in the iostream for the beginning of the font, defaults to 0.
-    /// * `ttf.font_create_iostream_autoclose_boolean`: true if closing the font should also close the associated `io_stream.Stream`.
-    /// * `ttf.font_create_size_float`: the point size of the font. Some .fon fonts will have several sizes embedded in the file, so the point size becomes the index of choosing which size. If the value is too high, the last indexed size will be the default.
-    /// * `ttf.font_create_face_number`: the face index of the font, if the font contains multiple font faces.
-    /// * `ttf.font_create_horizontal_dpi_number`: the horizontal DPI to use for font rendering, defaults to `ttf.font_create_vertical_dpi_number` if set, or 72 otherwise.
-    /// * `ttf.font_create_vertical_dpi_number`: the vertical DPI to use for font rendering, defaults to `ttf.font_create_horizontal_dpi_number` if set, or 72 otherwise.
-    /// * `ttf.font_create_existing_font`: an optional `Font` that, if set, will be used as the font data source and the initial size and style of the new font.
-    ///
     /// ## Thread Safety
     /// It is safe to call this function from any thread.
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn initWithProperties(props: properties.Group) !Font {
-        return .{
-            .value = try errors.wrapCallNull(*c.TTF_Font, c.TTF_OpenFontWithProperties(props.value)),
-        };
+    pub fn initWithProperties(props: CreateProperties) !Font {
+        const group = try props.toProperties();
+        defer group.deinit();
+        return .{ .value = try errors.wrapCallNull(*c.TTF_Font, c.TTF_OpenFontWithProperties(group.value)) };
     }
 
     /// Dispose of a previously-created font.
@@ -578,27 +593,63 @@ pub const Font = struct {
         };
     }
 
+    /// Properties associated with a font.
+    ///
+    /// ## Version
+    /// This struct is provided by zig-sdl3.
+    pub const Properties = struct {
+        /// The FT_Stroker_LineCap value used when setting the font outline, defaults to `FT_STROKER_LINECAP_ROUND`.
+        outline_line_cap: ?i64 = null,
+        /// The FT_Stroker_LineJoin value used when setting the font outline, defaults to `FT_STROKER_LINEJOIN_ROUND`.
+        outline_line_join: ?i64 = null,
+        /// The FT_Fixed miter limit used when setting the font outline, defaults to 0.
+        outline_miter_limit: ?i64 = null,
+
+        /// Convert from an SDL properties group.
+        pub fn fromSdl(value: properties.Group) Properties {
+            return .{
+                .outline_line_cap = if (value.get(c.TTF_PROP_FONT_OUTLINE_LINE_CAP_NUMBER)) |val| val.number else null,
+                .outline_line_join = if (value.get(c.TTF_PROP_FONT_OUTLINE_LINE_JOIN_NUMBER)) |val| val.number else null,
+                .outline_miter_limit = if (value.get(c.TTF_PROP_FONT_OUTLINE_MITER_LIMIT_NUMBER)) |val| val.number else null,
+            };
+        }
+
+        /// Convert to an SDL properties group.
+        pub fn toSdl(self: Properties, value: properties.Group) !void {
+            if (self.outline_line_cap) |val| try value.set(c.TTF_PROP_FONT_OUTLINE_LINE_CAP_NUMBER, .{ .number = val });
+            if (self.outline_line_join) |val| try value.set(c.TTF_PROP_FONT_OUTLINE_LINE_JOIN_NUMBER, .{ .number = val });
+            if (self.outline_miter_limit) |val| try value.set(c.TTF_PROP_FONT_OUTLINE_MITER_LIMIT_NUMBER, .{ .number = val });
+        }
+    };
+
     /// Get the properties associated with a font.
     ///
     /// ## Return Value
-    /// Returns a valid property group.
-    ///
-    /// ## Remarks
-    /// The following read-write properties are provided by SDL:
-    ///
-    /// * `ttf.font_outline_line_cap_number`: The FT_Stroker_LineCap value used when setting the font outline, defaults to `FT_STROKER_LINECAP_ROUND`.
-    /// * `ttf.font_outline_line_join_number`: The FT_Stroker_LineJoin value used when setting the font outline, defaults to `FT_STROKER_LINEJOIN_ROUND`.
-    /// * `ttf.font_outline_miter_limit_number`: The FT_Fixed miter limit used when setting the font outline, defaults to 0.
+    /// Returns the properties for a font.
     ///
     /// ## Thread Safety
     /// It is safe to call this function from any thread.
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getProperties(self: Font) !properties.Group {
-        return .{
-            .value = try errors.wrapCall(c.SDL_PropertiesID, c.TTF_GetFontProperties(self.value), 0),
-        };
+    pub fn getProperties(self: Font) !Properties {
+        const group = properties.Group{ .value = try errors.wrapCall(c.SDL_PropertiesID, c.TTF_GetFontProperties(self.value), 0) };
+        return .fromSdl(group);
+    }
+
+    /// Set the properties associated with a font.
+    ///
+    /// ## Function Parameters
+    /// * `props`: The properties to set.
+    ///
+    /// ## Thread Safety
+    /// This function should be called on the thread that created the font.
+    ///
+    /// ## Version
+    /// This function is available since SDL_ttf 3.0.0.
+    pub fn setProperties(self: Font, props: Properties) !void {
+        const group = properties.Group{ .value = try errors.wrapCall(c.SDL_PropertiesID, c.TTF_GetFontProperties(self.value), 0) };
+        try props.toSdl(group);
     }
 
     /// Get the font generation.
@@ -1873,26 +1924,6 @@ pub const SurfaceTextEngine = struct {
     }
 };
 
-/// Draw text to an SDL surface.
-///
-/// ## Function Parameters
-/// * `text`: The text to draw.
-/// * `x`: The x coordinate in pixels, positive from the left edge towards the right.
-/// * `y`: The y coordinate in pixels, positive from the top edge towards the bottom.
-/// * `surface`: The surface to draw on.
-///
-/// ## Remarks
-/// `text` must have been created using a `SurfaceTextEngine`.
-///
-/// ## Thread Safety
-/// This function should be called on the thread that created the text.
-///
-/// ## Version
-/// This function is available since SDL_ttf 3.0.0.
-pub fn drawSurfaceText(text: Text, x: c_int, y: c_int, surf: surface.Surface) !void {
-    return errors.wrapCallBool(c.TTF_DrawSurfaceText(text.value, x, y, surf.value));
-}
-
 /// A text engine for drawing text on an SDL renderer.
 pub const RendererTextEngine = struct {
     value: *c.TTF_TextEngine,
@@ -1914,6 +1945,28 @@ pub const RendererTextEngine = struct {
         return .{ .value = try errors.wrapCallNull(*c.TTF_TextEngine, c.TTF_CreateRendererTextEngine(r.value)) };
     }
 
+    /// Properties to use for renderer text engine creation.
+    ///
+    /// ## Version
+    /// This struct is provided by zig-sdl3.
+    pub const CreateProperties = struct {
+        /// The renderer to use for creating textures and drawing text.
+        renderer: render.Renderer,
+        /// The size of the texture atlas.
+        atlas_texture_size: ?i64 = null,
+
+        /// Convert to an SDL properties group.
+        ///
+        /// ## Remarks
+        /// The returned group must be freed with `properties.Group.deinit()`.
+        pub fn toProperties(self: CreateProperties) !properties.Group {
+            const ret = try properties.Group.init();
+            try ret.set(c.TTF_PROP_RENDERER_TEXT_ENGINE_RENDERER, .{ .pointer = self.renderer.value });
+            if (self.atlas_texture_size) |val| try ret.set(c.TTF_PROP_RENDERER_TEXT_ENGINE_ATLAS_TEXTURE_SIZE, .{ .number = val });
+            return ret;
+        }
+    };
+
     /// Create a text engine for drawing text on an SDL renderer, with the specified properties.
     ///
     /// ## Function Parameters
@@ -1922,19 +1975,15 @@ pub const RendererTextEngine = struct {
     /// ## Return Value
     /// Returns a `RendererTextEngine` object.
     ///
-    /// ## Remarks
-    /// These are the supported properties:
-    ///
-    /// * `ttf.renderer_text_engine_renderer`: the renderer to use for creating textures and drawing text
-    /// * `ttf.renderer_text_engine_atlas_texture_size`: the size of the texture atlas
-    ///
     /// ## Thread Safety
     /// This function should be called on the thread that created the renderer.
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn initWithProperties(props: properties.Group) !RendererTextEngine {
-        return .{ .value = try errors.wrapCallNull(*c.TTF_TextEngine, c.TTF_CreateRendererTextEngineWithProperties(props.value)) };
+    pub fn initWithProperties(props: CreateProperties) !RendererTextEngine {
+        const group = try props.toProperties();
+        defer group.deinit();
+        return .{ .value = try errors.wrapCallNull(*c.TTF_TextEngine, c.TTF_CreateRendererTextEngineWithProperties(group.value)) };
     }
 
     /// Destroy a text engine created for drawing text on an SDL renderer.
@@ -1951,25 +2000,6 @@ pub const RendererTextEngine = struct {
         c.TTF_DestroyRendererTextEngine(self.value);
     }
 };
-
-/// Draw text to an SDL renderer.
-///
-/// ## Function Parameters
-/// * `text`: The text to draw.
-/// * `x`: The x coordinate in pixels, positive from the left edge towards the right.
-/// * `y`: The y coordinate in pixels, positive from the top edge towards the bottom.
-///
-/// ## Remarks
-/// `text` must have been created using a `RendererTextEngine`, and will draw using the renderer passed to that function.
-///
-/// ## Thread Safety
-/// This function should be called on the thread that created the text.
-///
-/// ## Version
-/// This function is available since SDL_ttf 3.0.0.
-pub fn drawRendererText(text: Text, x: f32, y: f32) !void {
-    return errors.wrapCallBool(c.TTF_DrawRendererText(text.value, x, y));
-}
 
 /// A text engine for drawing text with the SDL GPU API.
 pub const GpuTextEngine = struct {
@@ -1992,6 +2022,28 @@ pub const GpuTextEngine = struct {
         return .{ .value = try errors.wrapCallNull(*c.TTF_TextEngine, c.TTF_CreateGPUTextEngine(device.value)) };
     }
 
+    /// Properties to use for GPU text engine creation.
+    ///
+    /// ## Version
+    /// This struct is provided by zig-sdl3.
+    pub const CreateProperties = struct {
+        /// The `gpu.Device` to use for creating textures and drawing text.
+        device: gpu.Device,
+        /// The size of the texture atlas.
+        atlas_texture_size: ?i64 = null,
+
+        /// Convert to an SDL properties group.
+        ///
+        /// ## Remarks
+        /// The returned group must be freed with `properties.Group.deinit()`.
+        pub fn toProperties(self: CreateProperties) !properties.Group {
+            const ret = try properties.Group.init();
+            try ret.set(c.TTF_PROP_GPU_TEXT_ENGINE_DEVICE, .{ .pointer = self.device.value });
+            if (self.atlas_texture_size) |val| try ret.set(c.TTF_PROP_GPU_TEXT_ENGINE_ATLAS_TEXTURE_SIZE, .{ .number = val });
+            return ret;
+        }
+    };
+
     /// Create a text engine for drawing text with the SDL GPU API, with the specified properties.
     ///
     /// ## Function Parameters
@@ -2000,19 +2052,15 @@ pub const GpuTextEngine = struct {
     /// ## Return Value
     /// Returns a `GpuTextEngine` object.
     ///
-    /// ## Remarks
-    /// These are the supported properties:
-    ///
-    /// * `ttf.gpu_text_engine_device`: the `gpu.Device` to use for creating textures and drawing text.
-    /// * `ttf.gpu_text_engine_atlas_texture_size`: the size of the texture atlas
-    ///
     /// ## Thread Safety
     /// This function should be called on the thread that created the device.
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn initWithProperties(props: properties.Group) !GpuTextEngine {
-        return .{ .value = try errors.wrapCallNull(*c.TTF_TextEngine, c.TTF_CreateGPUTextEngineWithProperties(props.value)) };
+    pub fn initWithProperties(props: CreateProperties) !GpuTextEngine {
+        const group = try props.toProperties();
+        defer group.deinit();
+        return .{ .value = try errors.wrapCallNull(*c.TTF_TextEngine, c.TTF_CreateGPUTextEngineWithProperties(group.value)) };
     }
 
     /// Destroy a text engine created for drawing text with the SDL GPU API.
@@ -2062,6 +2110,45 @@ pub const GpuTextEngine = struct {
         return @enumFromInt(winding);
     }
 };
+
+/// Draw text to an SDL surface.
+///
+/// ## Function Parameters
+/// * `text`: The text to draw.
+/// * `x`: The x coordinate in pixels, positive from the left edge towards the right.
+/// * `y`: The y coordinate in pixels, positive from the top edge towards the bottom.
+/// * `surface`: The surface to draw on.
+///
+/// ## Remarks
+/// `text` must have been created using a `SurfaceTextEngine`.
+///
+/// ## Thread Safety
+/// This function should be called on the thread that created the text.
+///
+/// ## Version
+/// This function is available since SDL_ttf 3.0.0.
+pub fn drawSurfaceText(text: Text, x: c_int, y: c_int, surf: surface.Surface) !void {
+    return errors.wrapCallBool(c.TTF_DrawSurfaceText(text.value, x, y, surf.value));
+}
+
+/// Draw text to an SDL renderer.
+///
+/// ## Function Parameters
+/// * `text`: The text to draw.
+/// * `x`: The x coordinate in pixels, positive from the left edge towards the right.
+/// * `y`: The y coordinate in pixels, positive from the top edge towards the bottom.
+///
+/// ## Remarks
+/// `text` must have been created using a `RendererTextEngine`, and will draw using the renderer passed to that function.
+///
+/// ## Thread Safety
+/// This function should be called on the thread that created the text.
+///
+/// ## Version
+/// This function is available since SDL_ttf 3.0.0.
+pub fn drawRendererText(text: Text, x: f32, y: f32) !void {
+    return errors.wrapCallBool(c.TTF_DrawRendererText(text.value, x, y));
+}
 
 /// Draw sequence returned by `getGpuTextDrawData`
 ///

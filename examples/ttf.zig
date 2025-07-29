@@ -17,7 +17,7 @@ pub fn main() !void {
 
     std.log.info("Using SDL_ttf {d}.{d}.{d}", .{ sdl3.ttf.major_version, sdl3.ttf.minor_version, sdl3.ttf.micro_version });
     std.log.info("Linked against SDL_ttf version: {}", .{sdl3.ttf.getVersion()});
-    std.debug.assert(sdl3.ttf.versionAtLeast(3, 0, 0));
+    std.debug.assert(sdl3.ttf.Version.atLeast(3, 0, 0));
     const ft_version = sdl3.ttf.getFreeTypeVersion();
     std.log.info("Using FreeType {d}.{d}.{d}", .{ ft_version.major, ft_version.minor, ft_version.patch });
     const hb_version = sdl3.ttf.getHarfBuzzVersion();
@@ -86,9 +86,20 @@ pub fn main() !void {
     font.setStyle(.{}); // Reset.
 
     try font.setOutline(2);
-    const outlined_texture = try textureFromSurface(renderer, try font.renderTextBlended("Outlined Text", yellow));
+    const outlined_texture = try textureFromSurface(renderer, try font.renderTextBlended("Outlined (Round)", yellow));
     defer outlined_texture.deinit();
+
+    // https://freetype.org/freetype2/docs/reference/ft2-glyph_stroker.html#ft_stroker_linejoin
+    try font.setProperties(.{ .outline_line_join = 2 }); // MITER
+    const outlined_miter_texture = try textureFromSurface(renderer, try font.renderTextBlended("Outlined (Miter)", magenta));
+    defer outlined_miter_texture.deinit();
+    try font.setProperties(.{ .outline_line_join = 0 }); // ROUND
     try font.setOutline(0); // Reset.
+
+    const font_with_props: sdl3.ttf.Font = try .initWithProperties(.{ .filename = font_path, .size = 36 });
+    defer font_with_props.deinit();
+    const props_texture = try textureFromSurface(renderer, try font_with_props.renderTextBlended("Font from Properties", white));
+    defer props_texture.deinit();
 
     const long_text = "This is a very long string that we want to fit into a small space.";
     const max_width = 200;
@@ -98,7 +109,10 @@ pub fn main() !void {
     const truncated_texture = try textureFromSurface(renderer, try font.renderTextBlended(truncated_text, white));
     defer truncated_texture.deinit();
 
-    const text_engine: sdl3.ttf.RendererTextEngine = try .init(renderer);
+    const text_engine: sdl3.ttf.RendererTextEngine = try .initWithProperties(.{
+        .renderer = renderer,
+        .atlas_texture_size = 1024,
+    });
     defer text_engine.deinit();
 
     const text_obj: sdl3.ttf.Text = try .init(.{ .value = text_engine.value }, font, "Editable Text Object");
@@ -144,6 +158,8 @@ pub fn main() !void {
             &blended_texture,
             &styled_texture,
             &outlined_texture,
+            &outlined_miter_texture,
+            &props_texture,
             &truncated_texture,
             &wrapped_texture,
         };
