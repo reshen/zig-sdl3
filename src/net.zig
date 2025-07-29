@@ -69,6 +69,28 @@ pub const Error = error{
     OutOfMemory,
 };
 
+/// Specifies a timeout for a network operation.
+///
+/// ## Version
+/// This type is provided by zig-sdl3.
+pub const Timeout = union(enum) {
+    /// Wait indefinitely.
+    indefinite,
+    /// Do not wait, check once and return immediately.
+    no_wait,
+    /// Wait for a specific number of milliseconds.
+    milliseconds: u32,
+
+    /// Convert to an SDL i32 value.
+    pub fn toSdl(self: Timeout) i32 {
+        return switch (self) {
+            .indefinite => -1,
+            .no_wait => 0,
+            .milliseconds => |ms| @intCast(ms),
+        };
+    }
+};
+
 /// Opaque representation of a computer-readable network address.
 ///
 /// ## Remarks
@@ -168,8 +190,7 @@ pub const Address = packed struct {
     ///
     /// ## Function Parameters
     /// * `self`: The address object to wait on.
-    /// * `timeout`: Number of milliseconds to wait for resolution to complete.
-    ///   -1 to wait indefinitely, 0 to check once without waiting.
+    /// * `timeout`: The maximum time to wait for resolution to complete.
     ///
     /// ## Return Value
     /// Returns `true` if successfully resolved, `false` if the timeout was reached.
@@ -179,8 +200,8 @@ pub const Address = packed struct {
     ///
     /// ## Version
     /// This function is available since SDL_net 3.0.0.
-    pub fn waitUntilResolved(self: Address, timeout: i32) Error!bool {
-        const ret = c.NET_WaitUntilResolved(self.value, timeout);
+    pub fn waitUntilResolved(self: Address, timeout: Timeout) Error!bool {
+        const ret = c.NET_WaitUntilResolved(self.value, timeout.toSdl());
         if (ret < 0) {
             errors.callErrorCallback();
             return error.SdlNetError;
@@ -373,7 +394,7 @@ pub const StreamSocket = struct {
     ///
     /// ## Function Parameters
     /// * `self`: The stream socket object to wait on.
-    /// * `timeout`: Number of milliseconds to wait for connection to complete. -1 to wait indefinitely, 0 to check once without waiting.
+    /// * `timeout`: The maximum time to wait for connection to complete.
     ///
     /// ## Return Value
     /// Returns `true` if successfully connected, `false` if still connecting (this function timed out).
@@ -383,8 +404,8 @@ pub const StreamSocket = struct {
     ///
     /// ## Version
     /// This function is available since SDL_net 3.0.0.
-    pub fn waitUntilConnected(self: StreamSocket, timeout: i32) Error!bool {
-        const ret = c.NET_WaitUntilConnected(self.value, timeout);
+    pub fn waitUntilConnected(self: StreamSocket, timeout: Timeout) Error!bool {
+        const ret = c.NET_WaitUntilConnected(self.value, timeout.toSdl());
         if (ret < 0) {
             errors.callErrorCallback();
             return error.SdlNetError;
@@ -474,7 +495,7 @@ pub const StreamSocket = struct {
     ///
     /// ## Function Parameters
     /// * `self`: The stream socket to wait on.
-    /// * `timeout`: Number of milliseconds to wait for draining to complete. -1 to wait indefinitely, 0 to check once without waiting.
+    /// * `timeout`: The maximum time to wait for draining to complete.
     ///
     /// ## Return Value
     /// Returns number of bytes still pending transmission.
@@ -484,8 +505,8 @@ pub const StreamSocket = struct {
     ///
     /// ## Version
     /// This function is available since SDL_net 3.0.0.
-    pub fn waitUntilDrained(self: StreamSocket, timeout: i32) Error!usize {
-        const ret = c.NET_WaitUntilStreamSocketDrained(self.value, timeout);
+    pub fn waitUntilDrained(self: StreamSocket, timeout: Timeout) Error!usize {
+        const ret = c.NET_WaitUntilStreamSocketDrained(self.value, timeout.toSdl());
         if (ret < 0) {
             errors.callErrorCallback();
             return error.SdlNetError;
@@ -786,7 +807,7 @@ pub const Pollable = union(enum) {
 /// ## Function Parameters
 /// * `allocator`: The allocator to use for temporary storage.
 /// * `sockets`: an array of `net.Pollable` sockets to wait on.
-/// * `timeout`: Number of milliseconds to wait for new input to become available. -1 to wait indefinitely, 0 to check once without waiting.
+/// * `timeout`: The maximum time to wait for new input to become available.
 ///
 /// ## Return Value
 /// Returns the number of items that have new input.
@@ -796,7 +817,7 @@ pub const Pollable = union(enum) {
 ///
 /// ## Version
 /// This function is available since SDL_net 3.0.0.
-pub fn waitUntilInputAvailable(allocator: std.mem.Allocator, sockets: []const Pollable, timeout: i32) Error!usize {
+pub fn waitUntilInputAvailable(allocator: std.mem.Allocator, sockets: []const Pollable, timeout: Timeout) Error!usize {
     if (sockets.len == 0) return 0;
 
     var c_sockets = try allocator.alloc(?*anyopaque, sockets.len);
@@ -806,7 +827,7 @@ pub fn waitUntilInputAvailable(allocator: std.mem.Allocator, sockets: []const Po
         c_sockets[i] = s.toOpaque();
     }
 
-    const ret = c.NET_WaitUntilInputAvailable(@ptrCast(c_sockets.ptr), @intCast(c_sockets.len), timeout);
+    const ret = c.NET_WaitUntilInputAvailable(@ptrCast(c_sockets.ptr), @intCast(c_sockets.len), timeout.toSdl());
     if (ret < 0) {
         errors.callErrorCallback();
         return error.SdlNetError;

@@ -5,13 +5,9 @@ const std = @import("std");
 /// > suggested by RFC 6335 and the Internet Assigned Numbers Authority (IANA) for dynamic or private ports. FreeBSD has used the IANA port range since release 4.6. Windows Vista, Windows 7, and Server 2008 use the IANA range by default.
 const iana_dynamic_port_start: u16 = 49152;
 const iana_dynamic_port_end: u16 = 65535;
-/// Timeout in milliseconds for network operations that might block,
-/// such as resolving an address or connecting to a server.
-const timeout_ms: i32 = 5000;
-const server_poll_timeout_ms: i32 = 100;
-/// Special value for `waitUntilInputAvailable` to specify an infinite timeout.
-/// The function will block indefinitely until data is available.
-const wait_indef: i32 = -1;
+/// Timeout in milliseconds for network operations that might block.
+const timeout_ms: u32 = 5000;
+const server_poll_timeout_ms: u32 = 100;
 
 var server_should_stop: bool = false;
 var server_ready_sem = std.Thread.Semaphore{ .permits = 0 };
@@ -27,7 +23,7 @@ fn serverThread(allocator: std.mem.Allocator, sem: *std.Thread.Semaphore, port: 
 
     while (!server_should_stop) {
         const sockets = &.{sdl3.net.Pollable{ .server = server }};
-        const num_ready = try sdl3.net.waitUntilInputAvailable(allocator, sockets, server_poll_timeout_ms);
+        const num_ready = try sdl3.net.waitUntilInputAvailable(allocator, sockets, .{ .milliseconds = server_poll_timeout_ms });
         if (num_ready > 0) {
 
             // A client is trying to connect.
@@ -40,8 +36,7 @@ fn serverThread(allocator: std.mem.Allocator, sem: *std.Thread.Semaphore, port: 
                 try out.print("Server: Client connected from {s}\n", .{client_addr.getString() orelse "unknown"});
 
                 // Wait for the client to send us a message.
-                // -1 for the client to send data to avoid a rc.
-                const num_client_ready = try sdl3.net.waitUntilInputAvailable(allocator, &.{sdl3.net.Pollable{ .stream = client_socket }}, wait_indef);
+                const num_client_ready = try sdl3.net.waitUntilInputAvailable(allocator, &.{sdl3.net.Pollable{ .stream = client_socket }}, .indefinite);
 
                 if (num_client_ready > 0) {
                     var buffer: [1024]u8 = undefined;
@@ -54,7 +49,7 @@ fn serverThread(allocator: std.mem.Allocator, sem: *std.Thread.Semaphore, port: 
                         try client_socket.write("Hello from server!");
 
                         // Wait until the data is sent before we risk closing the socket via defer.
-                        _ = try client_socket.waitUntilDrained(timeout_ms);
+                        _ = try client_socket.waitUntilDrained(.{ .milliseconds = timeout_ms });
                         try out.print("Server: Sent reply.\n", .{});
                     } else {
                         try out.print("Server: Client disconnected.\n", .{});
@@ -75,7 +70,7 @@ fn clientThread(allocator: std.mem.Allocator, port: u16) !void {
     defer address.deinit();
 
     try out.print("Client: Resolving '127.0.0.1'\n", .{});
-    if (!try address.waitUntilResolved(timeout_ms)) {
+    if (!try address.waitUntilResolved(.{ .milliseconds = timeout_ms })) {
         try out.print("Client: Failed to resolve '127.0.0.1'.\n", .{});
         return;
     }
@@ -86,7 +81,7 @@ fn clientThread(allocator: std.mem.Allocator, port: u16) !void {
     defer client_socket.deinit();
 
     try out.print("Client: Connecting\n", .{});
-    if (!try client_socket.waitUntilConnected(timeout_ms)) {
+    if (!try client_socket.waitUntilConnected(.{ .milliseconds = timeout_ms })) {
         try out.print("Client: Failed to connect to server.\n", .{});
         return;
     }
@@ -97,7 +92,7 @@ fn clientThread(allocator: std.mem.Allocator, port: u16) !void {
     try out.print("Client: Sent message.\n", .{});
 
     // Wait for a reply.
-    const num_ready = try sdl3.net.waitUntilInputAvailable(allocator, &.{sdl3.net.Pollable{ .stream = client_socket }}, timeout_ms);
+    const num_ready = try sdl3.net.waitUntilInputAvailable(allocator, &.{sdl3.net.Pollable{ .stream = client_socket }}, .{ .milliseconds = timeout_ms });
 
     if (num_ready > 0) {
         var buffer: [1024]u8 = undefined;
