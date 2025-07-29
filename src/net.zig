@@ -80,7 +80,7 @@ pub const Error = error{
 ///
 /// ## Version
 /// This datatype is available since SDL_net 3.0.0.
-pub const Address = struct {
+pub const Address = packed struct {
     value: *c.NET_Address,
 
     /// Status of an address resolution.
@@ -122,6 +122,9 @@ pub const Address = struct {
 
     /// Drop a reference to an `net.Address`.
     ///
+    /// ## Function Parameters
+    /// * `self`: The address to deinitialize.
+    ///
     /// ## Remarks
     /// Since several pieces of the library might share a single `net.Address`, including a background thread that's working on resolving, these objects are referenced counted.
     /// This allows everything that's using it to declare they still want it, and drop their reference to the address when they are done with it.
@@ -140,6 +143,9 @@ pub const Address = struct {
     }
 
     /// Add a reference to an `net.Address`.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The address to add a reference to.
     ///
     /// ## Return Value
     /// Returns the same address that was passed as a parameter.
@@ -161,7 +167,7 @@ pub const Address = struct {
     /// Block until an address is resolved.
     ///
     /// ## Function Parameters
-    /// * `self`: The `net.Address` object to wait on.
+    /// * `self`: The address object to wait on.
     /// * `timeout`: Number of milliseconds to wait for resolution to complete.
     ///   -1 to wait indefinitely, 0 to check once without waiting.
     ///
@@ -184,6 +190,9 @@ pub const Address = struct {
 
     /// Check if an address is resolved, without blocking.
     ///
+    /// ## Function Parameters
+    /// * `self`: The address to query.
+    ///
     /// ## Return Value
     /// Returns `net.Address.Status.resolved` if successfully resolved, `net.Address.Status.resolving` if still resolving.
     ///
@@ -202,6 +211,9 @@ pub const Address = struct {
     }
 
     /// Get a human-readable string from a resolved address.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The address to query.
     ///
     /// ## Return Value
     /// Returns a string, or `null` on error or if not yet resolved.
@@ -223,7 +235,7 @@ pub const Address = struct {
     /// Compare two `net.Address` objects.
     ///
     /// ## Function Parameters
-    /// * `self`: first address to compare.
+    /// * `self`: The first address to compare.
     /// * `other`: second address to compare.
     ///
     /// ## Return Value
@@ -236,6 +248,10 @@ pub const Address = struct {
     /// This function is available since SDL_net 3.0.0.
     pub fn compare(self: Address, other: Address) std.math.Order {
         return std.math.order(c.NET_CompareAddresses(self.value, other.value), 0);
+    }
+
+    comptime {
+        std.debug.assert(@sizeOf(Address) == @sizeOf(*c.NET_Address));
     }
 };
 
@@ -253,39 +269,46 @@ pub fn simulateAddressResolutionLoss(percent_loss: u8) void {
     c.NET_SimulateAddressResolutionLoss(@intCast(percent_loss));
 }
 
+/// A list of local addresses returned by `getLocalAddresses`.
+///
+/// ## Version
+/// This struct is provided by zig-sdl3.
+pub const LocalAddressList = struct {
+    slice: []const Address,
+
+    /// Free the list of local addresses.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The list to deinitialize.
+    ///
+    /// ## Remarks
+    /// This will unref all addresses in the list and free the list itself.
+    /// It is safe to keep any addresses you want from this list even after calling this function, as long as you called `ref()` on them first.
+    pub fn deinit(self: LocalAddressList) void {
+        c.NET_FreeLocalAddresses(@ptrCast(self.slice.ptr));
+    }
+};
+
 /// Obtain a list of local addresses on the system.
 ///
-/// ## Function Parameters
-/// * `allocator`: The allocator to use for the returned slice.
-///
 /// ## Return Value
-/// Returns a slice of `net.Address` pointers, one for each bindable address on the system.
-/// The caller owns the slice and must free it. The caller also must call `deinit()` on each `net.Address` in the slice.
+/// Returns a list of `net.Address` objects, one for each bindable address on the system.
+/// The caller must call `deinit()` on the returned list when done with it.
 ///
 /// ## Thread Safety
 /// It is safe to call this function from any thread.
 ///
 /// ## Version
 /// This function is available since SDL_net 3.0.0.
-pub fn getLocalAddresses(allocator: std.mem.Allocator) Error![]Address {
+pub fn getLocalAddresses() Error!LocalAddressList {
     var num_addresses: c_int = 0;
     const addresses_c = c.NET_GetLocalAddresses(&num_addresses);
     if (addresses_c == null) {
         errors.callErrorCallback();
         return error.SdlNetError;
     }
-    defer c.NET_FreeLocalAddresses(addresses_c);
 
-    if (num_addresses == 0) return &.{};
-
-    const slice = try allocator.alloc(Address, @intCast(num_addresses));
-    errdefer allocator.free(slice);
-
-    for (0..@intCast(num_addresses)) |i| {
-        slice[i] = .{ .value = c.NET_RefAddress(addresses_c[i]) };
-    }
-
-    return slice;
+    return .{ .slice = @as([*]const Address, @ptrCast(addresses_c))[0..@intCast(num_addresses)] };
 }
 
 /// An object that represents a streaming connection to another system.
@@ -333,6 +356,9 @@ pub const StreamSocket = struct {
 
     /// Dispose of a previously-created stream socket.
     ///
+    /// ## Function Parameters
+    /// * `self`: The stream socket to destroy.
+    ///
     /// ## Thread Safety
     /// You should not operate on the same socket from multiple threads at the same time without supplying a serialization mechanism.
     ///
@@ -345,7 +371,7 @@ pub const StreamSocket = struct {
     /// Block until a stream socket has connected to a server.
     ///
     /// ## Function Parameters
-    /// * `self`: The `net.StreamSocket` object to wait on.
+    /// * `self`: The stream socket object to wait on.
     /// * `timeout`: Number of milliseconds to wait for connection to complete. -1 to wait indefinitely, 0 to check once without waiting.
     ///
     /// ## Return Value
@@ -367,6 +393,9 @@ pub const StreamSocket = struct {
 
     /// Get the remote address of a stream socket.
     ///
+    /// ## Function Parameters
+    /// * `self`: The stream socket to query.
+    ///
     /// ## Return Value
     /// Returns the socket's remote address. The caller must call `deinit()` on the returned address.
     ///
@@ -382,6 +411,9 @@ pub const StreamSocket = struct {
     }
 
     /// Check if a stream socket is connected, without blocking.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The stream socket to query.
     ///
     /// ## Return Value
     /// Returns `net.StreamSocket.ConnectionStatus.connected` if successfully connected, or `net.StreamSocket.ConnectionStatus.connecting` if still connecting.
@@ -403,7 +435,7 @@ pub const StreamSocket = struct {
     /// Send bytes over a stream socket to a remote system.
     ///
     /// ## Function Parameters
-    /// * `self`: the stream socket to send data through.
+    /// * `self`: The stream socket to send data through.
     /// * `data`: the data to send.
     ///
     /// ## Thread Safety
@@ -416,6 +448,9 @@ pub const StreamSocket = struct {
     }
 
     /// Query bytes still pending transmission on a stream socket.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The stream socket to query.
     ///
     /// ## Return Value
     /// Returns number of bytes still pending transmission.
@@ -437,7 +472,7 @@ pub const StreamSocket = struct {
     /// Block until all of a stream socket's pending data is sent.
     ///
     /// ## Function Parameters
-    /// * `self`: the stream socket to wait on.
+    /// * `self`: The stream socket to wait on.
     /// * `timeout`: Number of milliseconds to wait for draining to complete. -1 to wait indefinitely, 0 to check once without waiting.
     ///
     /// ## Return Value
@@ -460,7 +495,7 @@ pub const StreamSocket = struct {
     /// Receive bytes that a remote system sent to a stream socket.
     ///
     /// ## Function Parameters
-    /// * `self`: the stream socket to receive data from.
+    /// * `self`: The stream socket to receive data from.
     /// * `buf`: a buffer where received data will be collected.
     ///
     /// ## Return Value
@@ -483,7 +518,7 @@ pub const StreamSocket = struct {
     /// Enable simulated stream socket failures.
     ///
     /// ## Function Parameters
-    /// * `self`: The socket to set a failure rate on.
+    /// * `self`: The stream socket to set a failure rate on.
     /// * `percent_loss`: A number between 0 and 100. Higher means more failures. Zero to disable.
     ///
     /// ## Thread Safety
@@ -526,6 +561,9 @@ pub const Server = struct {
 
     /// Dispose of a previously-created server.
     ///
+    /// ## Function Parameters
+    /// * `self`: The server to destroy.
+    ///
     /// ## Thread Safety
     /// You should not operate on the same server from multiple threads at the same time without supplying a serialization mechanism.
     ///
@@ -536,6 +574,9 @@ pub const Server = struct {
     }
 
     /// Create a stream socket for the next pending client connection.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The server to check for pending connections.
     ///
     /// ## Return Value
     /// Returns a new stream socket if a connection was pending, `null` otherwise.
@@ -647,6 +688,9 @@ pub const DatagramSocket = struct {
 
     /// Dispose of a previously-created datagram socket.
     ///
+    /// ## Function Parameters
+    /// * `self`: The datagram socket to destroy.
+    ///
     /// ## Thread Safety
     /// You should not operate on the same socket from multiple threads at the same time without supplying a serialization mechanism.
     ///
@@ -659,7 +703,7 @@ pub const DatagramSocket = struct {
     /// Send a new packet over a datagram socket to a remote system.
     ///
     /// ## Function Parameters
-    /// * `self`: the datagram socket to send data through.
+    /// * `self`: The datagram socket to send data through.
     /// * `address`: the destination address.
     /// * `port`: the destination port.
     /// * `data`: a pointer to the data to send as a single packet.
@@ -674,6 +718,9 @@ pub const DatagramSocket = struct {
     }
 
     /// Receive a new packet that a remote system sent to a datagram socket.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The datagram socket to receive data from.
     ///
     /// ## Return Value
     /// Returns a new datagram packet if one was available, `null` otherwise.
@@ -700,7 +747,7 @@ pub const DatagramSocket = struct {
     /// Enable simulated datagram socket failures.
     ///
     /// ## Function Parameters
-    /// * `self`: The socket to set a failure rate on.
+    /// * `self`: The datagram socket to set a failure rate on.
     /// * `percent_loss`: A number between 0 and 100. Higher means more failures. Zero to disable.
     ///
     /// ## Thread Safety
