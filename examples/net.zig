@@ -8,6 +8,7 @@ const iana_dynamic_port_end: u16 = 65535;
 /// Timeout in milliseconds for network operations that might block.
 const timeout_ms: u32 = 5000;
 const server_poll_timeout_ms: u32 = 100;
+const recv_buffer_size = 1024;
 
 var server_should_stop: bool = false;
 var server_ready_sem = std.Thread.Semaphore{ .permits = 0 };
@@ -39,7 +40,7 @@ fn serverThread(allocator: std.mem.Allocator, sem: *std.Thread.Semaphore, port: 
                 const num_client_ready = try sdl3.net.waitUntilInputAvailable(allocator, &.{sdl3.net.Pollable{ .stream = client_socket }}, .indefinite);
 
                 if (num_client_ready > 0) {
-                    var buffer: [1024]u8 = undefined;
+                    var buffer: [recv_buffer_size]u8 = undefined;
                     const bytes_read = try client_socket.read(&buffer);
 
                     if (bytes_read > 0) {
@@ -95,7 +96,7 @@ fn clientThread(allocator: std.mem.Allocator, port: u16) !void {
     const num_ready = try sdl3.net.waitUntilInputAvailable(allocator, &.{sdl3.net.Pollable{ .stream = client_socket }}, .{ .milliseconds = timeout_ms });
 
     if (num_ready > 0) {
-        var buffer: [1024]u8 = undefined;
+        var buffer: [recv_buffer_size]u8 = undefined;
         const bytes_read = try client_socket.read(&buffer);
 
         if (bytes_read > 0) {
