@@ -266,6 +266,7 @@ pub const Address = packed struct {
 /// ## Version
 /// This function is available since SDL_net 3.0.0.
 pub fn simulateAddressResolutionLoss(percent_loss: u8) void {
+    std.debug.assert(percent_loss <= 100);
     c.NET_SimulateAddressResolutionLoss(@intCast(percent_loss));
 }
 
@@ -527,6 +528,7 @@ pub const StreamSocket = struct {
     /// ## Version
     /// This function is available since SDL_net 3.0.0.
     pub fn simulatePacketLoss(self: StreamSocket, percent_loss: u8) void {
+        std.debug.assert(percent_loss <= 100);
         c.NET_SimulateStreamPacketLoss(self.value, @intCast(percent_loss));
     }
 };
@@ -756,6 +758,7 @@ pub const DatagramSocket = struct {
     /// ## Version
     /// This function is available since SDL_net 3.0.0.
     pub fn simulatePacketLoss(self: DatagramSocket, percent_loss: u8) void {
+        std.debug.assert(percent_loss <= 100);
         c.NET_SimulateDatagramPacketLoss(self.value, @intCast(percent_loss));
     }
 };
