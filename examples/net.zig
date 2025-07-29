@@ -13,11 +13,10 @@ const recv_buffer_size = 1024;
 var server_should_stop: bool = false;
 var server_ready_sem = std.Thread.Semaphore{ .permits = 0 };
 
-fn serverThread(allocator: std.mem.Allocator, sem: *std.Thread.Semaphore, port: u16) !void {
-    const out = std.io.getStdOut().writer();
+fn serverThread(allocator: std.mem.Allocator, log_server: sdl3.log.Category, sem: *std.Thread.Semaphore, port: u16) !void {
     const server: sdl3.net.Server = try .init(null, port);
     defer server.deinit();
-    try out.print("Server listening on port {d}\n", .{port});
+    try log_server.logInfo("Server: Listening on port {d}", .{port});
 
     // Signal that the server is ready to accept connections.
     sem.post();
@@ -34,7 +33,7 @@ fn serverThread(allocator: std.mem.Allocator, sem: *std.Thread.Semaphore, port: 
                 const client_addr = try client_socket.getAddress();
                 defer client_addr.deinit();
 
-                try out.print("Server: Client connected from {s}\n", .{client_addr.getString() orelse "unknown"});
+                try log_server.logInfo("Server: Client connected from {s}", .{client_addr.getString() orelse "unknown"});
 
                 // Wait for the client to send us a message.
                 const num_client_ready = try sdl3.net.waitUntilInputAvailable(allocator, &.{sdl3.net.Pollable{ .stream = client_socket }}, .indefinite);
@@ -44,53 +43,51 @@ fn serverThread(allocator: std.mem.Allocator, sem: *std.Thread.Semaphore, port: 
                     const bytes_read = try client_socket.read(&buffer);
 
                     if (bytes_read > 0) {
-                        try out.print("Server: Received '{s}'\n", .{buffer[0..bytes_read]});
+                        try log_server.logInfo("Server: Received '{s}'", .{buffer[0..bytes_read]});
 
                         // Send a reply.
                         try client_socket.write("Hello from server!");
 
                         // Wait until the data is sent before we risk closing the socket via defer.
                         _ = try client_socket.waitUntilDrained(.{ .milliseconds = timeout_ms });
-                        try out.print("Server: Sent reply.\n", .{});
+                        try log_server.logInfo("Server: Sent reply.", .{});
                     } else {
-                        try out.print("Server: Client disconnected.\n", .{});
+                        try log_server.logInfo("Server: Client disconnected.", .{});
                     }
                 } else {
-                    try out.print("Server: Timed out waiting for data from client.\n", .{});
+                    try log_server.logWarn("Server: Timed out waiting for data from client.", .{});
                 }
             }
         }
     }
-    try out.print("Server shutting down.\n", .{});
+    try log_server.logInfo("Server: Shutting down.", .{});
 }
 
-fn clientThread(allocator: std.mem.Allocator, port: u16) !void {
-    const out = std.io.getStdOut().writer();
-
+fn clientThread(allocator: std.mem.Allocator, log_client: sdl3.log.Category, port: u16) !void {
     const address: sdl3.net.Address = try .init("127.0.0.1");
     defer address.deinit();
 
-    try out.print("Client: Resolving '127.0.0.1'\n", .{});
+    try log_client.logInfo("Client: Resolving '127.0.0.1'", .{});
     if (!try address.waitUntilResolved(.{ .milliseconds = timeout_ms })) {
-        try out.print("Client: Failed to resolve '127.0.0.1'.\n", .{});
+        try log_client.logError("Client: Failed to resolve '127.0.0.1'.", .{});
         return;
     }
-    try out.print("Client: Resolved to {s}\n", .{address.getString() orelse "unknown"});
+    try log_client.logInfo("Client: Resolved to {s}", .{address.getString() orelse "unknown"});
 
     // Connect to the server.
     const client_socket: sdl3.net.StreamSocket = try .initClient(address, port);
     defer client_socket.deinit();
 
-    try out.print("Client: Connecting\n", .{});
+    try log_client.logInfo("Client: Connecting", .{});
     if (!try client_socket.waitUntilConnected(.{ .milliseconds = timeout_ms })) {
-        try out.print("Client: Failed to connect to server.\n", .{});
+        try log_client.logError("Client: Failed to connect to server.", .{});
         return;
     }
-    try out.print("Client: Connected\n", .{});
+    try log_client.logInfo("Client: Connected", .{});
 
     // Send a message.
     try client_socket.write("Hello from client!");
-    try out.print("Client: Sent message.\n", .{});
+    try log_client.logInfo("Client: Sent message.", .{});
 
     // Wait for a reply.
     const num_ready = try sdl3.net.waitUntilInputAvailable(allocator, &.{sdl3.net.Pollable{ .stream = client_socket }}, .{ .milliseconds = timeout_ms });
@@ -100,24 +97,29 @@ fn clientThread(allocator: std.mem.Allocator, port: u16) !void {
         const bytes_read = try client_socket.read(&buffer);
 
         if (bytes_read > 0) {
-            try out.print("Client: Received '{s}'\n", .{buffer[0..bytes_read]});
+            try log_client.logInfo("Client: Received '{s}'", .{buffer[0..bytes_read]});
         } else {
-            try out.print("Client: Server closed connection.\n", .{});
+            try log_client.logInfo("Client: Server closed connection.", .{});
         }
     } else {
-        try out.print("Client: Timed out waiting for a reply.\n", .{});
+        try log_client.logWarn("Client: Timed out waiting for a reply.", .{});
     }
-    try out.print("Client shutting down.\n", .{});
+    try log_client.logInfo("Client: Shutting down.", .{});
 }
 
 pub fn main() !void {
     const allocator = std.heap.page_allocator;
-    const out = std.io.getStdOut().writer();
 
     try sdl3.init(.{});
     defer sdl3.quit(.{});
     try sdl3.net.init();
     defer sdl3.net.quit();
+
+    const log_server: sdl3.log.Category = @enumFromInt(@intFromEnum(sdl3.log.Category.custom) + 0);
+    const log_client: sdl3.log.Category = @enumFromInt(@intFromEnum(sdl3.log.Category.custom) + 1);
+
+    log_server.setPriority(.verbose);
+    log_client.setPriority(.verbose);
 
     var prng: std.Random.DefaultPrng = .init(blk: {
         var seed: u64 = undefined;
@@ -128,17 +130,17 @@ pub fn main() !void {
     const port_range = iana_dynamic_port_end - iana_dynamic_port_start;
     const port = rand.uintAtMost(u16, port_range) + iana_dynamic_port_start;
 
-    try out.print("SDL_net version: {}\n", .{sdl3.net.getVersion()});
+    try sdl3.log.log("SDL_net version: {}", .{sdl3.net.getVersion()});
 
-    var server_thread: std.Thread = try .spawn(.{}, serverThread, .{ allocator, &server_ready_sem, port });
+    var server_thread: std.Thread = try .spawn(.{}, serverThread, .{ allocator, log_server, &server_ready_sem, port });
 
     // Wait for the server to signal that it's ready before starting the client.
     server_ready_sem.wait();
-    var client_thread: std.Thread = try .spawn(.{}, clientThread, .{ allocator, port });
+    var client_thread: std.Thread = try .spawn(.{}, clientThread, .{ allocator, log_client, port });
 
     client_thread.join();
     server_should_stop = true;
     server_thread.join();
 
-    try out.print("Example finished.\n", .{});
+    try sdl3.log.log("Example finished.", .{});
 }
