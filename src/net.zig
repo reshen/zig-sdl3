@@ -4,8 +4,10 @@ const std = @import("std");
 
 /// The current major version of SDL_net headers.
 pub const major_version = c.SDL_NET_MAJOR_VERSION;
+
 /// The current minor version of the SDL_net headers.
 pub const minor_version = c.SDL_NET_MINOR_VERSION;
+
 /// The current micro (or patchlevel) version of the SDL_net headers.
 pub const micro_version = c.SDL_NET_MICRO_VERSION;
 
@@ -563,6 +565,9 @@ pub const Datagram = struct {
 
     /// Dispose of a datagram packet previously received.
     ///
+    /// ## Function Parameters
+    /// * `self`: The datagram to destroy.
+    ///
     /// ## Thread Safety
     /// It is safe to call this function from any thread.
     ///
@@ -574,6 +579,9 @@ pub const Datagram = struct {
 
     /// Get the address of the sender.
     ///
+    /// ## Function Parameters
+    /// * `self`: The datagram to get the address from.
+    ///
     /// ## Remarks
     /// The returned address is owned by the datagram. If you want to keep it after `deinit()`ing the datagram, you must `ref()` it.
     pub fn getAddress(self: Datagram) Address {
@@ -581,11 +589,23 @@ pub const Datagram = struct {
     }
 
     /// Get the port of the sender.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The datagram to get the port from.
+    ///
+    /// ## Remarks
+    /// The port is in host byte order and does not need to be byteswapped.
     pub fn getPort(self: Datagram) u16 {
         return self.value.port;
     }
 
     /// Get the data payload of the datagram.
+    ///
+    /// ## Function Parameters
+    /// * `self`: The datagram to get the data from.
+    ///
+    /// ## Remarks
+    /// The returned slice is owned by the datagram and is valid until `deinit()` is called.
     pub fn getData(self: Datagram) []const u8 {
         return self.value.buf[0..@intCast(self.value.buflen)];
     }
