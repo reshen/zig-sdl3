@@ -299,6 +299,9 @@ pub const StreamSocket = struct {
     value: *c.NET_StreamSocket,
 
     /// Status of a stream socket connection.
+    ///
+    /// ## Version
+    /// This enum is available since SDL_net 3.0.0.
     pub const ConnectionStatus = enum {
         connected,
         connecting,
