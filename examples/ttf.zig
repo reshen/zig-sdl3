@@ -4,6 +4,8 @@ const std = @import("std");
 const screen_width: c_int = 800;
 const screen_height: c_int = 600;
 
+const fps = 60;
+
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
@@ -28,11 +30,20 @@ pub fn main() !void {
     const tag_str = sdl3.ttf.tagToString(tag);
     std.log.info("Tag 'test' -> {any} -> {s}", .{ tag, &tag_str });
 
-    const window: sdl3.video.Window = try .init("SDL_ttf Example", screen_width, screen_height, .{ .resizable = true });
-    defer window.deinit();
+    const wr = try sdl3.render.Renderer.initWithWindow(
+        "SDL_ttf Example",
+        screen_width,
+        screen_height,
+        .{ .resizable = true },
+    );
+    defer wr.renderer.deinit();
+    defer wr.window.deinit();
+    const renderer = wr.renderer;
 
-    const renderer: sdl3.render.Renderer = try .init(window, null);
-    defer renderer.deinit();
+    var frame_capper = sdl3.extras.FramerateCapper(f32){ .mode = .{ .unlimited = {} } };
+    renderer.setVSync(.{ .on_each_num_refresh = 1 }) catch {
+        frame_capper.mode = .{ .limited = fps };
+    };
 
     const font_path = "data/font.ttf";
     var font = try sdl3.ttf.Font.init(font_path, 24);
@@ -120,11 +131,9 @@ pub fn main() !void {
     try text_obj.setColor(255, 165, 0, 255);
     try text_obj.setPosition(10, 450);
 
-    var fps_capper = sdl3.extras.FramerateCapper(f32){ .mode = .{ .limited = 60 } };
     var quit_app = false;
-    var frame_count: u64 = 0;
     while (!quit_app) {
-        const dt = fps_capper.delay();
+        const dt = frame_capper.delay();
         _ = dt;
 
         while (sdl3.events.poll()) |event| {
@@ -139,7 +148,7 @@ pub fn main() !void {
             }
         }
 
-        if (frame_count > 0 and frame_count % 60 == 0) {
+        if (frame_capper.frame_num > 0 and frame_capper.frame_num % 60 == 0) {
             if (text_obj.getText().len > 50) {
                 try text_obj.setString("Editable Text Object");
             } else {
@@ -176,8 +185,6 @@ pub fn main() !void {
         try sdl3.ttf.drawRendererText(text_obj, @as(f32, @floatFromInt(text_pos.x)), @as(f32, @floatFromInt(text_pos.y)));
 
         try renderer.present();
-
-        frame_count += 1;
     }
 }
 
