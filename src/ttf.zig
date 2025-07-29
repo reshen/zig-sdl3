@@ -1,13 +1,12 @@
-//! Wrapper for SDL_ttf.
 const c = @import("c.zig").c;
-const std = @import("std");
 const errors = @import("errors.zig");
-const io_stream = @import("io_stream.zig");
-const surface = @import("surface.zig");
-const properties = @import("properties.zig");
 const gpu = @import("gpu.zig");
+const io_stream = @import("io_stream.zig");
+const properties = @import("properties.zig");
 const rect = @import("rect.zig");
 const render = @import("render.zig");
+const std = @import("std");
+const surface = @import("surface.zig");
 
 pub const Color = struct {
     r: u8,
@@ -32,14 +31,9 @@ pub const minor_version = c.SDL_TTF_MINOR_VERSION;
 /// Printable format: "%d.%d.%d", major_version, minor_version, micro_version
 pub const micro_version = c.SDL_TTF_MICRO_VERSION;
 
-/// This is the version number macro for the current SDL_ttf version.
+/// This is the version number for the current SDL_ttf version.
 pub fn version() u32 {
     return c.SDL_TTF_VERSION;
-}
-
-/// This macro will evaluate to true if compiled with SDL_ttf at least X.Y.Z.
-pub fn versionAtLeast(comptime x: u8, comptime y: u8, comptime z: u8) bool {
-    return c.SDL_TTF_VERSION_ATLEAST(x, y, z);
 }
 
 pub const Version = packed struct {
@@ -58,6 +52,11 @@ pub const Version = packed struct {
     /// Extracts the micro version from a version number.
     pub fn getMicro(self: Version) u32 {
         return @intCast(c.SDL_VERSIONNUM_MICRO(self.value));
+    }
+
+    /// Returns `true` if compiled with SDL_ttf at least X.Y.Z.
+    pub fn atLeast(comptime x: u8, comptime y: u8, comptime z: u8) bool {
+        return c.SDL_TTF_VERSION_ATLEAST(x, y, z);
     }
 
     pub fn format(
