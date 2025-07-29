@@ -1,3 +1,5 @@
+const std = @import("std");
+
 pub fn setup(b: *std.Build, sdl3: *std.Build.Module, sdl_dep_lib: *std.Build.Step.Compile, linkage: std.builtin.LinkMode, cfg: std.Build.TestOptions) void {
     const target = cfg.target orelse b.standardTargetOptions(.{});
     const optimize = cfg.optimize;
@@ -71,5 +73,3 @@ pub fn setup(b: *std.Build, sdl3: *std.Build.Module, sdl_dep_lib: *std.Build.Ste
     sdl3.linkLibrary(lib);
     sdl3.addIncludePath(upstream.path("include"));
 }
-
-const std = @import("std");

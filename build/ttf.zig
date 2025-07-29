@@ -1,3 +1,5 @@
+const std = @import("std");
+
 // https://github.com/allyourcodebase/SDL_ttf/blob/main/build.zig
 pub fn setup(b: *std.Build, sdl3: *std.Build.Module, sdl_dep_lib: *std.Build.Step.Compile, linkage: std.builtin.LinkMode, cfg: std.Build.TestOptions) void {
     const target = cfg.target orelse b.standardTargetOptions(.{});
@@ -55,5 +57,3 @@ const srcs: []const []const u8 = &.{
     "SDL_surface_textengine.c",
     "SDL_ttf.c",
 };
-
-const std = @import("std");

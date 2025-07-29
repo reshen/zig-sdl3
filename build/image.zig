@@ -1,3 +1,5 @@
+const std = @import("std");
+
 // Most of this is copied from https://github.com/allyourcodebase/SDL_image/blob/main/build.zig.
 pub fn setup(b: *std.Build, sdl3: *std.Build.Module, sdl_dep_lib: *std.Build.Step.Compile, linkage: std.builtin.LinkMode, cfg: std.Build.TestOptions) void {
     const upstream = b.lazyDependency("sdl_image", .{}) orelse return;
@@ -92,5 +94,3 @@ pub fn setup(b: *std.Build, sdl3: *std.Build.Module, sdl_dep_lib: *std.Build.Ste
     sdl3.linkLibrary(lib);
     sdl3.addIncludePath(upstream.path("include"));
 }
-
-const std = @import("std");
