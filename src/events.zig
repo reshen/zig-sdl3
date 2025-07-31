@@ -547,7 +547,10 @@ pub const Clipboard = struct {
         return .{
             .common = Common.fromSdl(val),
             .owner = val.clipboard.owner,
-            .mime_types = @as([*][*:0]const u8, @ptrCast(val.clipboard.mime_types))[0..@intCast(val.clipboard.num_mime_types)],
+            .mime_types = if (val.clipboard.mime_types) |mimes|
+                @as([*][*:0]const u8, @ptrCast(mimes))[0..@intCast(val.clipboard.num_mime_types)]
+            else
+                &[_][*:0]const u8{},
         };
     }
 
