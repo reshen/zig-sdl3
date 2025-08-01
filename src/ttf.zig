@@ -236,12 +236,7 @@ pub fn tagToString(tag: u32) [4]u8 {
 /// ## Version
 /// This function is available since SDL_ttf 3.0.0.
 pub fn getGlyphScript(ch: u32) !u32 {
-    const script = c.TTF_GetGlyphScript(ch);
-    if (script == 0) {
-        errors.callErrorCallback();
-        return error.SdlError;
-    }
-    return script;
+    return errors.wrapCall(u32, c.TTF_GetGlyphScript(ch), 0);
 }
 
 /// Thin (100) named font weight value
@@ -667,12 +662,7 @@ pub const Font = struct {
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
     pub fn getGeneration(self: Font) !u32 {
-        const gen = c.TTF_GetFontGeneration(self.value);
-        if (gen == 0) {
-            errors.callErrorCallback();
-            return error.SdlError;
-        }
-        return gen;
+        return errors.wrapCall(u32, c.TTF_GetFontGeneration(self.value), 0);
     }
 
     /// Add a fallback font.
@@ -777,12 +767,7 @@ pub const Font = struct {
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
     pub fn getSize(self: Font) !f32 {
-        const size = c.TTF_GetFontSize(self.value);
-        if (size == 0.0) {
-            errors.callErrorCallback();
-            return error.SdlError;
-        }
-        return size;
+        return errors.wrapCall(f32, c.TTF_GetFontSize(self.value), 0.0);
     }
 
     /// Get font target resolutions, in dots per inch.
@@ -2102,11 +2087,7 @@ pub const GpuTextEngine = struct {
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
     pub fn getWinding(self: GpuTextEngine) !GpuTextEngineWinding {
-        const winding = c.TTF_GetGPUTextEngineWinding(self.value);
-        if (winding == c.TTF_GPU_TEXTENGINE_WINDING_INVALID) {
-            errors.callErrorCallback();
-            return error.SdlError;
-        }
+        const winding = try errors.wrapCall(c.TTF_GPUTextEngineWinding, c.TTF_GetGPUTextEngineWinding(self.value), c.TTF_GPU_TEXTENGINE_WINDING_INVALID);
         return @enumFromInt(winding);
     }
 };
@@ -2298,7 +2279,9 @@ pub const Text = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getEngine(self: Text) !TextEngine {
+    pub fn getEngine(
+        self: Text,
+    ) !TextEngine {
         return .{
             .value = try errors.wrapCallNull(*c.TTF_TextEngine, c.TTF_GetTextEngine(self.value)),
         };
@@ -2756,11 +2739,7 @@ pub const Text = struct {
     /// This function is available since SDL_ttf 3.0.0.
     pub fn getSubStringsForRange(self: Text, offset: c_int, length: c_int, allocator: std.mem.Allocator) ![]SubString {
         var count: c_int = undefined;
-        const c_substrings_ptr = c.TTF_GetTextSubStringsForRange(self.value, offset, length, &count);
-        if (c_substrings_ptr == null) {
-            errors.callErrorCallback();
-            return error.SdlError;
-        }
+        const c_substrings_ptr = try errors.wrapCallNull(**c.TTF_SubString, c.TTF_GetTextSubStringsForRange(self.value, offset, length, &count));
         const c_substrings = c_substrings_ptr[0..@intCast(count)];
         defer {
             for (c_substrings) |s| {
