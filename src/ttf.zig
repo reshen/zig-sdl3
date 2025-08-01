@@ -2815,7 +2815,7 @@ pub const Text = struct {
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
     pub fn getPreviousSubString(self: Text, substring: SubString) !SubString {
-        var c_substring = substring.toSdl();
+        var c_substring = try substring.toSdl();
         var previous: c.TTF_SubString = undefined;
         try errors.wrapCallBool(c.TTF_GetPreviousTextSubString(self.value, &c_substring, &previous));
         return SubString.fromSdl(previous);
@@ -2839,7 +2839,7 @@ pub const Text = struct {
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
     pub fn getNextSubString(self: Text, substring: SubString) !SubString {
-        var c_substring = substring.toSdl();
+        var c_substring = try substring.toSdl();
         var next: c.TTF_SubString = undefined;
         try errors.wrapCallBool(c.TTF_GetNextTextSubString(self.value, &c_substring, &next));
         return SubString.fromSdl(next);
@@ -2870,9 +2870,9 @@ pub const SubString = struct {
     /// The flags for this substring
     flags: SubStringFlags,
     /// The byte offset from the beginning of the text
-    offset: c_int,
+    offset: usize,
     /// The byte length starting at the offset
-    length: c_int,
+    length: usize,
     /// The index of the line that contains this substring
     line_index: c_int,
     /// The internal cluster index, used for quickly iterating
@@ -2881,21 +2881,25 @@ pub const SubString = struct {
     rect: rect.Rect,
 
     pub fn fromSdl(sdl_substring: c.TTF_SubString) SubString {
+        std.debug.assert(sdl_substring.offset >= 0);
+        std.debug.assert(sdl_substring.length >= 0);
         return .{
             .flags = SubStringFlags.fromSdl(sdl_substring.flags),
-            .offset = sdl_substring.offset,
-            .length = sdl_substring.length,
+            .offset = @intCast(sdl_substring.offset),
+            .length = @intCast(sdl_substring.length),
             .line_index = sdl_substring.line_index,
             .cluster_index = sdl_substring.cluster_index,
             .rect = .{ .value = sdl_substring.rect },
         };
     }
 
-    pub fn toSdl(self: SubString) c.TTF_SubString {
+    pub fn toSdl(self: SubString) !c.TTF_SubString {
+        const offset = std.math.cast(c_int, self.offset) orelse return error.Overflow;
+        const length = std.math.cast(c_int, self.length) orelse return error.Overflow;
         return .{
             .flags = self.flags.toSdl(),
-            .offset = self.offset,
-            .length = self.length,
+            .offset = offset,
+            .length = length,
             .line_index = self.line_index,
             .cluster_index = self.cluster_index,
             .rect = self.rect.value,
