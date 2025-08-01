@@ -1,12 +1,30 @@
-const c = @import("c.zig").c;
-const errors = @import("errors.zig");
-const gpu = @import("gpu.zig");
-const io_stream = @import("io_stream.zig");
-const properties = @import("properties.zig");
-const rect = @import("rect.zig");
-const render = @import("render.zig");
-const std = @import("std");
-const surface = @import("surface.zig");
+const c = @import(
+    "c.zig",
+).c;
+const errors = @import(
+    "errors.zig",
+);
+const gpu = @import(
+    "gpu.zig",
+);
+const io_stream = @import(
+    "io_stream.zig",
+);
+const properties = @import(
+    "properties.zig",
+);
+const rect = @import(
+    "rect.zig",
+);
+const render = @import(
+    "render.zig",
+);
+const std = @import(
+    "std",
+);
+const surface = @import(
+    "surface.zig",
+);
 
 pub const Color = struct {
     r: u8,
@@ -14,7 +32,9 @@ pub const Color = struct {
     b: u8,
     a: u8,
 
-    pub fn toSdl(self: Color) c.SDL_Color {
+    pub fn toSdl(
+        self: Color,
+    ) c.SDL_Color {
         return .{
             .r = self.r,
             .g = self.g,
@@ -40,23 +60,43 @@ pub const Version = packed struct {
     value: c_int,
 
     /// Extracts the major version from a version number.
-    pub fn getMajor(self: Version) u32 {
-        return @intCast(c.SDL_VERSIONNUM_MAJOR(self.value));
+    pub fn getMajor(
+        self: Version,
+    ) u32 {
+        return @intCast(c.SDL_VERSIONNUM_MAJOR(
+            self.value,
+        ));
     }
 
     /// Extracts the minor version from a version number.
-    pub fn getMinor(self: Version) u32 {
-        return @intCast(c.SDL_VERSIONNUM_MINOR(self.value));
+    pub fn getMinor(
+        self: Version,
+    ) u32 {
+        return @intCast(c.SDL_VERSIONNUM_MINOR(
+            self.value,
+        ));
     }
 
     /// Extracts the micro version from a version number.
-    pub fn getMicro(self: Version) u32 {
-        return @intCast(c.SDL_VERSIONNUM_MICRO(self.value));
+    pub fn getMicro(
+        self: Version,
+    ) u32 {
+        return @intCast(c.SDL_VERSIONNUM_MICRO(
+            self.value,
+        ));
     }
 
     /// Returns `true` if compiled with SDL_ttf at least X.Y.Z.
-    pub fn atLeast(comptime x: u8, comptime y: u8, comptime z: u8) bool {
-        return c.SDL_TTF_VERSION_ATLEAST(x, y, z);
+    pub fn atLeast(
+        comptime x: u8,
+        comptime y: u8,
+        comptime z: u8,
+    ) bool {
+        return c.SDL_TTF_VERSION_ATLEAST(
+            x,
+            y,
+            z,
+        );
     }
 
     pub fn format(
@@ -67,7 +107,10 @@ pub const Version = packed struct {
     ) !void {
         _ = fmt;
         _ = options;
-        return writer.print("{d}.{d}.{d}", .{ self.getMajor(), self.getMinor(), self.getMicro() });
+        return writer.print(
+            "{d}.{d}.{d}",
+            .{ self.getMajor(), self.getMinor(), self.getMicro() },
+        );
     }
 };
 
@@ -102,7 +145,11 @@ pub fn getFreeTypeVersion() struct { major: c_int, minor: c_int, patch: c_int } 
     var major: c_int = undefined;
     var minor: c_int = undefined;
     var patch: c_int = undefined;
-    c.TTF_GetFreeTypeVersion(&major, &minor, &patch);
+    c.TTF_GetFreeTypeVersion(
+        &major,
+        &minor,
+        &patch,
+    );
     return .{ .major = major, .minor = minor, .patch = patch };
 }
 
@@ -123,7 +170,11 @@ pub fn getHarfBuzzVersion() struct { major: c_int, minor: c_int, patch: c_int } 
     var major: c_int = undefined;
     var minor: c_int = undefined;
     var patch: c_int = undefined;
-    c.TTF_GetHarfBuzzVersion(&major, &minor, &patch);
+    c.TTF_GetHarfBuzzVersion(
+        &major,
+        &minor,
+        &patch,
+    );
     return .{ .major = major, .minor = minor, .patch = patch };
 }
 
@@ -137,7 +188,9 @@ pub fn getHarfBuzzVersion() struct { major: c_int, minor: c_int, patch: c_int } 
 /// ## Version
 /// This function is available since SDL_ttf 3.0.0.
 pub fn init() !void {
-    return errors.wrapCallBool(c.TTF_Init());
+    return errors.wrapCallBool(
+        c.TTF_Init(),
+    );
 }
 
 /// Deinitialize SDL_ttf.
@@ -198,9 +251,15 @@ pub fn wasInit() c_int {
 ///
 /// ## Version
 /// This function is available since SDL_ttf 3.0.0.
-pub fn stringToTag(string: [:0]const u8) u32 {
-    std.debug.assert(string.len == 4); // the string must be 4 characters long.
-    return c.TTF_StringToTag(string.ptr);
+pub fn stringToTag(
+    string: [:0]const u8,
+) u32 {
+    std.debug.assert(
+        string.len == 4,
+    ); // the string must be 4 characters long.
+    return c.TTF_StringToTag(
+        string.ptr,
+    );
 }
 
 /// Convert from a 32-bit tag to a 4 character string.
@@ -216,9 +275,15 @@ pub fn stringToTag(string: [:0]const u8) u32 {
 ///
 /// ## Version
 /// This function is available since SDL_ttf 3.0.0.
-pub fn tagToString(tag: u32) [4]u8 {
+pub fn tagToString(
+    tag: u32,
+) [4]u8 {
     var buf: [5]u8 = undefined;
-    c.TTF_TagToString(tag, &buf, buf.len);
+    c.TTF_TagToString(
+        tag,
+        &buf,
+        buf.len,
+    );
     return [4]u8{ buf[0], buf[1], buf[2], buf[3] };
 }
 
@@ -235,29 +300,37 @@ pub fn tagToString(tag: u32) [4]u8 {
 ///
 /// ## Version
 /// This function is available since SDL_ttf 3.0.0.
-pub fn getGlyphScript(ch: u32) !u32 {
-    return errors.wrapCall(u32, c.TTF_GetGlyphScript(ch), 0);
+pub fn getGlyphScript(
+    ch: u32,
+) !u32 {
+    return errors.wrapCall(
+        u32,
+        c.TTF_GetGlyphScript(
+            ch,
+        ),
+        0,
+    );
 }
 
-/// Thin (100) named font weight value
+/// Thin (100,) named font weight value
 pub const font_weight_thin = c.TTF_FONT_WEIGHT_THIN;
-/// ExtraLight (200) named font weight value
+/// ExtraLight (200,) named font weight value
 pub const font_weight_extra_light = c.TTF_FONT_WEIGHT_EXTRA_LIGHT;
-/// Light (300) named font weight value
+/// Light (300,) named font weight value
 pub const font_weight_light = c.TTF_FONT_WEIGHT_LIGHT;
-/// Normal (400) named font weight value
+/// Normal (400,) named font weight value
 pub const font_weight_normal = c.TTF_FONT_WEIGHT_NORMAL;
-/// Medium (500) named font weight value
+/// Medium (500,) named font weight value
 pub const font_weight_medium = c.TTF_FONT_WEIGHT_MEDIUM;
-/// SemiBold (600) named font weight value
+/// SemiBold (600,) named font weight value
 pub const font_weight_semi_bold = c.TTF_FONT_WEIGHT_SEMI_BOLD;
-/// Bold (700) named font weight value
+/// Bold (700,) named font weight value
 pub const font_weight_bold = c.TTF_FONT_WEIGHT_BOLD;
-/// ExtraBold (800) named font weight value
+/// ExtraBold (800,) named font weight value
 pub const font_weight_extra_bold = c.TTF_FONT_WEIGHT_EXTRA_BOLD;
-/// Black (900) named font weight value
+/// Black (900,) named font weight value
 pub const font_weight_black = c.TTF_FONT_WEIGHT_BLACK;
-/// ExtraBlack (950) named font weight value
+/// ExtraBlack (950,) named font weight value
 pub const font_weight_extra_black = c.TTF_FONT_WEIGHT_EXTRA_BLACK;
 
 /// Font style flags for `Font`
@@ -279,7 +352,9 @@ pub const FontStyleFlags = packed struct {
     /// Strikethrough text
     strikethrough: bool = false,
 
-    pub fn toSdl(self: FontStyleFlags) c.TTF_FontStyleFlags {
+    pub fn toSdl(
+        self: FontStyleFlags,
+    ) c.TTF_FontStyleFlags {
         var result: c.TTF_FontStyleFlags = 0;
         if (self.bold) result |= c.TTF_STYLE_BOLD;
         if (self.italic) result |= c.TTF_STYLE_ITALIC;
@@ -288,7 +363,9 @@ pub const FontStyleFlags = packed struct {
         return result;
     }
 
-    pub fn fromSdl(flags: c.TTF_FontStyleFlags) FontStyleFlags {
+    pub fn fromSdl(
+        flags: c.TTF_FontStyleFlags,
+    ) FontStyleFlags {
         return .{
             .bold = (flags & c.TTF_STYLE_BOLD != 0),
             .italic = (flags & c.TTF_STYLE_ITALIC != 0),
@@ -298,7 +375,7 @@ pub const FontStyleFlags = packed struct {
     }
 };
 
-/// Hinting flags for TTF (TrueType Fonts)
+/// Hinting flags for TTF (TrueType Fonts,)
 ///
 /// ## Remarks
 /// This enum specifies the level of hinting to be applied to the font
@@ -336,7 +413,7 @@ pub const HorizontalAlignment = enum(c.TTF_HorizontalAlignment) {
 ///
 /// ## Remarks
 /// The values here are chosen to match
-/// [hb_direction_t](https://harfbuzz.github.io/harfbuzz-hb-common.html#hb-direction-t)
+/// [hb_direction_t](https://harfbuzz.github.io/harfbuzz-hb-common.html#hb-direction-t,)
 ///
 /// ## Version
 /// This enum is available since SDL_ttf 3.0.0.
@@ -392,9 +469,13 @@ pub const SubStringFlags = packed struct {
     /// This substring contains the end of the text
     text_end: bool = false,
 
-    pub fn fromSdl(flags: c.TTF_SubStringFlags) SubStringFlags {
+    pub fn fromSdl(
+        flags: c.TTF_SubStringFlags,
+    ) SubStringFlags {
         return .{
-            .direction = @enumFromInt(flags & c.TTF_SUBSTRING_DIRECTION_MASK),
+            .direction = @enumFromInt(
+                flags & c.TTF_SUBSTRING_DIRECTION_MASK,
+            ),
             .text_start = (flags & c.TTF_SUBSTRING_TEXT_START != 0),
             .line_start = (flags & c.TTF_SUBSTRING_LINE_START != 0),
             .line_end = (flags & c.TTF_SUBSTRING_LINE_END != 0),
@@ -402,8 +483,12 @@ pub const SubStringFlags = packed struct {
         };
     }
 
-    pub fn toSdl(self: SubStringFlags) c.TTF_SubStringFlags {
-        var result: c.TTF_SubStringFlags = @intFromEnum(self.direction);
+    pub fn toSdl(
+        self: SubStringFlags,
+    ) c.TTF_SubStringFlags {
+        var result: c.TTF_SubStringFlags = @intFromEnum(
+            self.direction,
+        );
         if (self.text_start) result |= c.TTF_SUBSTRING_TEXT_START;
         if (self.line_start) result |= c.TTF_SUBSTRING_LINE_START;
         if (self.line_end) result |= c.TTF_SUBSTRING_LINE_END;
@@ -440,9 +525,15 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn init(file: [:0]const u8, ptsize: f32) !Font {
+    pub fn init(
+        file: [:0]const u8,
+        ptsize: f32,
+    ) !Font {
         return .{
-            .value = try errors.wrapCallNull(*c.TTF_Font, c.TTF_OpenFont(file.ptr, ptsize)),
+            .value = try errors.wrapCallNull(*c.TTF_Font, c.TTF_OpenFont(
+                file.ptr,
+                ptsize,
+            )),
         };
     }
 
@@ -471,9 +562,17 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn initFromIO(src: io_stream.Stream, close_io: bool, ptsize: f32) !Font {
+    pub fn initFromIO(
+        src: io_stream.Stream,
+        close_io: bool,
+        ptsize: f32,
+    ) !Font {
         return .{
-            .value = try errors.wrapCallNull(*c.TTF_Font, c.TTF_OpenFontIO(src.value, close_io, ptsize)),
+            .value = try errors.wrapCallNull(*c.TTF_Font, c.TTF_OpenFontIO(
+                src.value,
+                close_io,
+                ptsize,
+            )),
         };
     }
 
@@ -510,17 +609,46 @@ pub const Font = struct {
         ///
         /// ## Remarks
         /// The returned group must be freed with `properties.Group.deinit()`.
-        pub fn toProperties(self: CreateProperties) !properties.Group {
+        pub fn toProperties(
+            self: CreateProperties,
+        ) !properties.Group {
             const ret = try properties.Group.init();
-            if (self.filename) |val| try ret.set(c.TTF_PROP_FONT_CREATE_FILENAME_STRING, .{ .string = val });
-            if (self.io_stream) |val| try ret.set(c.TTF_PROP_FONT_CREATE_IOSTREAM_POINTER, .{ .pointer = val.value });
-            if (self.io_stream_offset) |val| try ret.set(c.TTF_PROP_FONT_CREATE_IOSTREAM_OFFSET_NUMBER, .{ .number = val });
-            if (self.io_stream_autoclose) |val| try ret.set(c.TTF_PROP_FONT_CREATE_IOSTREAM_AUTOCLOSE_BOOLEAN, .{ .boolean = val });
-            if (self.size) |val| try ret.set(c.TTF_PROP_FONT_CREATE_SIZE_FLOAT, .{ .float = val });
-            if (self.face) |val| try ret.set(c.TTF_PROP_FONT_CREATE_FACE_NUMBER, .{ .number = val });
-            if (self.horizontal_dpi) |val| try ret.set(c.TTF_PROP_FONT_CREATE_HORIZONTAL_DPI_NUMBER, .{ .number = val });
-            if (self.vertical_dpi) |val| try ret.set(c.TTF_PROP_FONT_CREATE_VERTICAL_DPI_NUMBER, .{ .number = val });
-            if (self.existing_font) |val| try ret.set(c.TTF_PROP_FONT_CREATE_EXISTING_FONT, .{ .pointer = val.value });
+            if (self.filename) |val| try ret.set(
+                c.TTF_PROP_FONT_CREATE_FILENAME_STRING,
+                .{ .string = val },
+            );
+            if (self.io_stream) |val| try ret.set(
+                c.TTF_PROP_FONT_CREATE_IOSTREAM_POINTER,
+                .{ .pointer = val.value },
+            );
+            if (self.io_stream_offset) |val| try ret.set(
+                c.TTF_PROP_FONT_CREATE_IOSTREAM_OFFSET_NUMBER,
+                .{ .number = val },
+            );
+            if (self.io_stream_autoclose) |val| try ret.set(
+                c.TTF_PROP_FONT_CREATE_IOSTREAM_AUTOCLOSE_BOOLEAN,
+                .{ .boolean = val },
+            );
+            if (self.size) |val| try ret.set(
+                c.TTF_PROP_FONT_CREATE_SIZE_FLOAT,
+                .{ .float = val },
+            );
+            if (self.face) |val| try ret.set(
+                c.TTF_PROP_FONT_CREATE_FACE_NUMBER,
+                .{ .number = val },
+            );
+            if (self.horizontal_dpi) |val| try ret.set(
+                c.TTF_PROP_FONT_CREATE_HORIZONTAL_DPI_NUMBER,
+                .{ .number = val },
+            );
+            if (self.vertical_dpi) |val| try ret.set(
+                c.TTF_PROP_FONT_CREATE_VERTICAL_DPI_NUMBER,
+                .{ .number = val },
+            );
+            if (self.existing_font) |val| try ret.set(
+                c.TTF_PROP_FONT_CREATE_EXISTING_FONT,
+                .{ .pointer = val.value },
+            );
             return ret;
         }
     };
@@ -538,10 +666,14 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn initWithProperties(props: CreateProperties) !Font {
+    pub fn initWithProperties(
+        props: CreateProperties,
+    ) !Font {
         const group = try props.toProperties();
         defer group.deinit();
-        return .{ .value = try errors.wrapCallNull(*c.TTF_Font, c.TTF_OpenFontWithProperties(group.value)) };
+        return .{ .value = try errors.wrapCallNull(*c.TTF_Font, c.TTF_OpenFontWithProperties(
+            group.value,
+        )) };
     }
 
     /// Dispose of a previously-created font.
@@ -561,8 +693,12 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn deinit(self: Font) void {
-        c.TTF_CloseFont(self.value);
+    pub fn deinit(
+        self: Font,
+    ) void {
+        c.TTF_CloseFont(
+            self.value,
+        );
     }
 
     /// Create a copy of an existing font.
@@ -582,9 +718,13 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn copy(self: Font) !Font {
+    pub fn copy(
+        self: Font,
+    ) !Font {
         return .{
-            .value = try errors.wrapCallNull(*c.TTF_Font, c.TTF_CopyFont(self.value)),
+            .value = try errors.wrapCallNull(*c.TTF_Font, c.TTF_CopyFont(
+                self.value,
+            )),
         };
     }
 
@@ -601,7 +741,9 @@ pub const Font = struct {
         outline_miter_limit: ?i64 = null,
 
         /// Convert from an SDL properties group.
-        pub fn fromSdl(value: properties.Group) Properties {
+        pub fn fromSdl(
+            value: properties.Group,
+        ) Properties {
             return .{
                 .outline_line_cap = if (value.get(c.TTF_PROP_FONT_OUTLINE_LINE_CAP_NUMBER)) |val| val.number else null,
                 .outline_line_join = if (value.get(c.TTF_PROP_FONT_OUTLINE_LINE_JOIN_NUMBER)) |val| val.number else null,
@@ -610,10 +752,22 @@ pub const Font = struct {
         }
 
         /// Convert to an SDL properties group.
-        pub fn toSdl(self: Properties, value: properties.Group) !void {
-            if (self.outline_line_cap) |val| try value.set(c.TTF_PROP_FONT_OUTLINE_LINE_CAP_NUMBER, .{ .number = val });
-            if (self.outline_line_join) |val| try value.set(c.TTF_PROP_FONT_OUTLINE_LINE_JOIN_NUMBER, .{ .number = val });
-            if (self.outline_miter_limit) |val| try value.set(c.TTF_PROP_FONT_OUTLINE_MITER_LIMIT_NUMBER, .{ .number = val });
+        pub fn toSdl(
+            self: Properties,
+            value: properties.Group,
+        ) !void {
+            if (self.outline_line_cap) |val| try value.set(
+                c.TTF_PROP_FONT_OUTLINE_LINE_CAP_NUMBER,
+                .{ .number = val },
+            );
+            if (self.outline_line_join) |val| try value.set(
+                c.TTF_PROP_FONT_OUTLINE_LINE_JOIN_NUMBER,
+                .{ .number = val },
+            );
+            if (self.outline_miter_limit) |val| try value.set(
+                c.TTF_PROP_FONT_OUTLINE_MITER_LIMIT_NUMBER,
+                .{ .number = val },
+            );
         }
     };
 
@@ -627,9 +781,19 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getProperties(self: Font) !Properties {
-        const group = properties.Group{ .value = try errors.wrapCall(c.SDL_PropertiesID, c.TTF_GetFontProperties(self.value), 0) };
-        return .fromSdl(group);
+    pub fn getProperties(
+        self: Font,
+    ) !Properties {
+        const group = properties.Group{ .value = try errors.wrapCall(
+            c.SDL_PropertiesID,
+            c.TTF_GetFontProperties(
+                self.value,
+            ),
+            0,
+        ) };
+        return .fromSdl(
+            group,
+        );
     }
 
     /// Set the properties associated with a font.
@@ -642,9 +806,20 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn setProperties(self: Font, props: Properties) !void {
-        const group = properties.Group{ .value = try errors.wrapCall(c.SDL_PropertiesID, c.TTF_GetFontProperties(self.value), 0) };
-        try props.toSdl(group);
+    pub fn setProperties(
+        self: Font,
+        props: Properties,
+    ) !void {
+        const group = properties.Group{ .value = try errors.wrapCall(
+            c.SDL_PropertiesID,
+            c.TTF_GetFontProperties(
+                self.value,
+            ),
+            0,
+        ) };
+        try props.toSdl(
+            group,
+        );
     }
 
     /// Get the font generation.
@@ -661,8 +836,16 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getGeneration(self: Font) !u32 {
-        return errors.wrapCall(u32, c.TTF_GetFontGeneration(self.value), 0);
+    pub fn getGeneration(
+        self: Font,
+    ) !u32 {
+        return errors.wrapCall(
+            u32,
+            c.TTF_GetFontGeneration(
+                self.value,
+            ),
+            0,
+        );
     }
 
     /// Add a fallback font.
@@ -683,8 +866,14 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn addFallback(self: Font, fallback: Font) !void {
-        return errors.wrapCallBool(c.TTF_AddFallbackFont(self.value, fallback.value));
+    pub fn addFallback(
+        self: Font,
+        fallback: Font,
+    ) !void {
+        return errors.wrapCallBool(c.TTF_AddFallbackFont(
+            self.value,
+            fallback.value,
+        ));
     }
 
     /// Remove a fallback font.
@@ -700,8 +889,14 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn removeFallback(self: Font, fallback: Font) void {
-        c.TTF_RemoveFallbackFont(self.value, fallback.value);
+    pub fn removeFallback(
+        self: Font,
+        fallback: Font,
+    ) void {
+        c.TTF_RemoveFallbackFont(
+            self.value,
+            fallback.value,
+        );
     }
 
     /// Remove all fallback fonts.
@@ -714,8 +909,12 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn clearFallbackFonts(self: Font) void {
-        c.TTF_ClearFallbackFonts(self.value);
+    pub fn clearFallbackFonts(
+        self: Font,
+    ) void {
+        c.TTF_ClearFallbackFonts(
+            self.value,
+        );
     }
 
     /// Set a font's size dynamically.
@@ -732,8 +931,14 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn setSize(self: Font, ptsize: f32) !void {
-        return errors.wrapCallBool(c.TTF_SetFontSize(self.value, ptsize));
+    pub fn setSize(
+        self: Font,
+        ptsize: f32,
+    ) !void {
+        return errors.wrapCallBool(c.TTF_SetFontSize(
+            self.value,
+            ptsize,
+        ));
     }
 
     /// Set font size dynamically with target resolutions, in dots per inch.
@@ -752,8 +957,18 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn setSizeDpi(self: Font, ptsize: f32, hdpi: c_int, vdpi: c_int) !void {
-        return errors.wrapCallBool(c.TTF_SetFontSizeDPI(self.value, ptsize, hdpi, vdpi));
+    pub fn setSizeDpi(
+        self: Font,
+        ptsize: f32,
+        hdpi: c_int,
+        vdpi: c_int,
+    ) !void {
+        return errors.wrapCallBool(c.TTF_SetFontSizeDPI(
+            self.value,
+            ptsize,
+            hdpi,
+            vdpi,
+        ));
     }
 
     /// Get the size of a font.
@@ -766,8 +981,16 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getSize(self: Font) !f32 {
-        return errors.wrapCall(f32, c.TTF_GetFontSize(self.value), 0.0);
+    pub fn getSize(
+        self: Font,
+    ) !f32 {
+        return errors.wrapCall(
+            f32,
+            c.TTF_GetFontSize(
+                self.value,
+            ),
+            0.0,
+        );
     }
 
     /// Get font target resolutions, in dots per inch.
@@ -780,10 +1003,16 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getDpi(self: Font) !struct { hdpi: c_int, vdpi: c_int } {
+    pub fn getDpi(
+        self: Font,
+    ) !struct { hdpi: c_int, vdpi: c_int } {
         var hdpi: c_int = undefined;
         var vdpi: c_int = undefined;
-        try errors.wrapCallBool(c.TTF_GetFontDPI(self.value, &hdpi, &vdpi));
+        try errors.wrapCallBool(c.TTF_GetFontDPI(
+            self.value,
+            &hdpi,
+            &vdpi,
+        ));
         return .{ .hdpi = hdpi, .vdpi = vdpi };
     }
 
@@ -801,8 +1030,14 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn setStyle(self: Font, style: FontStyleFlags) void {
-        c.TTF_SetFontStyle(self.value, style.toSdl());
+    pub fn setStyle(
+        self: Font,
+        style: FontStyleFlags,
+    ) void {
+        c.TTF_SetFontStyle(
+            self.value,
+            style.toSdl(),
+        );
     }
 
     /// Query a font's current style.
@@ -815,8 +1050,12 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getStyle(self: Font) FontStyleFlags {
-        return FontStyleFlags.fromSdl(c.TTF_GetFontStyle(self.value));
+    pub fn getStyle(
+        self: Font,
+    ) FontStyleFlags {
+        return FontStyleFlags.fromSdl(c.TTF_GetFontStyle(
+            self.value,
+        ));
     }
 
     /// Set a font's current outline.
@@ -837,8 +1076,14 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn setOutline(self: Font, outline: c_int) !void {
-        return errors.wrapCallBool(c.TTF_SetFontOutline(self.value, outline));
+    pub fn setOutline(
+        self: Font,
+        outline: c_int,
+    ) !void {
+        return errors.wrapCallBool(c.TTF_SetFontOutline(
+            self.value,
+            outline,
+        ));
     }
 
     /// Query a font's current outline.
@@ -851,8 +1096,12 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getOutline(self: Font) c_int {
-        return c.TTF_GetFontOutline(self.value);
+    pub fn getOutline(
+        self: Font,
+    ) c_int {
+        return c.TTF_GetFontOutline(
+            self.value,
+        );
     }
 
     /// Set a font's current hinter setting.
@@ -869,8 +1118,13 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn setHinting(self: Font, hinting: HintingFlags) void {
-        c.TTF_SetFontHinting(self.value, @intFromEnum(hinting));
+    pub fn setHinting(
+        self: Font,
+        hinting: HintingFlags,
+    ) void {
+        c.TTF_SetFontHinting(self.value, @intFromEnum(
+            hinting,
+        ));
     }
 
     /// Query a font's current FreeType hinter setting.
@@ -883,8 +1137,12 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getHinting(self: Font) HintingFlags {
-        return @enumFromInt(c.TTF_GetFontHinting(self.value));
+    pub fn getHinting(
+        self: Font,
+    ) HintingFlags {
+        return @enumFromInt(c.TTF_GetFontHinting(
+            self.value,
+        ));
     }
 
     /// Query the number of faces of a font.
@@ -897,8 +1155,12 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getNumFaces(self: Font) c_int {
-        return c.TTF_GetNumFontFaces(self.value);
+    pub fn getNumFaces(
+        self: Font,
+    ) c_int {
+        return c.TTF_GetNumFontFaces(
+            self.value,
+        );
     }
 
     /// Enable Signed Distance Field rendering for a font.
@@ -921,8 +1183,14 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn setSdf(self: Font, enabled: bool) !void {
-        return errors.wrapCallBool(c.TTF_SetFontSDF(self.value, enabled));
+    pub fn setSdf(
+        self: Font,
+        enabled: bool,
+    ) !void {
+        return errors.wrapCallBool(c.TTF_SetFontSDF(
+            self.value,
+            enabled,
+        ));
     }
 
     /// Query whether Signed Distance Field rendering is enabled for a font.
@@ -935,8 +1203,12 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getSdf(self: Font) bool {
-        return c.TTF_GetFontSDF(self.value);
+    pub fn getSdf(
+        self: Font,
+    ) bool {
+        return c.TTF_GetFontSDF(
+            self.value,
+        );
     }
 
     /// Query a font's weight, in terms of the lightness/heaviness of the strokes.
@@ -949,8 +1221,12 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.4.0.
-    pub fn getWeight(self: Font) c_int {
-        return c.TTF_GetFontWeight(self.value);
+    pub fn getWeight(
+        self: Font,
+    ) c_int {
+        return c.TTF_GetFontWeight(
+            self.value,
+        );
     }
 
     /// Set a font's current wrap alignment option.
@@ -966,8 +1242,13 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn setWrapAlignment(self: Font, @"align": HorizontalAlignment) void {
-        c.TTF_SetFontWrapAlignment(self.value, @intFromEnum(@"align"));
+    pub fn setWrapAlignment(
+        self: Font,
+        @"align": HorizontalAlignment,
+    ) void {
+        c.TTF_SetFontWrapAlignment(self.value, @intFromEnum(
+            @"align",
+        ));
     }
 
     /// Query a font's current wrap alignment option.
@@ -980,8 +1261,12 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getWrapAlignment(self: Font) HorizontalAlignment {
-        return @enumFromInt(c.TTF_GetFontWrapAlignment(self.value));
+    pub fn getWrapAlignment(
+        self: Font,
+    ) HorizontalAlignment {
+        return @enumFromInt(c.TTF_GetFontWrapAlignment(
+            self.value,
+        ));
     }
 
     /// Query the total height of a font.
@@ -997,8 +1282,12 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getHeight(self: Font) c_int {
-        return c.TTF_GetFontHeight(self.value);
+    pub fn getHeight(
+        self: Font,
+    ) c_int {
+        return c.TTF_GetFontHeight(
+            self.value,
+        );
     }
 
     /// Query the offset from the baseline to the top of a font.
@@ -1014,8 +1303,12 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getAscent(self: Font) c_int {
-        return c.TTF_GetFontAscent(self.value);
+    pub fn getAscent(
+        self: Font,
+    ) c_int {
+        return c.TTF_GetFontAscent(
+            self.value,
+        );
     }
 
     /// Query the offset from the baseline to the bottom of a font.
@@ -1031,8 +1324,12 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getDescent(self: Font) c_int {
-        return c.TTF_GetFontDescent(self.value);
+    pub fn getDescent(
+        self: Font,
+    ) c_int {
+        return c.TTF_GetFontDescent(
+            self.value,
+        );
     }
 
     /// Set the spacing between lines of text for a font.
@@ -1048,8 +1345,14 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn setLineSkip(self: Font, lineskip: c_int) void {
-        c.TTF_SetFontLineSkip(self.value, lineskip);
+    pub fn setLineSkip(
+        self: Font,
+        lineskip: c_int,
+    ) void {
+        c.TTF_SetFontLineSkip(
+            self.value,
+            lineskip,
+        );
     }
 
     /// Query the spacing between lines of text for a font.
@@ -1062,8 +1365,12 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getLineSkip(self: Font) c_int {
-        return c.TTF_GetFontLineSkip(self.value);
+    pub fn getLineSkip(
+        self: Font,
+    ) c_int {
+        return c.TTF_GetFontLineSkip(
+            self.value,
+        );
     }
 
     /// Set if kerning is enabled for a font.
@@ -1075,7 +1382,7 @@ pub const Font = struct {
     /// Newly-opened fonts default to allowing kerning. This is generally a good
     /// policy unless you have a strong reason to disable it, as it tends to
     /// produce better rendering (with kerning disabled, some fonts might render
-    /// the word `kerning` as something that looks like `keming` for example).
+    /// the word `kerning` as something that looks like `keming` for example,).
     ///
     /// This updates any `Text` objects using this font.
     ///
@@ -1084,8 +1391,14 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn setKerning(self: Font, enabled: bool) void {
-        c.TTF_SetFontKerning(self.value, enabled);
+    pub fn setKerning(
+        self: Font,
+        enabled: bool,
+    ) void {
+        c.TTF_SetFontKerning(
+            self.value,
+            enabled,
+        );
     }
 
     /// Query whether or not kerning is enabled for a font.
@@ -1098,8 +1411,12 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getKerning(self: Font) bool {
-        return c.TTF_GetFontKerning(self.value);
+    pub fn getKerning(
+        self: Font,
+    ) bool {
+        return c.TTF_GetFontKerning(
+            self.value,
+        );
     }
 
     /// Query whether a font is fixed-width.
@@ -1111,7 +1428,7 @@ pub const Font = struct {
     /// A "fixed-width" font means all glyphs are the same width across; a
     /// lowercase 'i' will be the same size across as a capital 'W', for example.
     /// This is common for terminals and text editors, and other apps that treat
-    /// text as a grid. Most other things (WYSIWYG word processors, web pages, etc)
+    /// text as a grid. Most other things (WYSIWYG word processors, web pages, etc,)
     /// are more likely to not be fixed-width in most cases.
     ///
     /// ## Thread Safety
@@ -1119,8 +1436,12 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn isFixedWidth(self: Font) bool {
-        return c.TTF_FontIsFixedWidth(self.value);
+    pub fn isFixedWidth(
+        self: Font,
+    ) bool {
+        return c.TTF_FontIsFixedWidth(
+            self.value,
+        );
     }
 
     /// Query whether a font is scalable or not.
@@ -1136,8 +1457,12 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn isScalable(self: Font) bool {
-        return c.TTF_FontIsScalable(self.value);
+    pub fn isScalable(
+        self: Font,
+    ) bool {
+        return c.TTF_FontIsScalable(
+            self.value,
+        );
     }
 
     /// Query a font's family name.
@@ -1157,8 +1482,15 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getFamilyName(self: Font) [:0]const u8 {
-        return std.mem.sliceTo(c.TTF_GetFontFamilyName(self.value), 0);
+    pub fn getFamilyName(
+        self: Font,
+    ) [:0]const u8 {
+        return std.mem.sliceTo(
+            c.TTF_GetFontFamilyName(
+                self.value,
+            ),
+            0,
+        );
     }
 
     /// Query a font's style name.
@@ -1178,8 +1510,15 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getStyleName(self: Font) [:0]const u8 {
-        return std.mem.sliceTo(c.TTF_GetFontStyleName(self.value), 0);
+    pub fn getStyleName(
+        self: Font,
+    ) [:0]const u8 {
+        return std.mem.sliceTo(
+            c.TTF_GetFontStyleName(
+                self.value,
+            ),
+            0,
+        );
     }
 
     /// Set the direction to be used for text shaping by a font.
@@ -1198,8 +1537,15 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn setDirection(self: Font, direction: Direction) !void {
-        return errors.wrapCallBool(c.TTF_SetFontDirection(self.value, @intFromEnum(direction)));
+    pub fn setDirection(
+        self: Font,
+        direction: Direction,
+    ) !void {
+        return errors.wrapCallBool(
+            c.TTF_SetFontDirection(self.value, @intFromEnum(
+                direction,
+            )),
+        );
     }
 
     /// Get the direction to be used for text shaping by a font.
@@ -1215,8 +1561,12 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getDirection(self: Font) Direction {
-        return @enumFromInt(c.TTF_GetFontDirection(self.value));
+    pub fn getDirection(
+        self: Font,
+    ) Direction {
+        return @enumFromInt(c.TTF_GetFontDirection(
+            self.value,
+        ));
     }
 
     /// Set the script to be used for text shaping by a font.
@@ -1234,8 +1584,14 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn setScript(self: Font, script: u32) !void {
-        return errors.wrapCallBool(c.TTF_SetFontScript(self.value, script));
+    pub fn setScript(
+        self: Font,
+        script: u32,
+    ) !void {
+        return errors.wrapCallBool(c.TTF_SetFontScript(
+            self.value,
+            script,
+        ));
     }
 
     /// Get the script used for text shaping a font.
@@ -1248,8 +1604,12 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getScript(self: Font) u32 {
-        return c.TTF_GetFontScript(self.value);
+    pub fn getScript(
+        self: Font,
+    ) u32 {
+        return c.TTF_GetFontScript(
+            self.value,
+        );
     }
 
     /// Set language to be used for text shaping by a font.
@@ -1267,8 +1627,14 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn setLanguage(self: Font, language_bcp47: ?[:0]const u8) !void {
-        return errors.wrapCallBool(c.TTF_SetFontLanguage(self.value, if (language_bcp47) |l| l.ptr else null));
+    pub fn setLanguage(
+        self: Font,
+        language_bcp47: ?[:0]const u8,
+    ) !void {
+        return errors.wrapCallBool(c.TTF_SetFontLanguage(
+            self.value,
+            if (language_bcp47) |l| l.ptr else null,
+        ));
     }
 
     /// Check whether a glyph is provided by the font for a UNICODE codepoint.
@@ -1284,8 +1650,14 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn hasGlyph(self: Font, ch: u32) bool {
-        return c.TTF_FontHasGlyph(self.value, ch);
+    pub fn hasGlyph(
+        self: Font,
+        ch: u32,
+    ) bool {
+        return c.TTF_FontHasGlyph(
+            self.value,
+            ch,
+        );
     }
 
     /// Get the pixel image for a UNICODE codepoint.
@@ -1301,12 +1673,21 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getGlyphImage(self: Font, ch: u32) !struct { image: surface.Surface, image_type: ImageType } {
+    pub fn getGlyphImage(
+        self: Font,
+        ch: u32,
+    ) !struct { image: surface.Surface, image_type: ImageType } {
         var image_type: c.TTF_ImageType = undefined;
-        const surf = try errors.wrapCallNull(*c.SDL_Surface, c.TTF_GetGlyphImage(self.value, ch, &image_type));
+        const surf = try errors.wrapCallNull(*c.SDL_Surface, c.TTF_GetGlyphImage(
+            self.value,
+            ch,
+            &image_type,
+        ));
         return .{
             .image = .{ .value = surf },
-            .image_type = @enumFromInt(image_type),
+            .image_type = @enumFromInt(
+                image_type,
+            ),
         };
     }
 
@@ -1327,16 +1708,25 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getGlyphImageForIndex(self: Font, glyph_index: u32) !struct { image: surface.Surface, image_type: ImageType } {
+    pub fn getGlyphImageForIndex(
+        self: Font,
+        glyph_index: u32,
+    ) !struct { image: surface.Surface, image_type: ImageType } {
         var image_type: c.TTF_ImageType = undefined;
-        const surf = try errors.wrapCallNull(*c.SDL_Surface, c.TTF_GetGlyphImageForIndex(self.value, glyph_index, &image_type));
+        const surf = try errors.wrapCallNull(*c.SDL_Surface, c.TTF_GetGlyphImageForIndex(
+            self.value,
+            glyph_index,
+            &image_type,
+        ));
         return .{
             .image = .{ .value = surf },
-            .image_type = @enumFromInt(image_type),
+            .image_type = @enumFromInt(
+                image_type,
+            ),
         };
     }
 
-    /// Query the metrics (dimensions) of a font's glyph for a UNICODE codepoint.
+    /// Query the metrics (dimensions,) of a font's glyph for a UNICODE codepoint.
     ///
     /// ## Function Parameters
     /// * `ch`: The codepoint to check.
@@ -1353,13 +1743,24 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getGlyphMetrics(self: Font, ch: u32) !struct { minx: c_int, maxx: c_int, miny: c_int, maxy: c_int, advance: c_int } {
+    pub fn getGlyphMetrics(
+        self: Font,
+        ch: u32,
+    ) !struct { minx: c_int, maxx: c_int, miny: c_int, maxy: c_int, advance: c_int } {
         var minx: c_int = undefined;
         var maxx: c_int = undefined;
         var miny: c_int = undefined;
         var maxy: c_int = undefined;
         var advance: c_int = undefined;
-        try errors.wrapCallBool(c.TTF_GetGlyphMetrics(self.value, ch, &minx, &maxx, &miny, &maxy, &advance));
+        try errors.wrapCallBool(c.TTF_GetGlyphMetrics(
+            self.value,
+            ch,
+            &minx,
+            &maxx,
+            &miny,
+            &maxy,
+            &advance,
+        ));
         return .{ .minx = minx, .maxx = maxx, .miny = miny, .maxy = maxy, .advance = advance };
     }
 
@@ -1377,9 +1778,18 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getGlyphKerning(self: Font, previous_ch: u32, ch: u32) !c_int {
+    pub fn getGlyphKerning(
+        self: Font,
+        previous_ch: u32,
+        ch: u32,
+    ) !c_int {
         var kerning: c_int = undefined;
-        try errors.wrapCallBool(c.TTF_GetGlyphKerning(self.value, previous_ch, ch, &kerning));
+        try errors.wrapCallBool(c.TTF_GetGlyphKerning(
+            self.value,
+            previous_ch,
+            ch,
+            &kerning,
+        ));
         return kerning;
     }
 
@@ -1397,10 +1807,19 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getStringSize(self: Font, text: []const u8) !struct { w: c_int, h: c_int } {
+    pub fn getStringSize(
+        self: Font,
+        text: []const u8,
+    ) !struct { w: c_int, h: c_int } {
         var w: c_int = undefined;
         var h: c_int = undefined;
-        try errors.wrapCallBool(c.TTF_GetStringSize(self.value, text.ptr, text.len, &w, &h));
+        try errors.wrapCallBool(c.TTF_GetStringSize(
+            self.value,
+            text.ptr,
+            text.len,
+            &w,
+            &h,
+        ));
         return .{ .w = w, .h = h };
     }
 
@@ -1425,10 +1844,21 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getStringSizeWrapped(self: Font, text: []const u8, wrap_width: c_int) !struct { w: c_int, h: c_int } {
+    pub fn getStringSizeWrapped(
+        self: Font,
+        text: []const u8,
+        wrap_width: c_int,
+    ) !struct { w: c_int, h: c_int } {
         var w: c_int = undefined;
         var h: c_int = undefined;
-        try errors.wrapCallBool(c.TTF_GetStringSizeWrapped(self.value, text.ptr, text.len, wrap_width, &w, &h));
+        try errors.wrapCallBool(c.TTF_GetStringSizeWrapped(
+            self.value,
+            text.ptr,
+            text.len,
+            wrap_width,
+            &w,
+            &h,
+        ));
         return .{ .w = w, .h = h };
     }
 
@@ -1450,10 +1880,21 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn measureString(self: Font, text: []const u8, max_width: c_int) !struct { measured_width: c_int, measured_length: usize } {
+    pub fn measureString(
+        self: Font,
+        text: []const u8,
+        max_width: c_int,
+    ) !struct { measured_width: c_int, measured_length: usize } {
         var measured_width: c_int = undefined;
         var measured_length: usize = undefined;
-        try errors.wrapCallBool(c.TTF_MeasureString(self.value, text.ptr, text.len, max_width, &measured_width, &measured_length));
+        try errors.wrapCallBool(c.TTF_MeasureString(
+            self.value,
+            text.ptr,
+            text.len,
+            max_width,
+            &measured_width,
+            &measured_length,
+        ));
         return .{ .measured_width = measured_width, .measured_length = measured_length };
     }
 
@@ -1486,9 +1927,18 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn renderTextSolid(self: Font, text: []const u8, fg: Color) !surface.Surface {
+    pub fn renderTextSolid(
+        self: Font,
+        text: []const u8,
+        fg: Color,
+    ) !surface.Surface {
         return .{
-            .value = try errors.wrapCallNull(*c.SDL_Surface, c.TTF_RenderText_Solid(self.value, text.ptr, text.len, fg.toSdl())),
+            .value = try errors.wrapCallNull(*c.SDL_Surface, c.TTF_RenderText_Solid(
+                self.value,
+                text.ptr,
+                text.len,
+                fg.toSdl(),
+            )),
         };
     }
 
@@ -1520,9 +1970,20 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn renderTextSolidWrapped(self: Font, text: []const u8, fg: Color, wrap_length: c_int) !surface.Surface {
+    pub fn renderTextSolidWrapped(
+        self: Font,
+        text: []const u8,
+        fg: Color,
+        wrap_length: c_int,
+    ) !surface.Surface {
         return .{
-            .value = try errors.wrapCallNull(*c.SDL_Surface, c.TTF_RenderText_Solid_Wrapped(self.value, text.ptr, text.len, fg.toSdl(), wrap_length)),
+            .value = try errors.wrapCallNull(*c.SDL_Surface, c.TTF_RenderText_Solid_Wrapped(
+                self.value,
+                text.ptr,
+                text.len,
+                fg.toSdl(),
+                wrap_length,
+            )),
         };
     }
 
@@ -1551,9 +2012,17 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn renderGlyphSolid(self: Font, ch: u32, fg: Color) !surface.Surface {
+    pub fn renderGlyphSolid(
+        self: Font,
+        ch: u32,
+        fg: Color,
+    ) !surface.Surface {
         return .{
-            .value = try errors.wrapCallNull(*c.SDL_Surface, c.TTF_RenderGlyph_Solid(self.value, ch, fg.toSdl())),
+            .value = try errors.wrapCallNull(*c.SDL_Surface, c.TTF_RenderGlyph_Solid(
+                self.value,
+                ch,
+                fg.toSdl(),
+            )),
         };
     }
 
@@ -1587,9 +2056,20 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn renderTextShaded(self: Font, text: []const u8, fg: Color, bg: Color) !surface.Surface {
+    pub fn renderTextShaded(
+        self: Font,
+        text: []const u8,
+        fg: Color,
+        bg: Color,
+    ) !surface.Surface {
         return .{
-            .value = try errors.wrapCallNull(*c.SDL_Surface, c.TTF_RenderText_Shaded(self.value, text.ptr, text.len, fg.toSdl(), bg.toSdl())),
+            .value = try errors.wrapCallNull(*c.SDL_Surface, c.TTF_RenderText_Shaded(
+                self.value,
+                text.ptr,
+                text.len,
+                fg.toSdl(),
+                bg.toSdl(),
+            )),
         };
     }
 
@@ -1622,9 +2102,22 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn renderTextShadedWrapped(self: Font, text: []const u8, fg: Color, bg: Color, wrap_width: c_int) !surface.Surface {
+    pub fn renderTextShadedWrapped(
+        self: Font,
+        text: []const u8,
+        fg: Color,
+        bg: Color,
+        wrap_width: c_int,
+    ) !surface.Surface {
         return .{
-            .value = try errors.wrapCallNull(*c.SDL_Surface, c.TTF_RenderText_Shaded_Wrapped(self.value, text.ptr, text.len, fg.toSdl(), bg.toSdl(), wrap_width)),
+            .value = try errors.wrapCallNull(*c.SDL_Surface, c.TTF_RenderText_Shaded_Wrapped(
+                self.value,
+                text.ptr,
+                text.len,
+                fg.toSdl(),
+                bg.toSdl(),
+                wrap_width,
+            )),
         };
     }
 
@@ -1654,9 +2147,19 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn renderGlyphShaded(self: Font, ch: u32, fg: Color, bg: Color) !surface.Surface {
+    pub fn renderGlyphShaded(
+        self: Font,
+        ch: u32,
+        fg: Color,
+        bg: Color,
+    ) !surface.Surface {
         return .{
-            .value = try errors.wrapCallNull(*c.SDL_Surface, c.TTF_RenderGlyph_Shaded(self.value, ch, fg.toSdl(), bg.toSdl())),
+            .value = try errors.wrapCallNull(*c.SDL_Surface, c.TTF_RenderGlyph_Shaded(
+                self.value,
+                ch,
+                fg.toSdl(),
+                bg.toSdl(),
+            )),
         };
     }
 
@@ -1688,9 +2191,18 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn renderTextBlended(self: Font, text: []const u8, fg: Color) !surface.Surface {
+    pub fn renderTextBlended(
+        self: Font,
+        text: []const u8,
+        fg: Color,
+    ) !surface.Surface {
         return .{
-            .value = try errors.wrapCallNull(*c.SDL_Surface, c.TTF_RenderText_Blended(self.value, text.ptr, text.len, fg.toSdl())),
+            .value = try errors.wrapCallNull(*c.SDL_Surface, c.TTF_RenderText_Blended(
+                self.value,
+                text.ptr,
+                text.len,
+                fg.toSdl(),
+            )),
         };
     }
 
@@ -1721,9 +2233,20 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn renderTextBlendedWrapped(self: Font, text: []const u8, fg: Color, wrap_width: c_int) !surface.Surface {
+    pub fn renderTextBlendedWrapped(
+        self: Font,
+        text: []const u8,
+        fg: Color,
+        wrap_width: c_int,
+    ) !surface.Surface {
         return .{
-            .value = try errors.wrapCallNull(*c.SDL_Surface, c.TTF_RenderText_Blended_Wrapped(self.value, text.ptr, text.len, fg.toSdl(), wrap_width)),
+            .value = try errors.wrapCallNull(*c.SDL_Surface, c.TTF_RenderText_Blended_Wrapped(
+                self.value,
+                text.ptr,
+                text.len,
+                fg.toSdl(),
+                wrap_width,
+            )),
         };
     }
 
@@ -1751,9 +2274,17 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn renderGlyphBlended(self: Font, ch: u32, fg: Color) !surface.Surface {
+    pub fn renderGlyphBlended(
+        self: Font,
+        ch: u32,
+        fg: Color,
+    ) !surface.Surface {
         return .{
-            .value = try errors.wrapCallNull(*c.SDL_Surface, c.TTF_RenderGlyph_Blended(self.value, ch, fg.toSdl())),
+            .value = try errors.wrapCallNull(*c.SDL_Surface, c.TTF_RenderGlyph_Blended(
+                self.value,
+                ch,
+                fg.toSdl(),
+            )),
         };
     }
 
@@ -1786,9 +2317,20 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn renderTextLcd(self: Font, text: []const u8, fg: Color, bg: Color) !surface.Surface {
+    pub fn renderTextLcd(
+        self: Font,
+        text: []const u8,
+        fg: Color,
+        bg: Color,
+    ) !surface.Surface {
         return .{
-            .value = try errors.wrapCallNull(*c.SDL_Surface, c.TTF_RenderText_LCD(self.value, text.ptr, text.len, fg.toSdl(), bg.toSdl())),
+            .value = try errors.wrapCallNull(*c.SDL_Surface, c.TTF_RenderText_LCD(
+                self.value,
+                text.ptr,
+                text.len,
+                fg.toSdl(),
+                bg.toSdl(),
+            )),
         };
     }
 
@@ -1820,9 +2362,22 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn renderTextLcdWrapped(self: Font, text: []const u8, fg: Color, bg: Color, wrap_width: c_int) !surface.Surface {
+    pub fn renderTextLcdWrapped(
+        self: Font,
+        text: []const u8,
+        fg: Color,
+        bg: Color,
+        wrap_width: c_int,
+    ) !surface.Surface {
         return .{
-            .value = try errors.wrapCallNull(*c.SDL_Surface, c.TTF_RenderText_LCD_Wrapped(self.value, text.ptr, text.len, fg.toSdl(), bg.toSdl(), wrap_width)),
+            .value = try errors.wrapCallNull(*c.SDL_Surface, c.TTF_RenderText_LCD_Wrapped(
+                self.value,
+                text.ptr,
+                text.len,
+                fg.toSdl(),
+                bg.toSdl(),
+                wrap_width,
+            )),
         };
     }
 
@@ -1851,9 +2406,19 @@ pub const Font = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn renderGlyphLcd(self: Font, ch: u32, fg: Color, bg: Color) !surface.Surface {
+    pub fn renderGlyphLcd(
+        self: Font,
+        ch: u32,
+        fg: Color,
+        bg: Color,
+    ) !surface.Surface {
         return .{
-            .value = try errors.wrapCallNull(*c.SDL_Surface, c.TTF_RenderGlyph_LCD(self.value, ch, fg.toSdl(), bg.toSdl())),
+            .value = try errors.wrapCallNull(*c.SDL_Surface, c.TTF_RenderGlyph_LCD(
+                self.value,
+                ch,
+                fg.toSdl(),
+                bg.toSdl(),
+            )),
         };
     }
 };
@@ -1891,7 +2456,10 @@ pub const SurfaceTextEngine = struct {
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
     pub fn init() !SurfaceTextEngine {
-        return .{ .value = try errors.wrapCallNull(*c.TTF_TextEngine, c.TTF_CreateSurfaceTextEngine()) };
+        return .{ .value = try errors.wrapCallNull(
+            *c.TTF_TextEngine,
+            c.TTF_CreateSurfaceTextEngine(),
+        ) };
     }
 
     /// Destroy a text engine created for drawing text on SDL surfaces.
@@ -1904,8 +2472,12 @@ pub const SurfaceTextEngine = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn deinit(self: SurfaceTextEngine) void {
-        c.TTF_DestroySurfaceTextEngine(self.value);
+    pub fn deinit(
+        self: SurfaceTextEngine,
+    ) void {
+        c.TTF_DestroySurfaceTextEngine(
+            self.value,
+        );
     }
 };
 
@@ -1926,8 +2498,12 @@ pub const RendererTextEngine = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn init(r: render.Renderer) !RendererTextEngine {
-        return .{ .value = try errors.wrapCallNull(*c.TTF_TextEngine, c.TTF_CreateRendererTextEngine(r.value)) };
+    pub fn init(
+        r: render.Renderer,
+    ) !RendererTextEngine {
+        return .{ .value = try errors.wrapCallNull(*c.TTF_TextEngine, c.TTF_CreateRendererTextEngine(
+            r.value,
+        )) };
     }
 
     /// Properties to use for renderer text engine creation.
@@ -1944,10 +2520,18 @@ pub const RendererTextEngine = struct {
         ///
         /// ## Remarks
         /// The returned group must be freed with `properties.Group.deinit()`.
-        pub fn toProperties(self: CreateProperties) !properties.Group {
+        pub fn toProperties(
+            self: CreateProperties,
+        ) !properties.Group {
             const ret = try properties.Group.init();
-            try ret.set(c.TTF_PROP_RENDERER_TEXT_ENGINE_RENDERER, .{ .pointer = self.renderer.value });
-            if (self.atlas_texture_size) |val| try ret.set(c.TTF_PROP_RENDERER_TEXT_ENGINE_ATLAS_TEXTURE_SIZE, .{ .number = val });
+            try ret.set(
+                c.TTF_PROP_RENDERER_TEXT_ENGINE_RENDERER,
+                .{ .pointer = self.renderer.value },
+            );
+            if (self.atlas_texture_size) |val| try ret.set(
+                c.TTF_PROP_RENDERER_TEXT_ENGINE_ATLAS_TEXTURE_SIZE,
+                .{ .number = val },
+            );
             return ret;
         }
     };
@@ -1965,10 +2549,14 @@ pub const RendererTextEngine = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn initWithProperties(props: CreateProperties) !RendererTextEngine {
+    pub fn initWithProperties(
+        props: CreateProperties,
+    ) !RendererTextEngine {
         const group = try props.toProperties();
         defer group.deinit();
-        return .{ .value = try errors.wrapCallNull(*c.TTF_TextEngine, c.TTF_CreateRendererTextEngineWithProperties(group.value)) };
+        return .{ .value = try errors.wrapCallNull(*c.TTF_TextEngine, c.TTF_CreateRendererTextEngineWithProperties(
+            group.value,
+        )) };
     }
 
     /// Destroy a text engine created for drawing text on an SDL renderer.
@@ -1981,8 +2569,12 @@ pub const RendererTextEngine = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn deinit(self: RendererTextEngine) void {
-        c.TTF_DestroyRendererTextEngine(self.value);
+    pub fn deinit(
+        self: RendererTextEngine,
+    ) void {
+        c.TTF_DestroyRendererTextEngine(
+            self.value,
+        );
     }
 };
 
@@ -2003,8 +2595,12 @@ pub const GpuTextEngine = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn init(device: gpu.Device) !GpuTextEngine {
-        return .{ .value = try errors.wrapCallNull(*c.TTF_TextEngine, c.TTF_CreateGPUTextEngine(device.value)) };
+    pub fn init(
+        device: gpu.Device,
+    ) !GpuTextEngine {
+        return .{ .value = try errors.wrapCallNull(*c.TTF_TextEngine, c.TTF_CreateGPUTextEngine(
+            device.value,
+        )) };
     }
 
     /// Properties to use for GPU text engine creation.
@@ -2021,10 +2617,18 @@ pub const GpuTextEngine = struct {
         ///
         /// ## Remarks
         /// The returned group must be freed with `properties.Group.deinit()`.
-        pub fn toProperties(self: CreateProperties) !properties.Group {
+        pub fn toProperties(
+            self: CreateProperties,
+        ) !properties.Group {
             const ret = try properties.Group.init();
-            try ret.set(c.TTF_PROP_GPU_TEXT_ENGINE_DEVICE, .{ .pointer = self.device.value });
-            if (self.atlas_texture_size) |val| try ret.set(c.TTF_PROP_GPU_TEXT_ENGINE_ATLAS_TEXTURE_SIZE, .{ .number = val });
+            try ret.set(
+                c.TTF_PROP_GPU_TEXT_ENGINE_DEVICE,
+                .{ .pointer = self.device.value },
+            );
+            if (self.atlas_texture_size) |val| try ret.set(
+                c.TTF_PROP_GPU_TEXT_ENGINE_ATLAS_TEXTURE_SIZE,
+                .{ .number = val },
+            );
             return ret;
         }
     };
@@ -2042,10 +2646,14 @@ pub const GpuTextEngine = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn initWithProperties(props: CreateProperties) !GpuTextEngine {
+    pub fn initWithProperties(
+        props: CreateProperties,
+    ) !GpuTextEngine {
         const group = try props.toProperties();
         defer group.deinit();
-        return .{ .value = try errors.wrapCallNull(*c.TTF_TextEngine, c.TTF_CreateGPUTextEngineWithProperties(group.value)) };
+        return .{ .value = try errors.wrapCallNull(*c.TTF_TextEngine, c.TTF_CreateGPUTextEngineWithProperties(
+            group.value,
+        )) };
     }
 
     /// Destroy a text engine created for drawing text with the SDL GPU API.
@@ -2058,8 +2666,12 @@ pub const GpuTextEngine = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn deinit(self: GpuTextEngine) void {
-        c.TTF_DestroyGPUTextEngine(self.value);
+    pub fn deinit(
+        self: GpuTextEngine,
+    ) void {
+        c.TTF_DestroyGPUTextEngine(
+            self.value,
+        );
     }
 
     /// Sets the winding order of the vertices returned by `getGpuTextDrawData` for a particular GPU text engine.
@@ -2072,8 +2684,13 @@ pub const GpuTextEngine = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn setWinding(self: GpuTextEngine, winding: GpuTextEngineWinding) void {
-        c.TTF_SetGPUTextEngineWinding(self.value, @intFromEnum(winding));
+    pub fn setWinding(
+        self: GpuTextEngine,
+        winding: GpuTextEngineWinding,
+    ) void {
+        c.TTF_SetGPUTextEngineWinding(self.value, @intFromEnum(
+            winding,
+        ));
     }
 
     /// Get the winding order of the vertices returned by `getGpuTextDrawData` for a particular GPU text engine.
@@ -2086,9 +2703,19 @@ pub const GpuTextEngine = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getWinding(self: GpuTextEngine) !GpuTextEngineWinding {
-        const winding = try errors.wrapCall(c.TTF_GPUTextEngineWinding, c.TTF_GetGPUTextEngineWinding(self.value), c.TTF_GPU_TEXTENGINE_WINDING_INVALID);
-        return @enumFromInt(winding);
+    pub fn getWinding(
+        self: GpuTextEngine,
+    ) !GpuTextEngineWinding {
+        const winding = try errors.wrapCall(
+            c.TTF_GPUTextEngineWinding,
+            c.TTF_GetGPUTextEngineWinding(
+                self.value,
+            ),
+            c.TTF_GPU_TEXTENGINE_WINDING_INVALID,
+        );
+        return @enumFromInt(
+            winding,
+        );
     }
 };
 
@@ -2108,8 +2735,18 @@ pub const GpuTextEngine = struct {
 ///
 /// ## Version
 /// This function is available since SDL_ttf 3.0.0.
-pub fn drawSurfaceText(text: Text, x: c_int, y: c_int, surf: surface.Surface) !void {
-    return errors.wrapCallBool(c.TTF_DrawSurfaceText(text.value, x, y, surf.value));
+pub fn drawSurfaceText(
+    text: Text,
+    x: c_int,
+    y: c_int,
+    surf: surface.Surface,
+) !void {
+    return errors.wrapCallBool(c.TTF_DrawSurfaceText(
+        text.value,
+        x,
+        y,
+        surf.value,
+    ));
 }
 
 /// Draw text to an SDL renderer.
@@ -2127,8 +2764,16 @@ pub fn drawSurfaceText(text: Text, x: c_int, y: c_int, surf: surface.Surface) !v
 ///
 /// ## Version
 /// This function is available since SDL_ttf 3.0.0.
-pub fn drawRendererText(text: Text, x: f32, y: f32) !void {
-    return errors.wrapCallBool(c.TTF_DrawRendererText(text.value, x, y));
+pub fn drawRendererText(
+    text: Text,
+    x: f32,
+    y: f32,
+) !void {
+    return errors.wrapCallBool(c.TTF_DrawRendererText(
+        text.value,
+        x,
+        y,
+    ));
 }
 
 /// Draw sequence returned by `getGpuTextDrawData`
@@ -2147,13 +2792,23 @@ pub const GpuAtlasDrawSequence = struct {
     /// The image type of this draw sequence
     image_type: ImageType,
 
-    pub fn fromSdl(sdl_seq: *const c.TTF_GPUAtlasDrawSequence) GpuAtlasDrawSequence {
+    pub fn fromSdl(
+        sdl_seq: *const c.TTF_GPUAtlasDrawSequence,
+    ) GpuAtlasDrawSequence {
         return .{
             .atlas_texture = .{ .value = sdl_seq.atlas_texture },
-            .xy = sdl_seq.xy[0..@intCast(sdl_seq.num_vertices)],
-            .uv = sdl_seq.uv[0..@intCast(sdl_seq.num_vertices)],
-            .indices = sdl_seq.indices[0..@intCast(sdl_seq.num_indices)],
-            .image_type = @enumFromInt(sdl_seq.image_type),
+            .xy = sdl_seq.xy[0..@intCast(
+                sdl_seq.num_vertices,
+            )],
+            .uv = sdl_seq.uv[0..@intCast(
+                sdl_seq.num_vertices,
+            )],
+            .indices = sdl_seq.indices[0..@intCast(
+                sdl_seq.num_indices,
+            )],
+            .image_type = @enumFromInt(
+                sdl_seq.image_type,
+            ),
         };
     }
 };
@@ -2183,8 +2838,12 @@ pub const GpuAtlasDrawSequence = struct {
 ///
 /// ## Version
 /// This function is available since SDL_ttf 3.0.0.
-pub fn getGpuTextDrawData(text: Text) ?*c.TTF_GPUAtlasDrawSequence {
-    return c.TTF_GetGPUTextDrawData(text.value);
+pub fn getGpuTextDrawData(
+    text: Text,
+) ?*c.TTF_GPUAtlasDrawSequence {
+    return c.TTF_GetGPUTextDrawData(
+        text.value,
+    );
 }
 
 /// Text created with `Text.init()`
@@ -2195,12 +2854,19 @@ pub const Text = struct {
     value: *c.TTF_Text,
 
     /// A copy of the UTF-8 string that this text object represents, useful for layout, debugging and retrieving substring text. This is updated when the text object is modified and will be freed automatically when the object is destroyed.
-    pub fn getText(self: Text) [:0]const u8 {
-        return std.mem.sliceTo(self.value.text, 0);
+    pub fn getText(
+        self: Text,
+    ) [:0]const u8 {
+        return std.mem.sliceTo(
+            self.value.text,
+            0,
+        );
     }
 
     /// The number of lines in the text, 0 if it's empty
-    pub fn getNumLines(self: Text) c_int {
+    pub fn getNumLines(
+        self: Text,
+    ) c_int {
         return self.value.num_lines;
     }
 
@@ -2219,9 +2885,18 @@ pub const Text = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn init(engine: ?TextEngine, font: Font, text: []const u8) !Text {
+    pub fn init(
+        engine: ?TextEngine,
+        font: Font,
+        text: []const u8,
+    ) !Text {
         return .{
-            .value = try errors.wrapCallNull(*c.TTF_Text, c.TTF_CreateText(if (engine) |e| e.value else null, font.value, text.ptr, text.len)),
+            .value = try errors.wrapCallNull(*c.TTF_Text, c.TTF_CreateText(
+                if (engine) |e| e.value else null,
+                font.value,
+                text.ptr,
+                text.len,
+            )),
         };
     }
 
@@ -2232,8 +2907,12 @@ pub const Text = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn deinit(self: Text) void {
-        c.TTF_DestroyText(self.value);
+    pub fn deinit(
+        self: Text,
+    ) void {
+        c.TTF_DestroyText(
+            self.value,
+        );
     }
 
     /// Get the properties associated with a text object.
@@ -2246,9 +2925,17 @@ pub const Text = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getProperties(self: Text) !properties.Group {
+    pub fn getProperties(
+        self: Text,
+    ) !properties.Group {
         return .{
-            .value = try errors.wrapCall(c.SDL_PropertiesID, c.TTF_GetTextProperties(self.value), 0),
+            .value = try errors.wrapCall(
+                c.SDL_PropertiesID,
+                c.TTF_GetTextProperties(
+                    self.value,
+                ),
+                0,
+            ),
         };
     }
 
@@ -2265,8 +2952,14 @@ pub const Text = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn setEngine(self: Text, engine: TextEngine) !void {
-        return errors.wrapCallBool(c.TTF_SetTextEngine(self.value, engine.value));
+    pub fn setEngine(
+        self: Text,
+        engine: TextEngine,
+    ) !void {
+        return errors.wrapCallBool(c.TTF_SetTextEngine(
+            self.value,
+            engine.value,
+        ));
     }
 
     /// Get the text engine used by a text object.
@@ -2283,7 +2976,9 @@ pub const Text = struct {
         self: Text,
     ) !TextEngine {
         return .{
-            .value = try errors.wrapCallNull(*c.TTF_TextEngine, c.TTF_GetTextEngine(self.value)),
+            .value = try errors.wrapCallNull(*c.TTF_TextEngine, c.TTF_GetTextEngine(
+                self.value,
+            )),
         };
     }
 
@@ -2304,8 +2999,14 @@ pub const Text = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn setFont(self: Text, font: ?Font) !void {
-        return errors.wrapCallBool(c.TTF_SetTextFont(self.value, if (font) |f| f.value else null));
+    pub fn setFont(
+        self: Text,
+        font: ?Font,
+    ) !void {
+        return errors.wrapCallBool(c.TTF_SetTextFont(
+            self.value,
+            if (font) |f| f.value else null,
+        ));
     }
 
     /// Get the font used by a text object.
@@ -2318,9 +3019,13 @@ pub const Text = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getFont(self: Text) !Font {
+    pub fn getFont(
+        self: Text,
+    ) !Font {
         return .{
-            .value = try errors.wrapCallNull(*c.TTF_Font, c.TTF_GetTextFont(self.value)),
+            .value = try errors.wrapCallNull(*c.TTF_Font, c.TTF_GetTextFont(
+                self.value,
+            )),
         };
     }
 
@@ -2338,8 +3043,15 @@ pub const Text = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn setDirection(self: Text, direction: Direction) !void {
-        return errors.wrapCallBool(c.TTF_SetTextDirection(self.value, @intFromEnum(direction)));
+    pub fn setDirection(
+        self: Text,
+        direction: Direction,
+    ) !void {
+        return errors.wrapCallBool(
+            c.TTF_SetTextDirection(self.value, @intFromEnum(
+                direction,
+            )),
+        );
     }
 
     /// Get the direction to be used for text shaping a text object.
@@ -2355,8 +3067,12 @@ pub const Text = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getDirection(self: Text) Direction {
-        return @enumFromInt(c.TTF_GetTextDirection(self.value));
+    pub fn getDirection(
+        self: Text,
+    ) Direction {
+        return @enumFromInt(c.TTF_GetTextDirection(
+            self.value,
+        ));
     }
 
     /// Set the script to be used for text shaping a text object.
@@ -2372,8 +3088,14 @@ pub const Text = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn setScript(self: Text, script: u32) !void {
-        return errors.wrapCallBool(c.TTF_SetTextScript(self.value, script));
+    pub fn setScript(
+        self: Text,
+        script: u32,
+    ) !void {
+        return errors.wrapCallBool(c.TTF_SetTextScript(
+            self.value,
+            script,
+        ));
     }
 
     /// Get the script used for text shaping a text object.
@@ -2389,8 +3111,12 @@ pub const Text = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getScript(self: Text) u32 {
-        return c.TTF_GetTextScript(self.value);
+    pub fn getScript(
+        self: Text,
+    ) u32 {
+        return c.TTF_GetTextScript(
+            self.value,
+        );
     }
 
     /// Set the color of a text object.
@@ -2402,15 +3128,27 @@ pub const Text = struct {
     /// * `a`: The alpha value in the range of 0-255.
     ///
     /// ## Remarks
-    /// The default text color is white (255, 255, 255, 255).
+    /// The default text color is white (255, 255, 255, 255,).
     ///
     /// ## Thread Safety
     /// This function should be called on the thread that created the text.
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn setColor(self: Text, r: u8, g: u8, b: u8, a: u8) !void {
-        return errors.wrapCallBool(c.TTF_SetTextColor(self.value, r, g, b, a));
+    pub fn setColor(
+        self: Text,
+        r: u8,
+        g: u8,
+        b: u8,
+        a: u8,
+    ) !void {
+        return errors.wrapCallBool(c.TTF_SetTextColor(
+            self.value,
+            r,
+            g,
+            b,
+            a,
+        ));
     }
 
     /// Set the color of a text object.
@@ -2422,15 +3160,27 @@ pub const Text = struct {
     /// * `a`: The alpha value in the range of 0-1.
     ///
     /// ## Remarks
-    /// The default text color is white (1.0f, 1.0f, 1.0f, 1.0f).
+    /// The default text color is white (1.0f, 1.0f, 1.0f, 1.0f,).
     ///
     /// ## Thread Safety
     /// This function should be called on the thread that created the text.
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn setColorFloat(self: Text, r: f32, g: f32, b: f32, a: f32) !void {
-        return errors.wrapCallBool(c.TTF_SetTextColorFloat(self.value, r, g, b, a));
+    pub fn setColorFloat(
+        self: Text,
+        r: f32,
+        g: f32,
+        b: f32,
+        a: f32,
+    ) !void {
+        return errors.wrapCallBool(c.TTF_SetTextColorFloat(
+            self.value,
+            r,
+            g,
+            b,
+            a,
+        ));
     }
 
     /// Get the color of a text object.
@@ -2443,12 +3193,20 @@ pub const Text = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getColor(self: Text) !struct { r: u8, g: u8, b: u8, a: u8 } {
+    pub fn getColor(
+        self: Text,
+    ) !struct { r: u8, g: u8, b: u8, a: u8 } {
         var r: u8 = undefined;
         var g: u8 = undefined;
         var b: u8 = undefined;
         var a: u8 = undefined;
-        try errors.wrapCallBool(c.TTF_GetTextColor(self.value, &r, &g, &b, &a));
+        try errors.wrapCallBool(c.TTF_GetTextColor(
+            self.value,
+            &r,
+            &g,
+            &b,
+            &a,
+        ));
         return .{ .r = r, .g = g, .b = b, .a = a };
     }
 
@@ -2462,12 +3220,20 @@ pub const Text = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getColorFloat(self: Text) !struct { r: f32, g: f32, b: f32, a: f32 } {
+    pub fn getColorFloat(
+        self: Text,
+    ) !struct { r: f32, g: f32, b: f32, a: f32 } {
         var r: f32 = undefined;
         var g: f32 = undefined;
         var b: f32 = undefined;
         var a: f32 = undefined;
-        try errors.wrapCallBool(c.TTF_GetTextColorFloat(self.value, &r, &g, &b, &a));
+        try errors.wrapCallBool(c.TTF_GetTextColorFloat(
+            self.value,
+            &r,
+            &g,
+            &b,
+            &a,
+        ));
         return .{ .r = r, .g = g, .b = b, .a = a };
     }
 
@@ -2486,8 +3252,16 @@ pub const Text = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn setPosition(self: Text, x: c_int, y: c_int) !void {
-        return errors.wrapCallBool(c.TTF_SetTextPosition(self.value, x, y));
+    pub fn setPosition(
+        self: Text,
+        x: c_int,
+        y: c_int,
+    ) !void {
+        return errors.wrapCallBool(c.TTF_SetTextPosition(
+            self.value,
+            x,
+            y,
+        ));
     }
 
     /// Get the position of a text object.
@@ -2500,10 +3274,16 @@ pub const Text = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getPosition(self: Text) !struct { x: c_int, y: c_int } {
+    pub fn getPosition(
+        self: Text,
+    ) !struct { x: c_int, y: c_int } {
         var x: c_int = undefined;
         var y: c_int = undefined;
-        try errors.wrapCallBool(c.TTF_GetTextPosition(self.value, &x, &y));
+        try errors.wrapCallBool(c.TTF_GetTextPosition(
+            self.value,
+            &x,
+            &y,
+        ));
         return .{ .x = x, .y = y };
     }
 
@@ -2520,8 +3300,14 @@ pub const Text = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn setWrapWidth(self: Text, wrap_width: c_int) !void {
-        return errors.wrapCallBool(c.TTF_SetTextWrapWidth(self.value, wrap_width));
+    pub fn setWrapWidth(
+        self: Text,
+        wrap_width: c_int,
+    ) !void {
+        return errors.wrapCallBool(c.TTF_SetTextWrapWidth(
+            self.value,
+            wrap_width,
+        ));
     }
 
     /// Get whether wrapping is enabled on a text object.
@@ -2534,9 +3320,14 @@ pub const Text = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getWrapWidth(self: Text) !c_int {
+    pub fn getWrapWidth(
+        self: Text,
+    ) !c_int {
         var wrap_width: c_int = undefined;
-        try errors.wrapCallBool(c.TTF_GetTextWrapWidth(self.value, &wrap_width));
+        try errors.wrapCallBool(c.TTF_GetTextWrapWidth(
+            self.value,
+            &wrap_width,
+        ));
         return wrap_width;
     }
 
@@ -2558,8 +3349,14 @@ pub const Text = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn setWrapWhitespaceVisible(self: Text, visible: bool) !void {
-        return errors.wrapCallBool(c.TTF_SetTextWrapWhitespaceVisible(self.value, visible));
+    pub fn setWrapWhitespaceVisible(
+        self: Text,
+        visible: bool,
+    ) !void {
+        return errors.wrapCallBool(c.TTF_SetTextWrapWhitespaceVisible(
+            self.value,
+            visible,
+        ));
     }
 
     /// Return whether whitespace is shown when wrapping a text object.
@@ -2572,8 +3369,12 @@ pub const Text = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn wrapWhitespaceVisible(self: Text) bool {
-        return c.TTF_TextWrapWhitespaceVisible(self.value);
+    pub fn wrapWhitespaceVisible(
+        self: Text,
+    ) bool {
+        return c.TTF_TextWrapWhitespaceVisible(
+            self.value,
+        );
     }
 
     /// Set the UTF-8 text used by a text object.
@@ -2589,11 +3390,22 @@ pub const Text = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn setString(self: Text, string: ?[]const u8) !void {
+    pub fn setString(
+        self: Text,
+        string: ?[]const u8,
+    ) !void {
         if (string) |s| {
-            return errors.wrapCallBool(c.TTF_SetTextString(self.value, s.ptr, s.len));
+            return errors.wrapCallBool(c.TTF_SetTextString(
+                self.value,
+                s.ptr,
+                s.len,
+            ));
         } else {
-            return errors.wrapCallBool(c.TTF_SetTextString(self.value, null, 0));
+            return errors.wrapCallBool(c.TTF_SetTextString(
+                self.value,
+                null,
+                0,
+            ));
         }
     }
 
@@ -2611,8 +3423,17 @@ pub const Text = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn insertString(self: Text, offset: c_int, string: []const u8) !void {
-        return errors.wrapCallBool(c.TTF_InsertTextString(self.value, offset, string.ptr, string.len));
+    pub fn insertString(
+        self: Text,
+        offset: c_int,
+        string: []const u8,
+    ) !void {
+        return errors.wrapCallBool(c.TTF_InsertTextString(
+            self.value,
+            offset,
+            string.ptr,
+            string.len,
+        ));
     }
 
     /// Append UTF-8 text to a text object.
@@ -2628,8 +3449,15 @@ pub const Text = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn appendString(self: Text, string: []const u8) !void {
-        return errors.wrapCallBool(c.TTF_AppendTextString(self.value, string.ptr, string.len));
+    pub fn appendString(
+        self: Text,
+        string: []const u8,
+    ) !void {
+        return errors.wrapCallBool(c.TTF_AppendTextString(
+            self.value,
+            string.ptr,
+            string.len,
+        ));
     }
 
     /// Delete UTF-8 text from a text object.
@@ -2646,8 +3474,16 @@ pub const Text = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn deleteString(self: Text, offset: c_int, length: c_int) !void {
-        return errors.wrapCallBool(c.TTF_DeleteTextString(self.value, offset, length));
+    pub fn deleteString(
+        self: Text,
+        offset: c_int,
+        length: c_int,
+    ) !void {
+        return errors.wrapCallBool(c.TTF_DeleteTextString(
+            self.value,
+            offset,
+            length,
+        ));
     }
 
     /// Get the size of a text object.
@@ -2663,10 +3499,16 @@ pub const Text = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getSize(self: Text) !struct { w: c_int, h: c_int } {
+    pub fn getSize(
+        self: Text,
+    ) !struct { w: c_int, h: c_int } {
         var w: c_int = undefined;
         var h: c_int = undefined;
-        try errors.wrapCallBool(c.TTF_GetTextSize(self.value, &w, &h));
+        try errors.wrapCallBool(c.TTF_GetTextSize(
+            self.value,
+            &w,
+            &h,
+        ));
         return .{ .w = w, .h = h };
     }
 
@@ -2690,10 +3532,19 @@ pub const Text = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getSubString(self: Text, offset: c_int) !SubString {
+    pub fn getSubString(
+        self: Text,
+        offset: c_int,
+    ) !SubString {
         var substring: c.TTF_SubString = undefined;
-        try errors.wrapCallBool(c.TTF_GetTextSubString(self.value, offset, &substring));
-        return SubString.fromSdl(substring);
+        try errors.wrapCallBool(c.TTF_GetTextSubString(
+            self.value,
+            offset,
+            &substring,
+        ));
+        return SubString.fromSdl(
+            substring,
+        );
     }
 
     /// Get the substring of a text object that contains the given line.
@@ -2716,10 +3567,19 @@ pub const Text = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getSubStringForLine(self: Text, line: c_int) !SubString {
+    pub fn getSubStringForLine(
+        self: Text,
+        line: c_int,
+    ) !SubString {
         var substring: c.TTF_SubString = undefined;
-        try errors.wrapCallBool(c.TTF_GetTextSubStringForLine(self.value, line, &substring));
-        return SubString.fromSdl(substring);
+        try errors.wrapCallBool(c.TTF_GetTextSubStringForLine(
+            self.value,
+            line,
+            &substring,
+        ));
+        return SubString.fromSdl(
+            substring,
+        );
     }
 
     /// Get the substrings of a text object that contain a range of text.
@@ -2737,21 +3597,44 @@ pub const Text = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getSubStringsForRange(self: Text, offset: c_int, length: c_int, allocator: std.mem.Allocator) ![]SubString {
+    pub fn getSubStringsForRange(
+        self: Text,
+        offset: c_int,
+        length: c_int,
+        allocator: std.mem.Allocator,
+    ) ![]SubString {
         var count: c_int = undefined;
-        const c_substrings_ptr = try errors.wrapCallNull(**c.TTF_SubString, c.TTF_GetTextSubStringsForRange(self.value, offset, length, &count));
-        const c_substrings = c_substrings_ptr[0..@intCast(count)];
+        const c_substrings_ptr = try errors.wrapCallNull(**c.TTF_SubString, c.TTF_GetTextSubStringsForRange(
+            self.value,
+            offset,
+            length,
+            &count,
+        ));
+        const c_substrings = c_substrings_ptr[0..@intCast(
+            count,
+        )];
         defer {
             for (c_substrings) |s| {
-                c.SDL_free(s);
+                c.SDL_free(
+                    s,
+                );
             }
-            c.SDL_free(c_substrings_ptr);
+            c.SDL_free(
+                c_substrings_ptr,
+            );
         }
 
-        const result = try allocator.alloc(SubString, c_substrings.len);
-        errdefer allocator.free(result);
+        const result = try allocator.alloc(
+            SubString,
+            c_substrings.len,
+        );
+        errdefer allocator.free(
+            result,
+        );
         for (c_substrings, 0..) |c_sub_ptr, i| {
-            result[i] = SubString.fromSdl(c_sub_ptr.*);
+            result[i] = SubString.fromSdl(
+                c_sub_ptr.*,
+            );
         }
         return result;
     }
@@ -2770,10 +3653,21 @@ pub const Text = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getSubStringForPoint(self: Text, x: c_int, y: c_int) !SubString {
+    pub fn getSubStringForPoint(
+        self: Text,
+        x: c_int,
+        y: c_int,
+    ) !SubString {
         var substring: c.TTF_SubString = undefined;
-        try errors.wrapCallBool(c.TTF_GetTextSubStringForPoint(self.value, x, y, &substring));
-        return SubString.fromSdl(substring);
+        try errors.wrapCallBool(c.TTF_GetTextSubStringForPoint(
+            self.value,
+            x,
+            y,
+            &substring,
+        ));
+        return SubString.fromSdl(
+            substring,
+        );
     }
 
     /// Get the previous substring in a text object
@@ -2793,11 +3687,20 @@ pub const Text = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getPreviousSubString(self: Text, substring: SubString) !SubString {
+    pub fn getPreviousSubString(
+        self: Text,
+        substring: SubString,
+    ) !SubString {
         var c_substring = try substring.toSdl();
         var previous: c.TTF_SubString = undefined;
-        try errors.wrapCallBool(c.TTF_GetPreviousTextSubString(self.value, &c_substring, &previous));
-        return SubString.fromSdl(previous);
+        try errors.wrapCallBool(c.TTF_GetPreviousTextSubString(
+            self.value,
+            &c_substring,
+            &previous,
+        ));
+        return SubString.fromSdl(
+            previous,
+        );
     }
 
     /// Get the next substring in a text object
@@ -2817,11 +3720,20 @@ pub const Text = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn getNextSubString(self: Text, substring: SubString) !SubString {
+    pub fn getNextSubString(
+        self: Text,
+        substring: SubString,
+    ) !SubString {
         var c_substring = try substring.toSdl();
         var next: c.TTF_SubString = undefined;
-        try errors.wrapCallBool(c.TTF_GetNextTextSubString(self.value, &c_substring, &next));
-        return SubString.fromSdl(next);
+        try errors.wrapCallBool(c.TTF_GetNextTextSubString(
+            self.value,
+            &c_substring,
+            &next,
+        ));
+        return SubString.fromSdl(
+            next,
+        );
     }
 
     /// Update the layout of a text object.
@@ -2836,8 +3748,12 @@ pub const Text = struct {
     ///
     /// ## Version
     /// This function is available since SDL_ttf 3.0.0.
-    pub fn update(self: Text) !void {
-        return errors.wrapCallBool(c.TTF_UpdateText(self.value));
+    pub fn update(
+        self: Text,
+    ) !void {
+        return errors.wrapCallBool(c.TTF_UpdateText(
+            self.value,
+        ));
     }
 };
 
@@ -2859,22 +3775,42 @@ pub const SubString = struct {
     /// The rectangle, relative to the top left of the text, containing the substring
     rect: rect.Rect,
 
-    pub fn fromSdl(sdl_substring: c.TTF_SubString) SubString {
-        std.debug.assert(sdl_substring.offset >= 0);
-        std.debug.assert(sdl_substring.length >= 0);
+    pub fn fromSdl(
+        sdl_substring: c.TTF_SubString,
+    ) SubString {
+        std.debug.assert(
+            sdl_substring.offset >= 0,
+        );
+        std.debug.assert(
+            sdl_substring.length >= 0,
+        );
         return .{
-            .flags = SubStringFlags.fromSdl(sdl_substring.flags),
-            .offset = @intCast(sdl_substring.offset),
-            .length = @intCast(sdl_substring.length),
+            .flags = SubStringFlags.fromSdl(
+                sdl_substring.flags,
+            ),
+            .offset = @intCast(
+                sdl_substring.offset,
+            ),
+            .length = @intCast(
+                sdl_substring.length,
+            ),
             .line_index = sdl_substring.line_index,
             .cluster_index = sdl_substring.cluster_index,
             .rect = .{ .value = sdl_substring.rect },
         };
     }
 
-    pub fn toSdl(self: SubString) !c.TTF_SubString {
-        const offset = std.math.cast(c_int, self.offset) orelse return error.Overflow;
-        const length = std.math.cast(c_int, self.length) orelse return error.Overflow;
+    pub fn toSdl(
+        self: SubString,
+    ) !c.TTF_SubString {
+        const offset = std.math.cast(
+            c_int,
+            self.offset,
+        ) orelse return error.Overflow;
+        const length = std.math.cast(
+            c_int,
+            self.length,
+        ) orelse return error.Overflow;
         return .{
             .flags = self.flags.toSdl(),
             .offset = offset,
