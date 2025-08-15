@@ -39,7 +39,7 @@
         "src",
         "template",
         "bindings.yaml",
-        "build.zig",
+        "build",
         "generate.zig",
         "LICENSE",
         "main_callbacks.c",
