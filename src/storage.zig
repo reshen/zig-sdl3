@@ -8,7 +8,7 @@ const std = @import("std");
 ///
 /// ## Provided by zig-sdl3.
 pub const Path = struct {
-    data: std.ArrayList(u8),
+    data: std.array_list.Managed(u8),
     const separator: u8 = '/';
 
     /// Get the current base name of the path.
@@ -66,14 +66,14 @@ pub const Path = struct {
         path: ?[:0]const u8,
     ) !Path {
         if (path) |val| {
-            var data = try std.ArrayList(u8).initCapacity(allocator, val.len + 1);
+            var data = try std.array_list.Managed(u8).initCapacity(allocator, val.len + 1);
             data.appendSliceAssumeCapacity(val[0 .. val.len - 1]);
             data.appendAssumeCapacity(0);
             return .{
                 .data = data,
             };
         } else {
-            var data = try std.ArrayList(u8).initCapacity(allocator, 1);
+            var data = try std.array_list.Managed(u8).initCapacity(allocator, 1);
             data.appendAssumeCapacity(0);
             return .{
                 .data = data,
@@ -442,7 +442,7 @@ pub const Storage = packed struct {
     /// Data for getting all properties.
     const GetAllData = struct {
         allocator: std.mem.Allocator,
-        arr: *std.ArrayList([:0]const u8),
+        arr: *std.array_list.Managed([:0]const u8),
         err: ?std.mem.Allocator.Error,
     };
 
@@ -472,7 +472,7 @@ pub const Storage = packed struct {
     /// This function is provided by zig-sdl3.
     pub fn freeAllDirectoryItems(
         allocator: std.mem.Allocator,
-        items: std.ArrayList([:0]const u8),
+        items: std.array_list.Managed([:0]const u8),
     ) void {
         for (items.items) |item| {
             allocator.free(item);
@@ -497,8 +497,8 @@ pub const Storage = packed struct {
         self: Storage,
         allocator: std.mem.Allocator,
         path: [:0]const u8,
-    ) !std.ArrayList([:0]const u8) {
-        var arr = std.ArrayList([:0]const u8).init(allocator);
+    ) !std.array_list.Managed([:0]const u8) {
+        var arr = std.array_list.Managed([:0]const u8).init(allocator);
         var data = GetAllData{
             .allocator = allocator,
             .arr = &arr,

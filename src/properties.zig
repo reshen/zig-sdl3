@@ -451,7 +451,7 @@ pub fn getGlobal() !Group {
     return Group{ .value = ret };
 }
 
-fn testPropertiesCleanupCb(user_data: ?*void, value: *std.ArrayList(u32)) void {
+fn testPropertiesCleanupCb(user_data: ?*void, value: *std.array_list.Managed(u32)) void {
     _ = user_data;
     value.deinit();
 }
@@ -514,9 +514,9 @@ test "Properties" {
 
     try group.set("a", Property{ .number = 5 });
     try group.set("b", Property{ .boolean = false });
-    var arr = std.ArrayList(u32).init(std.testing.allocator);
+    var arr = std.array_list.Managed(u32).init(std.testing.allocator);
     try arr.append(8); // Ensure no memory leakage.
-    try group.setPointerPropertyWithCleanup("c", std.ArrayList(u32), &arr, void, testPropertiesCleanupCb, null);
+    try group.setPointerPropertyWithCleanup("c", std.array_list.Managed(u32), &arr, void, testPropertiesCleanupCb, null);
 
     const copied = try Group.init();
     defer copied.deinit();
