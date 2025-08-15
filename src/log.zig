@@ -515,7 +515,7 @@ pub fn setLogOutputFunction(
             priority_c: c.SDL_LogPriority,
             message_c: [*c]const u8,
         ) callconv(.c) void {
-            callback.?(@alignCast(@ptrCast(user_data_c)), Category.fromSdl(category_c), Priority.fromSdl(priority_c), std.mem.span(message_c));
+            callback.?(@ptrCast(@alignCast(user_data_c)), Category.fromSdl(category_c), Priority.fromSdl(priority_c), std.mem.span(message_c));
         }
     };
     c.SDL_SetLogOutputFunction(
@@ -546,7 +546,7 @@ pub fn setLogOutputFunctionC(
 }
 
 const TestLogCallbackData = struct {
-    buf: *std.ArrayList(u8),
+    buf: *std.array_list.Managed(u8),
     last_str: usize = 0,
     last_category: ?Category = null,
     last_priority: ?Priority = null,
@@ -575,7 +575,7 @@ test "Log" {
     defer log_arena.deinit();
     const allocator = log_arena.allocator();
 
-    var log_out = std.ArrayList(u8).init(allocator);
+    var log_out = std.array_list.Managed(u8).init(allocator);
     var data = TestLogCallbackData{
         .buf = &log_out,
     };
