@@ -167,7 +167,7 @@ pub const Group = packed struct {
     ) !void {
         const Cb = struct {
             pub fn run(user_data_c: ?*anyopaque, props: c.SDL_PropertiesID, name: [*c]const u8) callconv(.c) void {
-                callback(@alignCast(@ptrCast(user_data_c)), Group{ .value = props }, std.mem.span(name));
+                callback(@ptrCast(@alignCast(user_data_c)), Group{ .value = props }, std.mem.span(name));
             }
         };
         const ret = c.SDL_EnumerateProperties(self.value, Cb.run, user_data);
@@ -398,7 +398,7 @@ pub const Group = packed struct {
     ) !void {
         const Cb = struct {
             pub fn run(user_data_c: ?*anyopaque, value_c: ?*anyopaque) callconv(.c) void {
-                cleanup.?(@alignCast(@ptrCast(user_data_c)), @alignCast(@ptrCast(value_c)));
+                cleanup.?(@ptrCast(@alignCast(user_data_c)), @ptrCast(@alignCast(value_c)));
             }
         };
         const ret = c.SDL_SetPointerPropertyWithCleanup(

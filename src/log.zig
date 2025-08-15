@@ -515,7 +515,7 @@ pub fn setLogOutputFunction(
             priority_c: c.SDL_LogPriority,
             message_c: [*c]const u8,
         ) callconv(.c) void {
-            callback.?(@alignCast(@ptrCast(user_data_c)), Category.fromSdl(category_c), Priority.fromSdl(priority_c), std.mem.span(message_c));
+            callback.?(@ptrCast(@alignCast(user_data_c)), Category.fromSdl(category_c), Priority.fromSdl(priority_c), std.mem.span(message_c));
         }
     };
     c.SDL_SetLogOutputFunction(
