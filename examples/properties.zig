@@ -19,7 +19,7 @@ fn printPropertyType(
 /// Callback for cleaning up an array property.
 fn arrayCleanupCallback(
     user_data: ?*void,
-    val: *std.ArrayList(u32),
+    val: *std.array_list.Managed(u32),
 ) void {
     _ = user_data;
     val.deinit();
@@ -62,8 +62,8 @@ pub fn main() !void {
 
     // Set an array list property with automatic cleanup.
     const allocator = std.heap.smp_allocator;
-    var arr = std.ArrayList(u32).init(allocator);
-    try properties.setPointerPropertyWithCleanup("myArr", std.ArrayList(u32), &arr, void, arrayCleanupCallback, null);
+    var arr = std.array_list.Managed(u32).init(allocator);
+    try properties.setPointerPropertyWithCleanup("myArr", std.array_list.Managed(u32), &arr, void, arrayCleanupCallback, null);
 
     var stdout_buffer: [1024]u8 = undefined;
     var stdout_file_writer = std.fs.File.stdout().writer(&stdout_buffer);
