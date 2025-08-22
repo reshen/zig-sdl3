@@ -62,6 +62,11 @@ pub fn build(b: *std.Build) !void {
 
     const sdl_dep_lib = sdl_dep.artifact("SDL3");
 
+    if (target.result.os.tag.isDarwin()) {
+        const apple_sdk = @import("apple_sdk");
+        try apple_sdk.addPaths(b, sdl_dep_lib);
+    }
+
     // SDL options.
     const extension_options = b.addOptions();
     const main_callbacks = b.option(bool, "callbacks", "Enable SDL callbacks rather than use a main function") orelse false;
@@ -111,8 +116,8 @@ pub fn build(b: *std.Build) !void {
 
     _ = setupDocs(b, sdl3);
     _ = setupTest(b, cfg, extension_options, c_module);
-    _ = try setupExamples(b, sdl3, cfg);
-    _ = try runExample(b, sdl3, cfg);
+    _ = try setupExamples(b, sdl3, cfg, target);
+    _ = try runExample(b, sdl3, cfg, target);
 }
 
 // Most of this is copied from https://github.com/allyourcodebase/SDL_image/blob/main/build.zig.
@@ -131,6 +136,11 @@ pub fn setupSdlImage(b: *std.Build, sdl3: *std.Build.Module, translate_c: *std.B
         }),
     });
     lib.root_module.linkLibrary(sdl_dep_lib);
+
+    if (target.result.os.tag.isDarwin()) {
+        const apple_sdk = @import("apple_sdk");
+        apple_sdk.addPaths(b, lib) catch unreachable;
+    }
 
     // Use stb_image for loading JPEG and PNG files. Native alternatives such as
     // Windows Imaging Component and Apple's Image I/O framework are not yet
@@ -225,7 +235,7 @@ pub fn setupDocs(b: *std.Build, sdl3: *std.Build.Module) *std.Build.Step {
     return docs_step;
 }
 
-pub fn setupExample(b: *std.Build, sdl3: *std.Build.Module, cfg: Config, name: []const u8) !*std.Build.Step.Compile {
+pub fn setupExample(b: *std.Build, sdl3: *std.Build.Module, cfg: Config, name: []const u8, target: std.Build.ResolvedTarget) !*std.Build.Step.Compile {
     const exe_module = b.createModule(.{
         .root_source_file = b.path(try std.fmt.allocPrint(b.allocator, "examples/{s}.zig", .{name})),
         .target = cfg.target,
@@ -239,21 +249,28 @@ pub fn setupExample(b: *std.Build, sdl3: *std.Build.Module, cfg: Config, name: [
         .root_module = exe_module,
         .version = cfg.version,
     });
+    exe.root_module.addImport("sdl3", sdl3);
+
+    if (target.result.os.tag.isDarwin()) {
+        const apple_sdk = @import("apple_sdk");
+        try apple_sdk.addPaths(b, exe);
+    }
+
     b.installArtifact(exe);
     return exe;
 }
 
-pub fn runExample(b: *std.Build, sdl3: *std.Build.Module, cfg: Config) !void {
+pub fn runExample(b: *std.Build, sdl3: *std.Build.Module, cfg: Config, target: std.Build.ResolvedTarget) !void {
     const run_example: ?[]const u8 = b.option([]const u8, "example", "The example name for running an example") orelse null;
     const run = b.step("run", "Run an example with -Dexample=<example_name> option");
     if (run_example) |example| {
-        const run_art = b.addRunArtifact(try setupExample(b, sdl3, cfg, example));
+        const run_art = b.addRunArtifact(try setupExample(b, sdl3, cfg, example, target));
         run_art.step.dependOn(b.getInstallStep());
         run.dependOn(&run_art.step);
     }
 }
 
-pub fn setupExamples(b: *std.Build, sdl3: *std.Build.Module, cfg: Config) !*std.Build.Step {
+pub fn setupExamples(b: *std.Build, sdl3: *std.Build.Module, cfg: Config, target: std.Build.ResolvedTarget) !*std.Build.Step {
     const exp = b.step("examples", "Build all examples");
     const examples_dir = b.path("examples");
     var dir = (try std.fs.openDirAbsolute(examples_dir.getPath(b), .{ .iterate = true }));
@@ -262,7 +279,7 @@ pub fn setupExamples(b: *std.Build, sdl3: *std.Build.Module, cfg: Config) !*std.
     defer dir_iterator.deinit();
     while (try dir_iterator.next()) |file| {
         if (file.kind == .file and std.mem.endsWith(u8, file.basename, ".zig")) {
-            _ = try setupExample(b, sdl3, cfg, file.basename[0 .. file.basename.len - 4]);
+            _ = try setupExample(b, sdl3, cfg, file.basename[0 .. file.basename.len - 4], target);
         }
     }
     exp.dependOn(b.getInstallStep());

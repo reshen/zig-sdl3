@@ -12,6 +12,7 @@
             .hash = "N-V-__8AAP6WIgI4b7FYvyJ6F7gg38lmxqvHSQPGyTlGuFuT",
             .lazy = true,
         },
+        .apple_sdk = .{ .path = "./pkg/apple-sdk" },
     },
     .paths = .{
         "build.zig",

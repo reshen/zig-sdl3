@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://devenv.sh/devenv.schema.json
+inputs:
+  nixpkgs:
+    # url: github:cachix/devenv-nixpkgs/rolling
+    url: github:NixOS/nixpkgs/nixos-unstable
+  zig-overlay:
+    url: github:mitchellh/zig-overlay
+  # zls-overlay:
+  #   url: github:zigtools/zls
+  zls-overlay:
+    url: github:zigtools/zls?rev=95649ff217adc8f8fc1744e1f96a511708010c19
+# If you're using non-OSS software, you can set allowUnfree to true.
+# allowUnfree: true
+
+# If you're willing to use a package that's vulnerable
+# permittedInsecurePackages:
+#  - "openssl-1.1.1w"
+
+# If you have more than one devenv you can merge them
+#imports:
+# - ./backend
