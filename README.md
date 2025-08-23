@@ -23,10 +23,10 @@ Some advantages of SDL3 include windowing, audio, gamepad, keyboard, mouse, rend
 # Building and using
 
 To use zig-sdl3, you need to add it as a dependency to your project. The branch you should use depends on your Zig version.
-Choose the command that matches your Zig version and run it in your project's root directory
-* For 0.14.0:
+Choose the command that matches your Zig version and run it in your project's root directory:
+* For 0.15.1:
 ```sh
-zig fetch --save git+https://github.com/Gota7/zig-sdl3#v0.1.0
+zig fetch --save git+https://github.com/Gota7/zig-sdl3#v0.1.1
 ```
 * For Zig master (nightly):
 ```sh
