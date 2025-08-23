@@ -29,7 +29,6 @@ const AppState = struct {
     window: sdl3.video.Window,
     renderer: sdl3.render.Renderer,
     tree_tex: sdl3.render.Texture,
-    frame_capper: sdl3.extras.FramerateCapper(f32),
 };
 
 /// An example function to handle errors from SDL.
@@ -157,7 +156,6 @@ pub fn init(
         .window = window_renderer.window,
         .renderer = window_renderer.renderer,
         .tree_tex = tree_tex,
-        .frame_capper = frame_capper,
     };
     app_state.* = state;
 

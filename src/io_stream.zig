@@ -146,7 +146,7 @@ pub fn Interface(comptime UserData: type) type {
                 /// ## Return Value
                 /// The total size of the data stream, or `-1` on error.
                 pub fn size_c(user_data_c: ?*anyopaque) callconv(.c) i64 {
-                    const ret = self.size(@alignCast(@ptrCast(user_data_c))) catch return -1;
+                    const ret = self.size(@ptrCast(@alignCast(user_data_c))) catch return -1;
                     return @intCast(ret);
                 }
 
@@ -160,7 +160,7 @@ pub fn Interface(comptime UserData: type) type {
                 /// ## Return Value
                 /// The final offset in the data stream, or `-1` on error.
                 pub fn seek_c(user_data_c: ?*anyopaque, offset_c: i64, whence_c: c.SDL_IOWhence) callconv(.c) i64 {
-                    const ret = self.seek(@alignCast(@ptrCast(user_data_c)), @intCast(offset_c), @enumFromInt(whence_c)) catch return -1;
+                    const ret = self.seek(@ptrCast(@alignCast(user_data_c)), @intCast(offset_c), @enumFromInt(whence_c)) catch return -1;
                     return @intCast(ret);
                 }
 
@@ -178,7 +178,7 @@ pub fn Interface(comptime UserData: type) type {
                 /// ## Return Value
                 /// The number of bytes read.
                 pub fn read_c(user_data_c: ?*anyopaque, ptr_c: ?*anyopaque, size_c_val: usize, status_c: [*c]c.SDL_IOStatus) callconv(.c) usize {
-                    const ret = self.read(@alignCast(@ptrCast(user_data_c)), @as([*]u8, @alignCast(@ptrCast(ptr_c)))[0..@intCast(size_c_val)]) catch |err| {
+                    const ret = self.read(@ptrCast(@alignCast(user_data_c)), @as([*]u8, @ptrCast(@alignCast(ptr_c)))[0..@intCast(size_c_val)]) catch |err| {
                         status_c.* = switch (err) {
                             .Err => c.SDL_IO_STATUS_ERROR,
                             .NotReady => c.SDL_IO_STATUS_NOT_READY,
@@ -205,7 +205,7 @@ pub fn Interface(comptime UserData: type) type {
                 /// ## Return Value
                 /// The number of bytes written.
                 pub fn write_c(user_data_c: ?*anyopaque, ptr_c: ?*const anyopaque, size_c_val: usize, status_c: [*c]c.SDL_IOStatus) callconv(.c) usize {
-                    const ret = self.write(@alignCast(@ptrCast(user_data_c)), @as([*]const u8, @alignCast(@ptrCast(ptr_c)))[0..@intCast(size_c_val)]) catch |err| {
+                    const ret = self.write(@ptrCast(@alignCast(user_data_c)), @as([*]const u8, @ptrCast(@alignCast(ptr_c)))[0..@intCast(size_c_val)]) catch |err| {
                         status_c.* = switch (err) {
                             .Err => c.SDL_IO_STATUS_ERROR,
                             .NotReady => c.SDL_IO_STATUS_NOT_READY,
@@ -229,7 +229,7 @@ pub fn Interface(comptime UserData: type) type {
                 /// ## Return Value
                 /// True if successful.
                 pub fn flush_c(user_data_c: ?*anyopaque, status: [*c]c.SDL_IOStatus) callconv(.c) bool {
-                    self.flush(@alignCast(@ptrCast(user_data_c))) catch |err| {
+                    self.flush(@ptrCast(@alignCast(user_data_c))) catch |err| {
                         status.* = switch (err) {
                             .Err => c.SDL_IO_STATUS_ERROR,
                             .NotReady => c.SDL_IO_STATUS_NOT_READY,
@@ -254,7 +254,7 @@ pub fn Interface(comptime UserData: type) type {
                 /// ## Return Value
                 /// True if successful.
                 pub fn close_c(user_data_c: ?*anyopaque) callconv(.c) bool {
-                    self.close(@alignCast(@ptrCast(user_data_c))) catch return false;
+                    self.close(@ptrCast(@alignCast(user_data_c))) catch return false;
                     return true;
                 }
             };
@@ -321,7 +321,7 @@ pub const Stream = struct {
         pub fn fromProperties(props: properties.Group) Properties {
             return .{
                 .memory = if (props.get(c.SDL_PROP_IOSTREAM_MEMORY_POINTER)) |val|
-                    @as([*]u8, @alignCast(@ptrCast(val.pointer.?)))[0..@intCast(props.get(c.SDL_PROP_IOSTREAM_MEMORY_SIZE_NUMBER).?.number)]
+                    @as([*]u8, @ptrCast(@alignCast(val.pointer.?)))[0..@intCast(props.get(c.SDL_PROP_IOSTREAM_MEMORY_SIZE_NUMBER).?.number)]
                 else
                     null,
                 .dynamic_memory = if (props.get(c.SDL_PROP_IOSTREAM_DYNAMIC_MEMORY_POINTER)) |val| .{
@@ -634,33 +634,6 @@ pub const Stream = struct {
         };
     }
 
-    /// Initialize a stream for compatibility with SDL.
-    ///
-    /// ## Remarks
-    /// Note the source must exist for the lifetime of this stream.
-    /// Read and write to the stream using the source you provide.
-    ///
-    /// ## Function Parameters
-    /// * `source`: The stream source to initialize from.
-    ///
-    /// ## Return Value
-    /// Returns a stream.
-    ///
-    /// ## Thread Safety
-    /// This function is not thread safe.
-    ///
-    /// ## Version
-    /// This function is available since SDL 3.2.0.
-    pub fn initFromStreamSource(
-        source: *std.io.StreamSource,
-    ) !Stream {
-        const ret = c.SDL_OpenIO(&stream_source_interface, source);
-        if (ret) |val| {
-            return .{ .value = val };
-        }
-        return error.SDLError;
-    }
-
     /// Load all the data from an SDL data stream.
     ///
     /// ## Function Parameters
@@ -684,7 +657,7 @@ pub const Stream = struct {
         close_when_done: bool,
     ) ![:0]u8 {
         var len: usize = undefined;
-        return @as([*:0]u8, @alignCast(@ptrCast(try errors.wrapCallNull(*anyopaque, c.SDL_LoadFile_IO(
+        return @as([*:0]u8, @ptrCast(@alignCast(try errors.wrapCallNull(*anyopaque, c.SDL_LoadFile_IO(
             self.value,
             &len,
             close_when_done,
@@ -1974,68 +1947,6 @@ pub const Whence = enum(c.SDL_IOWhence) {
     end = c.SDL_IO_SEEK_END,
 };
 
-const stream_source_interface = c.SDL_IOStreamInterface{
-    .version = @sizeOf(c.SDL_IOStreamInterface),
-    .size = streamSize,
-    .seek = streamSeek,
-    .read = streamRead,
-    .write = streamWrite,
-    .flush = streamFlush,
-    .close = streamClose,
-};
-
-fn streamSize(data: ?*anyopaque) callconv(.c) i64 {
-    var stream: *std.io.StreamSource = @ptrCast(@alignCast(data.?));
-    const end_pos = stream.getEndPos() catch return -1;
-    return @intCast(end_pos);
-}
-
-fn streamSeek(data: ?*anyopaque, offset: i64, whence: c_uint) callconv(.c) i64 {
-    var stream: *std.io.StreamSource = @ptrCast(@alignCast(data.?));
-    switch (whence) {
-        c.SDL_IO_SEEK_CUR => stream.seekBy(offset) catch return -1,
-        c.SDL_IO_SEEK_SET => stream.seekTo(@intCast(offset)) catch return -1,
-        c.SDL_IO_SEEK_END => {
-            const end_pos = stream.getEndPos() catch return -1;
-            if (offset > end_pos)
-                return -1;
-            stream.seekTo(@intCast(end_pos - @as(u64, @intCast(offset)))) catch return -1;
-        },
-        else => return -1,
-    }
-    const pos = stream.getPos() catch return -1;
-    return @as(i64, @intCast(pos));
-}
-
-fn streamRead(data: ?*anyopaque, ptr: ?*anyopaque, size: usize, status: [*c]c_uint) callconv(.c) usize {
-    var stream: *std.io.StreamSource = @ptrCast(@alignCast(data.?));
-    var dest: [*]u8 = @ptrCast(ptr.?);
-    return stream.read(dest[0..size]) catch blk: {
-        status.* = c.SDL_IO_STATUS_ERROR;
-        break :blk 0;
-    };
-}
-
-fn streamWrite(data: ?*anyopaque, ptr: ?*const anyopaque, size: usize, status: [*c]c_uint) callconv(.c) usize {
-    var stream: *std.io.StreamSource = @ptrCast(@alignCast(data.?));
-    var src: [*]const u8 = @ptrCast(ptr.?);
-    return stream.write(src[0..size]) catch blk: {
-        status.* = c.SDL_IO_STATUS_ERROR;
-        break :blk 0;
-    };
-}
-
-fn streamFlush(data: ?*anyopaque, status: [*c]c_uint) callconv(.c) bool {
-    _ = data;
-    _ = status;
-    return true; // No flushing needed, idk.
-}
-
-fn streamClose(data: ?*anyopaque) callconv(.c) bool {
-    _ = data;
-    return true;
-}
-
 /// Load all the data from a file path.
 ///
 /// ## Function Parameters
@@ -2057,7 +1968,7 @@ pub fn loadFile(
     path: [:0]const u8,
 ) ![:0]u8 {
     var len: usize = undefined;
-    return @as([*:0]u8, @alignCast(@ptrCast(try errors.wrapCallNull(*anyopaque, c.SDL_LoadFile(
+    return @as([*:0]u8, @ptrCast(@alignCast(try errors.wrapCallNull(*anyopaque, c.SDL_LoadFile(
         path.ptr,
         &len,
     )))))[0..len :0];
@@ -2089,32 +2000,32 @@ pub fn saveFile(
 test "Stream" {
     std.testing.refAllDeclsRecursive(@This());
 
-    // Test stream source.
-    var buffer: [64]u8 = undefined;
-    var source: std.io.StreamSource = .{ .buffer = .{ .buffer = &buffer, .pos = 0 } };
-    const stream = try Stream.initFromStreamSource(&source);
-    defer stream.deinit() catch {};
-    try stream.writeU8(7);
-    try std.testing.expect(buffer[0] == 7);
-    buffer[1] = 3;
-    try std.testing.expectEqual(3, try stream.readU8());
-    try std.testing.expectEqual(64, try stream.getSize());
-    try std.testing.expectEqual(50, stream.seek(50, .set));
-    try std.testing.expectEqual(41, stream.seek(23, .end));
-    try std.testing.expectEqual(43, stream.seek(2, .cur));
+    // // Test stream source.
+    // var buffer: [64]u8 = undefined;
+    // var source: std.io.StreamSource = .{ .buffer = .{ .buffer = &buffer, .pos = 0 } };
+    // const stream = try Stream.initFromStreamSource(&source);
+    // defer stream.deinit() catch {};
+    // try stream.writeU8(7);
+    // try std.testing.expect(buffer[0] == 7);
+    // buffer[1] = 3;
+    // try std.testing.expectEqual(3, try stream.readU8());
+    // try std.testing.expectEqual(64, try stream.getSize());
+    // try std.testing.expectEqual(50, stream.seek(50, .set));
+    // try std.testing.expectEqual(41, stream.seek(23, .end));
+    // try std.testing.expectEqual(43, stream.seek(2, .cur));
 
-    // Test writer/reader.
-    _ = try stream.seek(0, .set);
-    var writer_buffer: [64]u8 = undefined;
-    var stream_writer = stream.writer(&writer_buffer);
-    try stream_writer.interface.print("Hello {s}!", .{"World"});
-    try stream_writer.interface.flush();
+    // // Test writer/reader.
+    // _ = try stream.seek(0, .set);
+    // var writer_buffer: [64]u8 = undefined;
+    // var stream_writer = stream.writer(&writer_buffer);
+    // try stream_writer.interface.print("Hello {s}!", .{"World"});
+    // try stream_writer.interface.flush();
 
-    _ = try stream.seek(0, .set);
-    const hello_world = "Hello World!";
-    var hello_world_buf: [hello_world.len]u8 = undefined;
-    var reader_buffer: [64]u8 = undefined;
-    var stream_reader = stream.reader(&reader_buffer);
-    try stream_reader.interface.readSliceAll(&hello_world_buf);
-    try std.testing.expectEqualStrings(hello_world, &hello_world_buf);
+    // _ = try stream.seek(0, .set);
+    // const hello_world = "Hello World!";
+    // var hello_world_buf: [hello_world.len]u8 = undefined;
+    // var reader_buffer: [64]u8 = undefined;
+    // var stream_reader = stream.reader(&reader_buffer);
+    // try stream_reader.interface.readSliceAll(&hello_world_buf);
+    // try std.testing.expectEqualStrings(hello_world, &hello_world_buf);
 }
