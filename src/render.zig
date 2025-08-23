@@ -1,4 +1,4 @@
-const c = @import("c.zig").c;
+const c = @import("c");
 const blend_mode = @import("blend_mode.zig");
 const errors = @import("errors.zig");
 const events = @import("events.zig");

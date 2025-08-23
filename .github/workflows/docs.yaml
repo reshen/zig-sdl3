@@ -7,7 +7,7 @@ permissions:
   pages: write
   id-token: write
 env:
-  ZIG_VERSION: 0.14.0
+  ZIG_VERSION: 0.15.1
 concurrency:
   group: "pages"
   cancel-in-progress: false
@@ -20,7 +20,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - uses: mlugg/setup-zig@v1
+      - uses: mlugg/setup-zig@v2
         with:
           version: ${{ env.ZIG_VERSION }}
       - name: Build documentation

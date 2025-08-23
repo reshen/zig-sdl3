@@ -1,5 +1,5 @@
 const blend_mode = @import("blend_mode.zig");
-const c = @import("c.zig").c;
+const c = @import("c");
 const errors = @import("errors.zig");
 const io_stream = @import("io_stream.zig");
 const pixels = @import("pixels.zig");

@@ -1,11 +1,11 @@
 .{
     .name = .sdl3,
-    .version = "0.0.1",
-    .minimum_zig_version = "0.14.0",
+    .version = "0.1.1",
+    .minimum_zig_version = "0.15.1",
     .dependencies = .{
         .sdl = .{
-            .url = "git+https://github.com/castholm/SDL.git?ref=v0.2.5+3.2.18#5c55c894039a15a16bb7c89b2d6438e158e86ef1",
-            .hash = "sdl-0.2.5+3.2.18-7uIn9FwZfwHKOwSubcg5_CiW4fXag5IIsiV_jnLdkpDM",
+            .url = "git+https://github.com/castholm/SDL.git#1994ca5dbad5a3e3c670a9ab8533d86cfd97bdc0",
+            .hash = "sdl-0.2.6+3.2.20-7uIn9NgjfwHH5a6HhyLHat2nHU3OP5B05QHhKJKuxEex",
         },
         .sdl_image = .{
             .url = "git+https://github.com/libsdl-org/SDL_image?ref=release-3.2.x#59adab53b95cd553a1c77f1c7665a980e323dfdd",
@@ -16,12 +16,10 @@
     .paths = .{
         "build.zig",
         "build.zig.zon",
-        "custom",
         "examples",
         "src",
         "template",
         "bindings.yaml",
-        "build.zig",
         "generate.zig",
         "LICENSE",
         "main_callbacks.c",

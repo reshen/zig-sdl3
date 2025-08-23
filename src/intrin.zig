@@ -1,4 +1,4 @@
-const c = @import("c.zig").c;
+const c = @import("c");
 const std = @import("std");
 
 /// True if (and only if) the compiler supports PowerPC Altivec intrinsics.

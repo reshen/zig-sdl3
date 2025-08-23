@@ -1,4 +1,4 @@
-const c = @import("c.zig").c;
+const c = @import("c");
 const errors = @import("errors.zig");
 const sdl3 = @import("sdl3.zig");
 const std = @import("std");
@@ -170,7 +170,7 @@ pub const Category = enum(c_int) {
     ) !void {
         var fallback = std.heap.stackFallback(max_log_message_stack, sdl3.allocator);
         const allocator = fallback.get();
-        const msg = try std.fmt.allocPrintZ(allocator, fmt, args);
+        const msg = try std.fmt.allocPrintSentinel(allocator, fmt, args, 0);
         defer allocator.free(msg);
         c.SDL_LogMessage(
             @intFromEnum(self),
@@ -199,7 +199,7 @@ pub const Category = enum(c_int) {
     ) !void {
         var fallback = std.heap.stackFallback(max_log_message_stack, sdl3.allocator);
         const allocator = fallback.get();
-        const msg = try std.fmt.allocPrintZ(allocator, fmt, args);
+        const msg = try std.fmt.allocPrintSentinel(allocator, fmt, args, 0);
         defer allocator.free(msg);
         c.SDL_LogCritical(
             @intFromEnum(self),
@@ -227,7 +227,7 @@ pub const Category = enum(c_int) {
     ) !void {
         var fallback = std.heap.stackFallback(max_log_message_stack, sdl3.allocator);
         const allocator = fallback.get();
-        const msg = try std.fmt.allocPrintZ(allocator, fmt, args);
+        const msg = try std.fmt.allocPrintSentinel(allocator, fmt, args, 0);
         defer allocator.free(msg);
         c.SDL_LogDebug(
             @intFromEnum(self),
@@ -255,7 +255,7 @@ pub const Category = enum(c_int) {
     ) !void {
         var fallback = std.heap.stackFallback(max_log_message_stack, sdl3.allocator);
         const allocator = fallback.get();
-        const msg = try std.fmt.allocPrintZ(allocator, fmt, args);
+        const msg = try std.fmt.allocPrintSentinel(allocator, fmt, args, 0);
         defer allocator.free(msg);
         c.SDL_LogError(
             @intFromEnum(self),
@@ -283,7 +283,7 @@ pub const Category = enum(c_int) {
     ) !void {
         var fallback = std.heap.stackFallback(max_log_message_stack, sdl3.allocator);
         const allocator = fallback.get();
-        const msg = try std.fmt.allocPrintZ(allocator, fmt, args);
+        const msg = try std.fmt.allocPrintSentinel(allocator, fmt, args, 0);
         defer allocator.free(msg);
         c.SDL_LogInfo(
             @intFromEnum(self),
@@ -311,7 +311,7 @@ pub const Category = enum(c_int) {
     ) !void {
         var fallback = std.heap.stackFallback(max_log_message_stack, sdl3.allocator);
         const allocator = fallback.get();
-        const msg = try std.fmt.allocPrintZ(allocator, fmt, args);
+        const msg = try std.fmt.allocPrintSentinel(allocator, fmt, args, 0);
         defer allocator.free(msg);
         c.SDL_LogTrace(
             @intFromEnum(self),
@@ -339,7 +339,7 @@ pub const Category = enum(c_int) {
     ) !void {
         var fallback = std.heap.stackFallback(max_log_message_stack, sdl3.allocator);
         const allocator = fallback.get();
-        const msg = try std.fmt.allocPrintZ(allocator, fmt, args);
+        const msg = try std.fmt.allocPrintSentinel(allocator, fmt, args, 0);
         defer allocator.free(msg);
         c.SDL_LogVerbose(
             @intFromEnum(self),
@@ -367,7 +367,7 @@ pub const Category = enum(c_int) {
     ) !void {
         var fallback = std.heap.stackFallback(max_log_message_stack, sdl3.allocator);
         const allocator = fallback.get();
-        const msg = try std.fmt.allocPrintZ(allocator, fmt, args);
+        const msg = try std.fmt.allocPrintSentinel(allocator, fmt, args, 0);
         defer allocator.free(msg);
         c.SDL_LogWarn(
             @intFromEnum(self),
@@ -451,7 +451,7 @@ pub fn log(
 ) !void {
     var fallback = std.heap.stackFallback(max_log_message_stack, sdl3.allocator);
     const allocator = fallback.get();
-    const msg = try std.fmt.allocPrintZ(allocator, fmt, args);
+    const msg = try std.fmt.allocPrintSentinel(allocator, fmt, args, 0);
     defer allocator.free(msg);
     c.SDL_Log(
         "%s",
@@ -515,7 +515,7 @@ pub fn setLogOutputFunction(
             priority_c: c.SDL_LogPriority,
             message_c: [*c]const u8,
         ) callconv(.c) void {
-            callback.?(@alignCast(@ptrCast(user_data_c)), Category.fromSdl(category_c), Priority.fromSdl(priority_c), std.mem.span(message_c));
+            callback.?(@ptrCast(@alignCast(user_data_c)), Category.fromSdl(category_c), Priority.fromSdl(priority_c), std.mem.span(message_c));
         }
     };
     c.SDL_SetLogOutputFunction(
@@ -546,7 +546,7 @@ pub fn setLogOutputFunctionC(
 }
 
 const TestLogCallbackData = struct {
-    buf: *std.ArrayList(u8),
+    buf: *std.array_list.Managed(u8),
     last_str: usize = 0,
     last_category: ?Category = null,
     last_priority: ?Priority = null,
@@ -575,7 +575,7 @@ test "Log" {
     defer log_arena.deinit();
     const allocator = log_arena.allocator();
 
-    var log_out = std.ArrayList(u8).init(allocator);
+    var log_out = std.array_list.Managed(u8).init(allocator);
     var data = TestLogCallbackData{
         .buf = &log_out,
     };

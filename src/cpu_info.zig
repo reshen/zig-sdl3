@@ -1,4 +1,4 @@
-const c = @import("c.zig").c;
+const c = @import("c");
 const std = @import("std");
 
 /// A guess for the cacheline size used for padding.
