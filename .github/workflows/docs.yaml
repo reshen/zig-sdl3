@@ -1,13 +1,13 @@
 name: docs
 on:
   push:
-    branches: ["zig-master"]
+    branches: ["master"]
 permissions:
   contents: read
   pages: write
   id-token: write
 env:
-  ZIG_VERSION: master
+  ZIG_VERSION: 0.15.1
 concurrency:
   group: "pages"
   cancel-in-progress: false

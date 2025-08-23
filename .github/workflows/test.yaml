@@ -1,13 +1,13 @@
 name: test
 on:
   push:
-    branches: ["zig-master"]
+    branches: ["master"]
   pull_request:
-    branches: ["zig-master"]
+    branches: ["master"]
 permissions:
   contents: read
 env:
-  ZIG_VERSION: master
+  ZIG_VERSION: 0.15.1
 concurrency:
   group: "test"
   cancel-in-progress: false
