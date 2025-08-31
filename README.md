@@ -112,7 +112,7 @@ pub fn main() !void {
         try window.updateSurface();
 
         // Event logic.
-        if (sdl3.events.poll()) |event|
+        while (sdl3.events.poll()) |event|
             switch (event) {
                 .quit => break,
                 .terminating => break,
