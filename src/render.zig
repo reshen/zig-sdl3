@@ -172,11 +172,11 @@ pub const Renderer = struct {
         ) Properties {
             return .{
                 .name = if (props.get(c.SDL_PROP_RENDERER_NAME_STRING)) |val| val.string else null,
-                .window = if (props.get(c.SDL_PROP_RENDERER_WINDOW_POINTER)) |val| (.{ .value = if (val.pointer) |val2| .{ .value = @alignCast(@ptrCast(val2)) } else null }) else null,
-                .render_surface = if (props.get(c.SDL_PROP_RENDERER_SURFACE_POINTER)) |val| (.{ .value = if (val.pointer) |val2| .{ .value = @alignCast(@ptrCast(val2)) } else null }) else null,
+                .window = if (props.get(c.SDL_PROP_RENDERER_WINDOW_POINTER)) |val| (.{ .value = if (val.pointer) |val2| .{ .value = @ptrCast(@alignCast(val2)) } else null }) else null,
+                .render_surface = if (props.get(c.SDL_PROP_RENDERER_SURFACE_POINTER)) |val| (.{ .value = if (val.pointer) |val2| .{ .value = @ptrCast(@alignCast(val2)) } else null }) else null,
                 .vsync = if (props.get(c.SDL_PROP_RENDERER_VSYNC_NUMBER)) |val| .{ .value = video.VSync.fromSdl(@intCast(val.number)) } else null,
                 .max_texture_size = if (props.get(c.SDL_PROP_RENDERER_MAX_TEXTURE_SIZE_NUMBER)) |val| @intCast(val.number) else null,
-                .formats = if (props.get(c.SDL_PROP_RENDERER_TEXTURE_FORMATS_POINTER)) |val| .{ .value = @alignCast(@ptrCast(val.pointer)) } else null,
+                .formats = if (props.get(c.SDL_PROP_RENDERER_TEXTURE_FORMATS_POINTER)) |val| .{ .value = @ptrCast(@alignCast(val.pointer)) } else null,
                 .output_colorspace = if (props.get(c.SDL_PROP_RENDERER_OUTPUT_COLORSPACE_NUMBER)) |val| pixels.Colorspace.fromSdl(@intCast(val.number)) else null,
                 .hdr_enabled = if (props.get(c.SDL_PROP_RENDERER_HDR_ENABLED_BOOLEAN)) |val| val.boolean else null,
                 .sdr_white_point = if (props.get(c.SDL_PROP_RENDERER_SDR_WHITE_POINT_FLOAT)) |val| val.float else null,
@@ -194,7 +194,7 @@ pub const Renderer = struct {
                 .vulkan_graphics_queue_family_index = if (props.get(c.SDL_PROP_RENDERER_VULKAN_GRAPHICS_QUEUE_FAMILY_INDEX_NUMBER)) |val| val.number else null,
                 .vulkan_present_queue_family_index = if (props.get(c.SDL_PROP_RENDERER_VULKAN_PRESENT_QUEUE_FAMILY_INDEX_NUMBER)) |val| val.number else null,
                 .vulkan_swapchain_image_count = if (props.get(c.SDL_PROP_RENDERER_VULKAN_SWAPCHAIN_IMAGE_COUNT_NUMBER)) |val| val.number else null,
-                .gpu_device = if (props.get(c.SDL_PROP_RENDERER_GPU_DEVICE_POINTER)) |val| (.{ .value = if (val.pointer) |val2| .{ .value = @alignCast(@ptrCast(val2)) } else null }) else null,
+                .gpu_device = if (props.get(c.SDL_PROP_RENDERER_GPU_DEVICE_POINTER)) |val| (.{ .value = if (val.pointer) |val2| .{ .value = @ptrCast(@alignCast(val2)) } else null }) else null,
             };
         }
     };
@@ -3289,7 +3289,7 @@ pub fn getDriverName(
 ///
 /// ## Version
 /// This function is available since SDL 3.2.0.
-pub fn numDrivers() usize {
+pub fn getNumDrivers() usize {
     const ret = c.SDL_GetNumRenderDrivers();
     return @intCast(ret);
 }
