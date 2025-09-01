@@ -31,68 +31,6 @@ const AppState = struct {
     tree_tex: sdl3.render.Texture,
 };
 
-/// An example function to handle errors from SDL.
-///
-/// ## Function Parameters
-/// * `err`: A slice to an error message, or `null` if the error message is not known.
-///
-/// ## Remarks
-/// Remember that the error callback is thread-local, thus you need to set it for each thread!
-fn sdlErr(
-    err: ?[]const u8,
-) void {
-    if (err) |val| {
-        std.debug.print("******* [Error! {s}] *******\n", .{val});
-    } else {
-        std.debug.print("******* [Unknown Error!] *******\n", .{});
-    }
-}
-
-/// An example function to log with SDL.
-///
-/// ## Function Parameters
-/// * `user_data`: User data provided to the logging function.
-/// * `category`: Which category SDL is logging under, for example "video".
-/// * `priority`: Which priority the log message is.
-/// * `message`: Actual message to log. This should not be `null`.
-fn sdlLog(
-    user_data: ?*void,
-    category: ?sdl3.log.Category,
-    priority: ?sdl3.log.Priority,
-    message: [:0]const u8,
-) void {
-    _ = user_data;
-    const category_str: ?[]const u8 = if (category) |val| switch (val) {
-        .application => "Application",
-        .errors => "Errors",
-        .assert => "Assert",
-        .system => "System",
-        .audio => "Audio",
-        .video => "Video",
-        .render => "Render",
-        .input => "Input",
-        .testing => "Testing",
-        .gpu => "Gpu",
-        else => null,
-    } else null;
-    const priority_str: [:0]const u8 = if (priority) |val| switch (val) {
-        .trace => "Trace",
-        .verbose => "Verbose",
-        .debug => "Debug",
-        .info => "Info",
-        .warn => "Warn",
-        .err => "Error",
-        .critical => "Critical",
-    } else "Unknown";
-    if (category_str) |val| {
-        std.debug.print("[{s}:{s}] {s}\n", .{ val, priority_str, message });
-    } else if (category) |val| {
-        std.debug.print("[Custom_{d}:{s}] {s}\n", .{ @intFromEnum(val), priority_str, message });
-    } else {
-        std.debug.print("Unknown:{s}] {s}\n", .{ priority_str, message });
-    }
-}
-
 /// Do our initialization logic here.
 ///
 /// ## Function Parameters
@@ -114,9 +52,9 @@ pub fn init(
     _ = args;
 
     // Setup logging.
-    sdl3.errors.error_callback = &sdlErr;
+    sdl3.errors.error_callback = &sdl3.extras.sdlErrZigLog;
     sdl3.log.setAllPriorities(.info);
-    sdl3.log.setLogOutputFunction(void, &sdlLog, null);
+    sdl3.log.setLogOutputFunction(void, &sdl3.extras.sdlLogZigLog, null);
 
     try log_app.logInfo("Starting application...", .{});
 
