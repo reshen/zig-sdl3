@@ -100,7 +100,8 @@ pub fn main() !void {
     // Useful for limiting the FPS and getting the delta time.
     var fps_capper = sdl3.extras.FramerateCapper(f32){ .mode = .{ .limited = fps } };
 
-    while (true) {
+    var quit = false;
+    while (!quit) {
 
         // Delay to limit the FPS, returned delta time not needed.
         const dt = fps_capper.delay();
@@ -112,10 +113,10 @@ pub fn main() !void {
         try window.updateSurface();
 
         // Event logic.
-        if (sdl3.events.poll()) |event|
+        while (sdl3.events.poll()) |event|
             switch (event) {
-                .quit => break,
-                .terminating => break,
+                .quit => quit = true,
+                .terminating => quit = true,
                 else => {},
             };
     }

@@ -1,3 +1,5 @@
+const log = @import("log.zig");
+const std = @import("std");
 const timer = @import("timer.zig");
 
 /// Capper for keeping the framerate within a given range.
@@ -96,4 +98,147 @@ pub fn FramerateCapper(
             return 1 / (@as(Accuracy, @floatFromInt(@max(self.dt, 1))) / timer.nanoseconds_per_second);
         }
     };
+}
+
+/// An example function to handle errors from SDL in a debug print.
+///
+/// ## Function Parameters
+/// * `err`: A slice to an error message, or `null` if the error message is not known.
+///
+/// ## Remarks
+/// Remember that the error callback is thread-local, thus you need to set it for each thread!
+pub fn sdlErrDebugPrint(
+    err: ?[]const u8,
+) void {
+    if (err) |val| {
+        std.debug.print("******* [SDL3 Error! {s}] *******\n", .{val});
+    } else {
+        std.debug.print("******* [Unknown SDL3 Error!] *******\n", .{});
+    }
+}
+
+/// An example function to handle errors from SDL in a zig error log.
+///
+/// ## Function Parameters
+/// * `err`: A slice to an error message, or `null` if the error message is not known.
+///
+/// ## Remarks
+/// Remember that the error callback is thread-local, thus you need to set it for each thread!
+pub fn sdlErrZigLog(
+    err: ?[]const u8,
+) void {
+    if (err) |val| {
+        std.log.err("SDL3: [Error:General] {s}", .{val});
+    } else {
+        std.log.err("SDL3: [Error:Unknown]", .{});
+    }
+}
+
+/// An example function to log with SDL using debug prints.
+///
+/// ## Function Parameters
+/// * `user_data`: User data provided to the logging function.
+/// * `category`: Which category SDL is logging under, for example "video".
+/// * `priority`: Which priority the log message is.
+/// * `message`: Actual message to log. This should not be `null`.
+pub fn sdlLogDebugPrint(
+    user_data: ?*void,
+    category: ?log.Category,
+    priority: ?log.Priority,
+    message: [:0]const u8,
+) void {
+    _ = user_data;
+    const category_str: ?[]const u8 = if (category) |val| switch (val) {
+        .application => "Application",
+        .errors => "Errors",
+        .assert => "Assert",
+        .system => "System",
+        .audio => "Audio",
+        .video => "Video",
+        .render => "Render",
+        .input => "Input",
+        .testing => "Testing",
+        .gpu => "Gpu",
+        else => null,
+    } else null;
+    const priority_str: [:0]const u8 = if (priority) |val| switch (val) {
+        .trace => "Trace",
+        .verbose => "Verbose",
+        .debug => "Debug",
+        .info => "Info",
+        .warn => "Warn",
+        .err => "Error",
+        .critical => "Critical",
+    } else "Unknown";
+    if (category_str) |val| {
+        std.debug.print("[{s}:{s}] {s}\n", .{ val, priority_str, message });
+    } else if (category) |val| {
+        std.debug.print("[Custom_{d}:{s}] {s}\n", .{ @intFromEnum(val), priority_str, message });
+    } else {
+        std.debug.print("[Unknown:{s}] {s}\n", .{ priority_str, message });
+    }
+}
+
+/// An example function to log with SDL using zig log.
+///
+/// ## Function Parameters
+/// * `user_data`: User data provided to the logging function.
+/// * `category`: Which category SDL is logging under, for example "video".
+/// * `priority`: Which priority the log message is.
+/// * `message`: Actual message to log. This should not be `null`.
+pub fn sdlLogZigLog(
+    user_data: ?*void,
+    category: ?log.Category,
+    priority: ?log.Priority,
+    message: [:0]const u8,
+) void {
+    _ = user_data;
+    const category_str: ?[]const u8 = if (category) |val| switch (val) {
+        .application => "Application",
+        .errors => "Errors",
+        .assert => "Assert",
+        .system => "System",
+        .audio => "Audio",
+        .video => "Video",
+        .render => "Render",
+        .input => "Input",
+        .testing => "Testing",
+        .gpu => "Gpu",
+        else => null,
+    } else null;
+    const priority_str: [:0]const u8 = if (priority) |val| switch (val) {
+        .trace => "Trace",
+        .verbose => "Verbose",
+        .debug => "Debug",
+        .info => "Info",
+        .warn => "Warn",
+        .err => "Error",
+        .critical => "Critical",
+    } else "Unknown";
+    const pri = priority orelse .info;
+    if (category_str) |val| {
+        const fmt = "SDL3: [{s}:{s}] {s}";
+        switch (pri) {
+            .err, .critical => std.log.err(fmt, .{ val, priority_str, message }),
+            .warn => std.log.warn(fmt, .{ val, priority_str, message }),
+            .info => std.log.info(fmt, .{ val, priority_str, message }),
+            else => std.log.debug(fmt, .{ val, priority_str, message }),
+        }
+    } else if (category) |val| {
+        const fmt = "SDL3: [Custom_{d}:{s}] {s}";
+        switch (pri) {
+            .err, .critical => std.log.err(fmt, .{ val, priority_str, message }),
+            .warn => std.log.warn(fmt, .{ val, priority_str, message }),
+            .info => std.log.info(fmt, .{ val, priority_str, message }),
+            else => std.log.debug(fmt, .{ val, priority_str, message }),
+        }
+    } else {
+        const fmt = "SDL3: [Unknown:{s}] {s}";
+        switch (pri) {
+            .err, .critical => std.log.err(fmt, .{ priority_str, message }),
+            .warn => std.log.warn(fmt, .{ priority_str, message }),
+            .info => std.log.info(fmt, .{ priority_str, message }),
+            else => std.log.debug(fmt, .{ priority_str, message }),
+        }
+    }
 }
